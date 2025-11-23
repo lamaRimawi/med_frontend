@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
 
@@ -14,8 +14,7 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> with TickerProviderStateMixin {
   final PageController _pageController = PageController();
   int _currentPage = 0;
-  bool _isSkipHovered = false;
-  bool _isButtonHovered = false;
+
   bool _isSkipPressed = false;
   bool _isButtonPressed = false;
 
@@ -25,21 +24,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
       title: 'Scan & Upload Reports',
       description:
           'Quickly capture your medical documents, lab results, and prescriptions with your camera. Upload PDFs or images in seconds to your secure digital vault.',
-      gradient: const [Color(0xFFE0F7FA), Color(0xFFB2EBF2)],
+      gradient: const [Color(0xFFE3F2FD), Color(0xFFBBDEFB)],
     ),
     OnboardingData(
       image: 'assets/images/onboarding2.png',
       title: 'Extract Key Information',
       description:
           'Our smart AI automatically extracts important details like dates, diagnoses, medications, and test results. No more manual data entry required.',
-      gradient: const [Color(0xFFB2EBF2), Color(0xFFC5CAE9)],
+      gradient: const [Color(0xFFE3F2FD), Color(0xFFBBDEFB)],
     ),
     OnboardingData(
       image: 'assets/images/onboarding3.png',
       title: 'Track Your Health Journey',
       description:
           'View your complete medical timeline in one place. Share reports securely with doctors, family, or healthcare providers whenever needed.',
-      gradient: const [Color(0xFFC5CAE9), Color(0xFFD1C4E9)],
+      gradient: const [Color(0xFFE3F2FD), Color(0xFFBBDEFB)],
     ),
   ];
 
@@ -56,12 +55,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
         curve: Curves.easeInOut,
       );
     } else {
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/login');
     }
   }
 
   void _onSkipPressed() {
-    Navigator.pushReplacementNamed(context, '/home');
+    Navigator.pushReplacementNamed(context, '/login');
   }
 
   @override
@@ -101,7 +100,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
                               color: _isSkipPressed
-                                  ? const Color(0xFF00BBD3).withValues(alpha: 0.2)
+                                  ? const Color(0xFF39A4E6).withValues(alpha: 0.2)
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -111,7 +110,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                                 AnimatedDefaultTextStyle(
                                   duration: const Duration(milliseconds: 150),
                                   style: GoogleFonts.openSans(
-                                    color: const Color(0xFF00BBD3),
+                                    color: const Color(0xFF39A4E6),
                                     fontSize: _isSkipPressed ? 17 : 16,
                                     fontWeight: FontWeight.w600,
                                     letterSpacing: 0.5,
@@ -128,7 +127,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                                   ),
                                   child: Icon(
                                     Icons.arrow_forward,
-                                    color: const Color(0xFF00BBD3),
+                                    color: const Color(0xFF39A4E6),
                                     size: _isSkipPressed ? 20 : 18,
                                   ),
                                 ),
@@ -184,12 +183,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                             height: 8,
                             width: isActive ? 32 : 8,
                             decoration: BoxDecoration(
-                              color: isActive ? const Color(0xFF00BBD3) : Colors.grey.shade300,
+                              color: isActive ? const Color(0xFF39A4E6) : Colors.grey.shade300,
                               borderRadius: BorderRadius.circular(4),
                               boxShadow: isActive
                                   ? [
                                       BoxShadow(
-                                        color: const Color(0xFF00BBD3).withValues(alpha: 0.5),
+                                        color: const Color(0xFF39A4E6).withValues(alpha: 0.5),
                                         blurRadius: 8,
                                         spreadRadius: 2,
                                       ),
@@ -216,18 +215,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                         duration: const Duration(milliseconds: 150),
                         width: double.infinity,
                         height: 56,
-                        transform: Matrix4.identity()
-                          ..scale(_isButtonPressed ? 0.98 : 1.0),
+                        transform: Matrix4.diagonal3Values(
+                          _isButtonPressed ? 0.98 : 1.0,
+                          _isButtonPressed ? 0.98 : 1.0,
+                          1.0,
+                        ),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: _isButtonPressed
-                                ? [const Color(0xFF2DD4CB), const Color(0xFF00AAC3)]
-                                : [const Color(0xFF33E4DB), const Color(0xFF00BBD3)],
+                                ? [const Color(0xFF2B8FD9), const Color(0xFF1B7AC9)]
+                                : [const Color(0xFF39A4E6), const Color(0xFF2B8FD9)],
                           ),
                           borderRadius: BorderRadius.circular(28),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF00BBD3).withValues(
+                              color: const Color(0xFF39A4E6).withValues(
                                 alpha: _isButtonPressed ? 0.7 : 0.4,
                               ),
                               blurRadius: _isButtonPressed ? 35 : 20,
@@ -276,8 +278,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  const Color(0xFF33E4DB).withValues(alpha: 0.4),
-                  const Color(0xFF00BBD3).withValues(alpha: 0.1),
+                  const Color(0xFF39A4E6).withValues(alpha: 0.4),
+                  const Color(0xFF2B8FD9).withValues(alpha: 0.1),
                   Colors.transparent,
                 ],
               ),
@@ -299,8 +301,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  const Color(0xFF00BBD3).withValues(alpha: 0.4),
-                  const Color(0xFF33E4DB).withValues(alpha: 0.1),
+                  const Color(0xFF39A4E6).withValues(alpha: 0.4),
+                  const Color(0xFF2B8FD9).withValues(alpha: 0.1),
                   Colors.transparent,
                 ],
               ),
@@ -340,7 +342,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
           height: 64,
           decoration: BoxDecoration(
             border: Border.all(
-              color: const Color(0xFF00BBD3).withValues(alpha: 0.2),
+              color: const Color(0xFF39A4E6).withValues(alpha: 0.2),
               width: 2,
             ),
             borderRadius: BorderRadius.circular(12),
@@ -359,7 +361,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
           height: 48,
           decoration: BoxDecoration(
             border: Border.all(
-              color: const Color(0xFF33E4DB).withValues(alpha: 0.2),
+              color: const Color(0xFF39A4E6).withValues(alpha: 0.2),
               width: 2,
             ),
             borderRadius: BorderRadius.circular(14),
@@ -394,7 +396,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
 
   List<Widget> _buildAnimatedDots() {
     return List.generate(12, (i) {
-      final random = math.Random(i);
+
       return Positioned(
         top: (i * 27) % 100 / 100 * MediaQuery.of(context).size.height,
         left: (i * 43) % 100 / 100 * MediaQuery.of(context).size.width,
@@ -402,7 +404,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
           width: 8,
           height: 8,
           decoration: BoxDecoration(
-            color: const Color(0xFF00BBD3).withValues(alpha: 0.2),
+            color: const Color(0xFF39A4E6).withValues(alpha: 0.2),
             shape: BoxShape.circle,
           ),
         )
@@ -441,7 +443,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
         child: Icon(
           Icons.add,
           size: 32,
-          color: const Color(0xFF00BBD3).withValues(alpha: 0.15),
+          color: const Color(0xFF39A4E6).withValues(alpha: 0.15),
         )
             .animate(onPlay: (controller) => controller.repeat(reverse: true))
             .moveY(
@@ -508,7 +510,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        const Color(0xFF33E4DB).withValues(alpha: 0.4),
+                        const Color(0xFF39A4E6).withValues(alpha: 0.4),
                         Colors.transparent,
                       ],
                     ),
@@ -522,7 +524,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        const Color(0xFF00BBD3).withValues(alpha: 0.4),
+                        const Color(0xFF39A4E6).withValues(alpha: 0.4),
                         Colors.transparent,
                       ],
                     ),
@@ -536,7 +538,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        const Color(0xFF33E4DB).withValues(alpha: 0.4),
+                        const Color(0xFF39A4E6).withValues(alpha: 0.4),
                         Colors.transparent,
                       ],
                     ),
@@ -580,8 +582,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
                   colors: [
-                    const Color(0xFF33E4DB).withValues(alpha: 0.4),
-                    const Color(0xFF00BBD3).withValues(alpha: 0.4),
+                    const Color(0xFF39A4E6).withValues(alpha: 0.4),
+                    const Color(0xFF2B8FD9).withValues(alpha: 0.4),
                   ],
                 ),
               ),
@@ -610,7 +612,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF33E4DB), Color(0xFF00BBD3)],
+              colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
             ),
             borderRadius: BorderRadius.circular(40),
           ),
@@ -626,7 +628,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [Color(0xFF33E4DB), Color(0xFF00BBD3)],
+                      colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
                     ),
                     borderRadius: BorderRadius.circular(40 + value * 20),
                   ),
@@ -676,8 +678,8 @@ class _OnboardingPage extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF33E4DB).withValues(alpha: 0.2),
-                      const Color(0xFF00BBD3).withValues(alpha: 0.2),
+                      const Color(0xFF39A4E6).withValues(alpha: 0.2),
+                      const Color(0xFF2B8FD9).withValues(alpha: 0.2),
                       Colors.transparent,
                     ],
                   ),
@@ -727,7 +729,7 @@ class _OnboardingPage extends StatelessWidget {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: Color(0xFF00BBD3),
+                      color: Color(0xFF39A4E6),
                       shape: BoxShape.circle,
                     ),
                   )
@@ -764,7 +766,7 @@ class _OnboardingPage extends StatelessWidget {
             style: GoogleFonts.openSans(
               fontSize: 30,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF00BBD3),
+              color: const Color(0xFF39A4E6),
               letterSpacing: 0.3,
               height: 1.3,
             ),
@@ -782,7 +784,7 @@ class _OnboardingPage extends StatelessWidget {
               .shimmer(
                 delay: const Duration(milliseconds: 800),
                 duration: const Duration(milliseconds: 1500),
-                color: const Color(0xFF00BBD3).withValues(alpha: 0.3),
+                color: const Color(0xFF39A4E6).withValues(alpha: 0.3),
               ),
 
           const SizedBox(height: 16),

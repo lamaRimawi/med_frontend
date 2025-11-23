@@ -21,8 +21,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
 
-    // Navigate to onboarding screen after 5 seconds
-    Future.delayed(const Duration(seconds: 6), () {
+    // Navigate to onboarding screen after 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/onboarding');
       }
@@ -44,9 +44,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF33E4DB),
-              Color(0xFF1DD1C9),
-              Color(0xFF00BBD3),
+              Color(0xFF39A4E6),
+              Color(0xFF2B8FD9),
+              Color(0xFF1B7AC9),
             ],
           ),
         ),
@@ -75,8 +75,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             shape: BoxShape.circle,
                             gradient: RadialGradient(
                               colors: [
-                                const Color(0xFF00BBD3).withValues(alpha: 0.0),
-                                const Color(0xFF00BBD3).withValues(alpha: 0.25),
+                                const Color(0xFF39A4E6).withValues(alpha: 0.0),
+                                const Color(0xFF39A4E6).withValues(alpha: 0.25),
                               ],
                             ),
                           ),
@@ -89,7 +89,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             ),
 
                         // Rotating Dashed Ring
-                        Container(
+                        SizedBox(
                           width: 200,
                           height: 200,
                           child: CustomPaint(
@@ -113,7 +113,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF00BBD3).withValues(alpha: 0.4),
+                                color: const Color(0xFF39A4E6).withValues(alpha: 0.4),
                                 blurRadius: 45,
                                 spreadRadius: 8,
                               ),
@@ -142,7 +142,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: const Color(0xFF00BBD3).withValues(alpha: 0.4),
+                              color: const Color(0xFF39A4E6).withValues(alpha: 0.4),
                               width: 3,
                             ),
                           ),
@@ -163,7 +163,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF00BBD3).withValues(alpha: 0.3),
+                                color: const Color(0xFF39A4E6).withValues(alpha: 0.3),
                                 blurRadius: 20,
                                 spreadRadius: 5,
                               ),
@@ -211,7 +211,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF00BBD3).withValues(alpha: 0.3),
+                          color: const Color(0xFF39A4E6).withValues(alpha: 0.3),
                           blurRadius: 20,
                           spreadRadius: 2,
                         ),
@@ -471,7 +471,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             spreadRadius: 4,
           ),
           BoxShadow(
-            color: const Color(0xFF00BBD3).withValues(alpha: 0.4),
+            color: const Color(0xFF39A4E6).withValues(alpha: 0.4),
             blurRadius: 10,
             spreadRadius: 2,
           ),
