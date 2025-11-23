@@ -1,0 +1,1687 @@
+[ +454 ms] Artifact Instance of 'MaterialFonts' is not required, skipping update.
+[   +2 ms] Artifact Instance of 'GradleWrapper' is not required, skipping update.
+[        ] Artifact Instance of 'AndroidGenSnapshotArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'AndroidInternalBuildArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterWebSdk' is not required, skipping update.
+[   +2 ms] Artifact Instance of 'LegacyCanvasKitRemover' is not required, skipping update.
+[   +1 ms] Artifact Instance of 'FlutterSdk' is not required, skipping update.
+[        ] Artifact Instance of 'WindowsEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerDebugSymbols' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FontSubsetArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'PubDependencies' is not required, skipping update.
+[ +248 ms] Artifact Instance of 'AndroidGenSnapshotArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'AndroidInternalBuildArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterWebSdk' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterEngineStamp' is not required, skipping update.
+[        ] Artifact Instance of 'LegacyCanvasKitRemover' is not required, skipping update.
+[   +6 ms] Artifact Instance of 'WindowsEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerDebugSymbols' is not required, skipping update.
+[ +120 ms] executing: C:\Users\Lama\AppData\Local\Android\Sdk\platform-tools\adb.exe devices -l
+[ +168 ms] List of devices attached
+           emulator-5554          device product:sdk_gphone64_x86_64 model:sdk_gphone64_x86_64 device:emu64xa transport_id:1
+[  +14 ms] C:\Users\Lama\AppData\Local\Android\Sdk\platform-tools\adb.exe -s emulator-5554 shell getprop
+[ +214 ms] Artifact Instance of 'AndroidInternalBuildArtifacts' is not required, skipping update.
+[   +1 ms] Artifact Instance of 'IOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterWebSdk' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterEngineStamp' is not required, skipping update.
+[        ] Artifact Instance of 'LegacyCanvasKitRemover' is not required, skipping update.
+[   +4 ms] Artifact Instance of 'WindowsEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerDebugSymbols' is not required, skipping update.
+[ +312 ms] executing: [C:\Users\Lama\medical_front/] C:\flutter_windows_3.32.7-stable\flutter\bin\cache\dart-sdk\bin\dart pub --suppress-analytics --directory . get --example
+Resolving dependencies...
+Downloading packages...
+  characters 1.4.0 (1.4.1 available)
+  flutter_lints 5.0.0 (6.0.0 available)
+  lints 5.1.1 (6.0.0 available)
+  matcher 0.12.17 (0.12.18 available)
+  material_color_utilities 0.11.1 (0.13.0 available)
+  meta 1.16.0 (1.17.0 available)
+  test_api 0.7.6 (0.7.8 available)
+Got dependencies!
+7 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+[+1760 ms] Skipping generating web_plugin_registrant.dart because it is up-to-date.
+[ +132 ms] Generating C:\Users\Lama\medical_front\android\app\src\main\java\io\flutter\plugins\GeneratedPluginRegistrant.java
+[  +16 ms] Skipping generating GeneratedPluginRegistrant.java because it is up-to-date.
+[   +9 ms] Skipping generating generated_plugin_registrant.h because it is up-to-date.
+[   +3 ms] Skipping generating generated_plugin_registrant.cc because it is up-to-date.
+[   +6 ms] Skipping generating generated_plugins.cmake because it is up-to-date.
+[   +5 ms] Skipping generating generated_plugin_registrant.h because it is up-to-date.
+[   +3 ms] Skipping generating generated_plugin_registrant.cc because it is up-to-date.
+[   +4 ms] Skipping generating generated_plugins.cmake because it is up-to-date.
+[   +5 ms] Skipping generating GeneratedPluginRegistrant.h because it is up-to-date.
+[   +4 ms] Skipping generating GeneratedPluginRegistrant.m because it is up-to-date.
+[   +4 ms] Skipping generating GeneratedPluginRegistrant.swift because it is up-to-date.
+[ +142 ms] ro.hardware = ranchu
+[ +208 ms] Initializing file store
+[  +39 ms] Skipping target: gen_localizations
+[  +12 ms] gen_dart_plugin_registrant: Starting due to {InvalidatedReasonKind.inputChanged: The following inputs have updated contents: C:\Users\Lama\medical_front\.dart_tool\package_config.json}
+[ +262 ms] gen_dart_plugin_registrant: Complete
+[  +14 ms] _composite: Starting due to {}
+[   +1 ms] _composite: Complete
+[  +14 ms] complete
+[  +24 ms] Launching lib\main.dart on sdk gphone64 x86 64 in debug mode...
+[  +12 ms] C:\flutter_windows_3.32.7-stable\flutter\bin\cache\dart-sdk\bin\dartaotruntime.exe C:\flutter_windows_3.32.7-stable\flutter\bin\cache\dart-sdk\bin\snapshots\frontend_server_aot.dart.snapshot --sdk-root C:\flutter_windows_3.32.7-stable\flutter\bin\cache\artifacts\engine\common\flutter_patched_sdk/ --incremental --target=flutter --experimental-emit-debug-metadata -DFLUTTER_VERSION=3.35.5 -DFLUTTER_CHANNEL=stable -DFLUTTER_GIT_URL=https://github.com/flutter/flutter.git -DFLUTTER_FRAMEWORK_REVISION=ac4e799d23 -DFLUTTER_ENGINE_REVISION=d3d45dcf25 -DFLUTTER_DART_VERSION=3.9.2 --output-dill C:\Users\Lama\AppData\Local\Temp\flutter_tools.aff0fdfc\flutter_tool.2c3cc5a4\app.dill --packages C:\Users\Lama\medical_front\.dart_tool\package_config.json -Ddart.vm.profile=false -Ddart.vm.product=false --enable-asserts --track-widget-creation --filesystem-scheme org-dartlang-root --initialize-from-dill build\210bad4901163cba762d02a4a1c86c00.cache.dill.track.dill --verbosity=error --enable-experiment=alternative-invalidation-strategy
+[  +42 ms] executing: C:\Users\Lama\AppData\Local\Android\Sdk\platform-tools\adb.exe -s emulator-5554 shell -x logcat -v time -t 1
+[  +33 ms] <- compile package:health_track/main.dart
+[ +325 ms] --------- beginning of main
+           11-23 11:41:32.276 D/SatelliteController( 3730): iisInCarrierRoamingNbIotNtn: satellite is disabled
+[  +26 ms] executing: C:\Users\Lama\AppData\Local\Android\Sdk\platform-tools\adb.exe version
+[ +120 ms] Android Debug Bridge version 1.0.41
+           Version 36.0.0-13206524
+           Installed as C:\Users\Lama\AppData\Local\Android\Sdk\platform-tools\adb.exe
+           Running on Windows 10.0.26200
+[   +4 ms] executing: C:\Users\Lama\AppData\Local\Android\Sdk\platform-tools\adb.exe start-server
+[ +140 ms] Building APK
+[  +27 ms] executing: C:\Program Files\Android\Android Studio\jbr\bin\java -version
+[ +369 ms] Exit code 0 from: C:\Program Files\Android\Android Studio\jbr\bin\java -version
+[        ] openjdk version "21.0.6" 2025-01-21
+           OpenJDK Runtime Environment (build 21.0.6+-13391695-b895.109)
+           OpenJDK 64-Bit Server VM (build 21.0.6+-13391695-b895.109, mixed mode)
+[  +23 ms] Top-level Gradle build file not found, skipping migration of task "clean".
+[   +5 ms] executing: C:\Program Files\Android\Android Studio\jbr\bin\java --version
+[ +399 ms] Exit code 0 from: C:\Program Files\Android\Android Studio\jbr\bin\java --version
+[        ] openjdk 21.0.6 2025-01-21
+           OpenJDK Runtime Environment (build 21.0.6+-13391695-b895.109)
+           OpenJDK 64-Bit Server VM (build 21.0.6+-13391695-b895.109, mixed mode)
+[   +6 ms] Version of Java is different than impacted version, no migration attempted.
+[  +35 ms] CMake project not found, skipping support Android 15 16k page size migration.
+[  +19 ms] Using gradle from C:\Users\Lama\medical_front\android\gradlew.bat.
+[ +137 ms] LocalFile: 'C:\Users\Lama\medical_front\android\build.gradle.kts' doesn't provide an AGP version. Checking settings.
+[  +23 ms] LocalFile: 'C:\Users\Lama\medical_front\android\settings.gradle.kts' provides AGP version: 8.9.1
+[  +41 ms] Running Gradle task 'assembleDebug'...
+[   +2 ms] executing: [C:\Users\Lama\medical_front\android/] C:\Users\Lama\medical_front\android\gradlew.bat --full-stacktrace --info -Pverbose=true -Ptarget-platform=android-x64 -Ptarget=C:\Users\Lama\medical_front\lib\main.dart -Pbase-application-name=android.app.Application -Pdart-defines=RkxVVFRFUl9WRVJTSU9OPTMuMzUuNQ==,RkxVVFRFUl9DSEFOTkVMPXN0YWJsZQ==,RkxVVFRFUl9HSVRfVVJMPWh0dHBzOi8vZ2l0aHViLmNvbS9mbHV0dGVyL2ZsdXR0ZXIuZ2l0,RkxVVFRFUl9GUkFNRVdPUktfUkVWSVNJT049YWM0ZTc5OWQyMw==,RkxVVFRFUl9FTkdJTkVfUkVWSVNJT049ZDNkNDVkY2YyNQ==,RkxVVFRFUl9EQVJUX1ZFUlNJT049My45LjI= -Pdart-obfuscation=false -Ptrack-widget-creation=true -Ptree-shake-icons=false -Pfilesystem-scheme=org-dartlang-root assembleDebug
+[+2331 ms] Initialized native services in: C:\Users\Lama\.gradle\native
+[   +1 ms] Initialized jansi services in: C:\Users\Lama\.gradle\native
+[ +828 ms] Found daemon DaemonInfo{pid=3000, address=[deb8a989-0db0-48d8-a1cf-aeb824e802f2 port:55469, addresses:[/127.0.0.1]], state=Idle, lastBusy=1763897777500, context=DefaultDaemonContext[uid=da8de93a-54b7-4401-b119-021329b47cf6,javaHome=C:\Program Files\Amazon Corretto\jdk17.0.16_8,javaVersion=17,javaVendor=Amazon.com Inc.,daemonRegistryDir=C:\Users\Lama\.gradle\daemon,pid=3000,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-XX:MaxMetaspaceSize=4G,-XX:ReservedCodeCacheSize=512m,-XX:+HeapDumpOnOutOfMemoryError,-Xmx8G,-Dfile.encoding=UTF-8,-Duser.country=US,-Duser.language=en,-Duser.variant]} however its context does not match the desired criteria.
+[        ] JVM is incompatible.
+[   +1 ms] Wanted: DaemonRequestContext{jvmCriteria=C:\Program Files\Android\Android Studio\jbr (no JDK specified, using current Java home), daemonOpts=[-XX:MaxMetaspaceSize=4G, -XX:ReservedCodeCacheSize=512m, -XX:+HeapDumpOnOutOfMemoryError, -Xmx8G, -Dfile.encoding=UTF-8, -Duser.country=US, -Duser.language=en, -Duser.variant], applyInstrumentationAgent=true, nativeServicesMode=ENABLED, priority=NORMAL}
+[        ] Actual: DefaultDaemonContext[uid=da8de93a-54b7-4401-b119-021329b47cf6,javaHome=C:\Program Files\Amazon Corretto\jdk17.0.16_8,javaVersion=17,javaVendor=Amazon.com Inc.,daemonRegistryDir=C:\Users\Lama\.gradle\daemon,pid=3000,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-XX:MaxMetaspaceSize=4G,-XX:ReservedCodeCacheSize=512m,-XX:+HeapDumpOnOutOfMemoryError,-Xmx8G,-Dfile.encoding=UTF-8,-Duser.country=US,-Duser.language=en,-Duser.variant]
+[   +1 ms]   Looking for a different daemon...
+[ +196 ms] The client will now receive all logging from the daemon (pid: 7240). The daemon log file: C:\Users\Lama\.gradle\daemon\8.12\daemon-7240.out.log
+[        ] Starting 11th build in daemon [uptime: 20 mins 13.216 secs, performance: 100%, GC rate: 0.00/s, heap usage: 0% of 8 GiB, non-heap usage: 5% of 4 GiB]
+[        ] Using 12 worker leases.
+[        ] Now considering [C:\Users\Lama\medical_front\android, C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle] as hierarchies to watch
+[        ] Watching the file system is configured to be enabled if available
+[        ] File system watching is active
+[        ] Starting Build
+[  +89 ms] Now considering [C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle, C:\Users\Lama\medical_front\android] as hierarchies to watch
+[ +299 ms] > Configure project :gradle
+[        ] Evaluating project ':gradle' using build file 'C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\build.gradle.kts'.
+[        ] Resolved plugin [id: 'org.gradle.java-gradle-plugin']
+[        ] Resolved plugin [id: 'org.gradle.groovy']
+[   +1 ms] Resolved plugin [id: 'org.gradle.kotlin.kotlin-dsl', version: '5.1.2']
+[   +1 ms] Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '1.9.20']
+[        ] Using Kotlin Gradle Plugin gradle85 variant
+[        ] kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+[        ] kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+[        ] file or directory 'C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\java', not found
+[        ] Resolved plugin [id: 'dev.flutter.flutter-plugin-loader', version: '1.0.0']
+[        ] Resolved plugin [id: 'com.android.application', version: '8.9.1', apply: false]
+[        ] Resolved plugin [id: 'org.jetbrains.kotlin.android', version: '2.1.0', apply: false]
+[        ] Resolve mutations for :gradle:checkKotlinGradlePluginConfigurationErrors (Thread[#1425,Execution worker,5,main]) started.
+[        ] :gradle:checkKotlinGradlePluginConfigurationErrors (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[        ] > Task :gradle:checkKotlinGradlePluginConfigurationErrors SKIPPED
+[        ] Skipping task ':gradle:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+[        ] Resolve mutations for :gradle:compileKotlin (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[        ] :gradle:compileKotlin (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[ +186 ms] > Task :gradle:compileKotlin UP-TO-DATE
+[        ] Caching disabled for task ':gradle:compileKotlin' because:
+[        ]   Build cache is disabled
+[        ] Skipping task ':gradle:compileKotlin' as it is up-to-date.
+[        ] Resolve mutations for :gradle:compileJava (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[        ] :gradle:compileJava (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[        ] > Task :gradle:compileJava NO-SOURCE
+[        ] Skipping task ':gradle:compileJava' as it has no source files and no previous output files.
+[        ] Resolve mutations for :gradle:compileGroovy (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[        ] :gradle:compileGroovy (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[   +1 ms] > Task :gradle:compileGroovy NO-SOURCE
+[        ] Skipping task ':gradle:compileGroovy' as it has no source files and no previous output files.
+[        ] Resolve mutations for :gradle:pluginDescriptors (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[        ] :gradle:pluginDescriptors (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[        ] > Task :gradle:pluginDescriptors UP-TO-DATE
+[        ] Caching disabled for task ':gradle:pluginDescriptors' because:
+[        ]   Build cache is disabled
+[        ]   Not worth caching
+[        ] Skipping task ':gradle:pluginDescriptors' as it is up-to-date.
+[        ] Resolve mutations for :gradle:processResources (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[        ] :gradle:processResources (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[        ] > Task :gradle:processResources UP-TO-DATE
+[        ] Caching disabled for task ':gradle:processResources' because:
+[        ]   Build cache is disabled
+[        ]   Not worth caching
+[        ] Skipping task ':gradle:processResources' as it is up-to-date.
+[        ] Resolve mutations for :gradle:classes (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[        ] :gradle:classes (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[        ] > Task :gradle:classes UP-TO-DATE
+[        ] Skipping task ':gradle:classes' as it has no actions.
+[        ] Resolve mutations for :gradle:jar (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[        ] :gradle:jar (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[        ] > Task :gradle:jar UP-TO-DATE
+[        ] Caching disabled for task ':gradle:jar' because:
+[        ]   Build cache is disabled
+[        ]   Not worth caching
+[        ] Skipping task ':gradle:jar' as it is up-to-date.
+[ +277 ms] Settings evaluated using settings file 'C:\Users\Lama\medical_front\android\settings.gradle.kts'.
+[ +108 ms] Projects loaded. Root project using build file 'C:\Users\Lama\medical_front\android\build.gradle.kts'.
+[   +1 ms] Included projects: [root project 'android', project ':app']
+[ +498 ms] > Configure project :app
+[        ] Evaluating project ':app' using build file 'C:\Users\Lama\medical_front\android\app\build.gradle.kts'.
+[        ] Resolved plugin [id: 'com.android.application']
+[        ] Resolved plugin [id: 'kotlin-android']
+[        ] Resolved plugin [id: 'dev.flutter.flutter-gradle-plugin']
+[        ] Using default execution profile
+[        ] Using Kotlin Gradle Plugin gradle85 variant
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[   +1 ms] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] > Configure project :
+[        ] Evaluating root project 'android' using build file 'C:\Users\Lama\medical_front\android\build.gradle.kts'.
+[        ] All projects evaluated.
+[        ] Task name matched 'assembleDebug'
+[        ] Selected primary task 'assembleDebug' from project :
+[  +48 ms] Adding -Xuse-inline-scopes-numbers Kotlin compiler flag for task :app:compileDebugKotlin
+[   +1 ms] Tasks to be executed: [task ':app:DebugMinSdkCheck', task ':app:preBuild', task ':app:preDebugBuild', task ':app:mergeDebugNativeDebugMetadata', task ':app:checkKotlinGradlePluginConfigurationErrors', task ':app:compileFlutterBuildDebug', task ':app:packJniLibsflutterBuildDebug', task ':app:checkDebugAarMetadata', task ':app:cleanMergeDebugAssets', task ':app:mergeDebugShaders', task ':app:compileDebugShaders', task ':app:generateDebugAssets', task ':app:mergeDebugAssets', task ':app:copyFlutterAssetsDebug', task ':app:generateDebugResValues', task ':app:mapDebugSourceSetPaths', task ':app:generateDebugResources', task ':app:mergeDebugResources', task ':app:packageDebugResources', task ':app:parseDebugLocalResources', task ':app:createDebugCompatibleScreenManifests', task ':app:extractDeepLinksDebug', task ':app:processDebugMainManifest', task ':app:processDebugManifest', task ':app:processDebugManifestForPackage', task ':app:processDebugResources', task ':app:compileDebugKotlin', task ':app:javaPreCompileDebug', task ':app:compileDebugJavaWithJavac', task ':app:compressDebugAssets', task ':app:processDebugJavaRes', task ':app:mergeDebugJavaResource', task ':app:checkDebugDuplicateClasses', task ':app:desugarDebugFileDependencies', task ':app:mergeExtDexDebug', task ':app:mergeLibDexDebug', task ':app:dexBuilderDebug', task ':app:mergeProjectDexDebug', task ':app:configureCMakeDebug[arm64-v8a]', task ':app:buildCMakeDebug[arm64-v8a]', task ':app:configureCMakeDebug[armeabi-v7a]', task ':app:buildCMakeDebug[armeabi-v7a]', task ':app:configureCMakeDebug[x86_64]', task ':app:buildCMakeDebug[x86_64]', task ':app:mergeDebugJniLibFolders', task ':app:mergeDebugNativeLibs', task ':app:stripDebugDebugSymbols', task ':app:validateSigningDebug', task ':app:writeDebugAppMetadata', task ':app:writeDebugSigningConfigVersions', task ':app:packageDebug', task ':app:createDebugApkListingFileRedirect', task ':app:assembleDebug']
+[   +1 ms] Tasks that were excluded: []
+[        ] Resolve mutations for :app:DebugMinSdkCheck (Thread[#1435,Execution worker Thread 11,5,main]) started.
+[        ] :app:DebugMinSdkCheck (Thread[#1435,Execution worker Thread 11,5,main]) started.
+[        ] > Task :app:DebugMinSdkCheck
+[        ] Caching disabled for task ':app:DebugMinSdkCheck' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:DebugMinSdkCheck' is not up-to-date because:
+[        ]   Task has not declared any outputs despite executing actions.
+[        ] Resolve mutations for :app:preBuild (Thread[#1435,Execution worker Thread 11,5,main]) started.
+[        ] :app:preBuild (Thread[#1433,Execution worker Thread 9,5,main]) started.
+[   +1 ms] > Task :app:preBuild UP-TO-DATE
+[        ] Skipping task ':app:preBuild' as it has no actions.
+[        ] Resolve mutations for :app:preDebugBuild (Thread[#1433,Execution worker Thread 9,5,main]) started.
+[        ] :app:preDebugBuild (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] > Task :app:preDebugBuild UP-TO-DATE
+[        ] Skipping task ':app:preDebugBuild' as it has no actions.
+[        ] Resolve mutations for :app:mergeDebugNativeDebugMetadata (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:mergeDebugNativeDebugMetadata (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] > Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+[        ] Skipping task ':app:mergeDebugNativeDebugMetadata' as it has no source files and no previous output files.
+[        ] Resolve mutations for :app:checkKotlinGradlePluginConfigurationErrors (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:checkKotlinGradlePluginConfigurationErrors (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] > Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+[        ] Skipping task ':app:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+[        ] Resolve mutations for :app:compileFlutterBuildDebug (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:compileFlutterBuildDebug (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[+1988 ms] > Task :app:compileFlutterBuildDebug
+[        ] Caching disabled for task ':app:compileFlutterBuildDebug' because:
+[        ]   Build cache is disabled
+[   +1 ms]   Caching has not been enabled for the task
+[   +1 ms] Task ':app:compileFlutterBuildDebug' is not up-to-date because:
+[        ]   Value of input property 'verbose' has changed for task ':app:compileFlutterBuildDebug'
+[   +1 ms] Starting process 'command 'C:\flutter_windows_3.32.7-stable\flutter\bin\flutter.bat''. Working directory: C:\Users\Lama\medical_front Command: C:\flutter_windows_3.32.7-stable\flutter\bin\flutter.bat --verbose assemble --no-version-check --depfile C:\Users\Lama\medical_front\build\app\intermediates\flutter\debug/flutter_build.d --output C:\Users\Lama\medical_front\build\app\intermediates\flutter\debug -dTargetFile=C:\Users\Lama\medical_front\lib\main.dart -dTargetPlatform=android -dBuildMode=debug -dTrackWidgetCreation=true --DartDefines=RkxVVFRFUl9WRVJTSU9OPTMuMzUuNQ==,RkxVVFRFUl9DSEFOTkVMPXN0YWJsZQ==,RkxVVFRFUl9HSVRfVVJMPWh0dHBzOi8vZ2l0aHViLmNvbS9mbHV0dGVyL2ZsdXR0ZXIuZ2l0,RkxVVFRFUl9GUkFNRVdPUktfUkVWSVNJT049YWM0ZTc5OWQyMw==,RkxVVFRFUl9FTkdJTkVfUkVWSVNJT049ZDNkNDVkY2YyNQ==,RkxVVFRFUl9EQVJUX1ZFUlNJT049My45LjI= -dFlavor= -dAndroidArchs=android-x64 -dMinSdkVersion=24 debug_android_application
+[   +1 ms] Successfully started process 'command 'C:\flutter_windows_3.32.7-stable\flutter\bin\flutter.bat''
+[+1696 ms] [ +472 ms] Artifact Instance of 'MaterialFonts' is not required, skipping update.
+[        ] [   +3 ms] Artifact Instance of 'GradleWrapper' is not required, skipping update.
+[   +1 ms] [        ] Artifact Instance of 'AndroidGenSnapshotArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'AndroidInternalBuildArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'IOSEngineArtifacts' is not required, skipping update.
+[   +1 ms] [        ] Artifact Instance of 'FlutterWebSdk' is not required, skipping update.
+[        ] [   +3 ms] Artifact Instance of 'LegacyCanvasKitRemover' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'FlutterSdk' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'WindowsEngineArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'MacOSEngineArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'LinuxEngineArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'LinuxFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'MacOSFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'FlutterRunnerSDKArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'FlutterRunnerDebugSymbols' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'FontSubsetArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'PubDependencies' is not required, skipping update.
+[        ] [  +39 ms] Artifact Instance of 'AndroidGenSnapshotArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'AndroidInternalBuildArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'IOSEngineArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'FlutterWebSdk' is not required, skipping update.
+[        ] [   +1 ms] Artifact Instance of 'FlutterEngineStamp' is not required, skipping update.
+[        ] [   +1 ms] Artifact Instance of 'LegacyCanvasKitRemover' is not required, skipping update.
+[   +1 ms] [  +10 ms] Artifact Instance of 'WindowsEngineArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'MacOSEngineArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'LinuxEngineArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'LinuxFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'MacOSFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'FlutterRunnerSDKArtifacts' is not required, skipping update.
+[   +1 ms] [        ] Artifact Instance of 'FlutterRunnerDebugSymbols' is not required, skipping update.
+[ +272 ms] [ +216 ms] Artifact Instance of 'MaterialFonts' is not required, skipping update.
+[   +1 ms] [        ] Artifact Instance of 'GradleWrapper' is not required, skipping update.
+[        ] [   +8 ms] Artifact Instance of 'AndroidInternalBuildArtifacts' is not required, skipping update.
+[   +1 ms] [        ] Artifact Instance of 'IOSEngineArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'FlutterWebSdk' is not required, skipping update.
+[   +1 ms] [        ] Artifact Instance of 'FlutterEngineStamp' is not required, skipping update.
+[   +1 ms] [        ] Artifact Instance of 'LegacyCanvasKitRemover' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'FlutterSdk' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'WindowsEngineArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'MacOSEngineArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'LinuxEngineArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'LinuxFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'MacOSFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'FlutterRunnerSDKArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'FlutterRunnerDebugSymbols' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] [   +1 ms] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[   +1 ms] [        ] Artifact Instance of 'FontSubsetArtifacts' is not required, skipping update.
+[        ] [        ] Artifact Instance of 'PubDependencies' is not required, skipping update.
+[ +185 ms] [ +173 ms] Initializing file store
+[        ] [  +61 ms] Skipping target: gen_localizations
+[        ] [   +8 ms] gen_dart_plugin_registrant: Starting due to {InvalidatedReasonKind.inputChanged: The following inputs have updated contents: C:\Users\Lama\medical_front\.dart_tool\package_config.json}
+[        ] [  +11 ms] dart_build: Starting due to {}
+[ +296 ms] [ +228 ms] No packages with native assets. Skipping native assets compilation.
+[        ] [  +14 ms] dart_build: Complete
+[        ] [  +17 ms] install_code_assets: Starting due to {}
+[        ] [   +8 ms] Writing native assets json to file:///C:/Users/Lama/medical_front/.dart_tool/flutter_build/d01971c3832a9159c3a5fa75a6488d7f/native_assets.json.
+[        ] [  +34 ms] Writing C:\Users\Lama\medical_front\.dart_tool\flutter_build\d01971c3832a9159c3a5fa75a6488d7f\native_assets.json done.
+[ +105 ms] [   +5 ms] install_code_assets: Complete
+[  +95 ms] [ +143 ms] gen_dart_plugin_registrant: Complete
+[        ] [  +10 ms] kernel_snapshot_program: Starting due to {}
+[        ] [  +36 ms] C:\flutter_windows_3.32.7-stable\flutter\bin\cache\dart-sdk\bin\dartaotruntime.exe C:\flutter_windows_3.32.7-stable\flutter\bin\cache\dart-sdk\bin\snapshots\frontend_server_aot.dart.snapshot --sdk-root C:\flutter_windows_3.32.7-stable\flutter\bin\cache\artifacts\engine\common\flutter_patched_sdk/ --target=flutter --no-print-incremental-dependencies -DFLUTTER_VERSION=3.35.5 -DFLUTTER_CHANNEL=stable -DFLUTTER_GIT_URL=https://github.com/flutter/flutter.git -DFLUTTER_FRAMEWORK_REVISION=ac4e799d23 -DFLUTTER_ENGINE_REVISION=d3d45dcf25 -DFLUTTER_DART_VERSION=3.9.2 -DFLUTTER_APP_FLAVOR= -Ddart.vm.profile=false -Ddart.vm.product=false --enable-asserts --track-widget-creation --no-link-platform --packages C:\Users\Lama\medical_front\.dart_tool\package_config.json --output-dill C:\Users\Lama\medical_front\.dart_tool\flutter_build\d01971c3832a9159c3a5fa75a6488d7f\app.dill --depfile C:\Users\Lama\medical_front\.dart_tool\flutter_build\d01971c3832a9159c3a5fa75a6488d7f\kernel_snapshot_program.d --incremental --initialize-from-dill C:\Users\Lama\medical_front\.dart_tool\flutter_build\d01971c3832a9159c3a5fa75a6488d7f\app.dill --verbosity=error package:health_track/main.dart
+[+17895 ms] [+17844 ms] kernel_snapshot_program: Complete
+[+2103 ms] [+2120 ms] debug_android_application: Starting due to {}
+[ +296 ms] [ +295 ms] Manifest contained wildcard assets. Inserting missing file into build graph to force rerun. for more information see #56466.
+[        ] [  +28 ms] shaderc command: [C:\flutter_windows_3.32.7-stable\flutter\bin\cache\artifacts\engine\windows-x64\impellerc.exe, --sksl, --runtime-stage-gles, --runtime-stage-gles3, --runtime-stage-vulkan, --iplr, --sl=C:\Users\Lama\medical_front\build\app\intermediates\flutter\debug\flutter_assets\shaders/ink_sparkle.frag, --spirv=C:\Users\Lama\medical_front\build\app\intermediates\flutter\debug\flutter_assets\shaders/ink_sparkle.frag.spirv, --input=C:\flutter_windows_3.32.7-stable\flutter\packages\flutter\lib\src\material\shaders\ink_sparkle.frag, --input-type=frag, --include=C:\flutter_windows_3.32.7-stable\flutter\packages\flutter\lib\src\material\shaders, --include=C:\flutter_windows_3.32.7-stable\flutter\bin\cache\artifacts\engine\windows-x64\shader_lib]
+[+2300 ms] [+2295 ms] debug_android_application: Complete
+[+1709 ms] [+1730 ms] Persisting file store
+[  +94 ms] [  +22 ms] Done persisting file store
+[        ] [  +37 ms] build succeeded.
+[        ] [  +23 ms] "flutter assemble" took 25,438ms.
+[ +309 ms] [ +269 ms] Running 1 shutdown hook
+[        ] [   +1 ms] Shutdown hooks complete
+[ +294 ms] [ +259 ms] exiting with code 0
+[ +295 ms] Resolve mutations for :app:packJniLibsflutterBuildDebug (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:packJniLibsflutterBuildDebug (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[ +107 ms] > Task :app:packJniLibsflutterBuildDebug
+[   +1 ms] Caching disabled for task ':app:packJniLibsflutterBuildDebug' because:
+[        ]   Build cache is disabled
+[        ]   Not worth caching
+[        ] Task ':app:packJniLibsflutterBuildDebug' is not up-to-date because:
+[        ]   Output property 'archiveFile' file C:\Users\Lama\medical_front\build\app\intermediates\flutter\debug\libs.jar has been removed.
+[        ] file or directory 'C:\Users\Lama\medical_front\build\app\intermediates\flutter\debug\x86_64', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\build\native_assets\android\jniLibs\lib\x86_64', not found
+[   +1 ms] Resolve mutations for :app:checkDebugAarMetadata (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:checkDebugAarMetadata (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[  +87 ms] Resolve mutations for :app:cleanMergeDebugAssets (Thread[#1424,included builds,5,main]) started.
+[   +1 ms] :app:cleanMergeDebugAssets (Thread[#1424,included builds,5,main]) started.
+[        ] > Task :app:cleanMergeDebugAssets UP-TO-DATE
+[        ] Caching disabled for task ':app:cleanMergeDebugAssets' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:cleanMergeDebugAssets' is not up-to-date because:
+[        ]   Task has not declared any outputs despite executing actions.
+[        ] Resolve mutations for :app:mergeDebugShaders (Thread[#1424,included builds,5,main]) started.
+[        ] :app:mergeDebugShaders (Thread[#1424,included builds,5,main]) started.
+[        ] > Task :app:checkDebugAarMetadata
+[        ] Caching disabled for task ':app:checkDebugAarMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:checkDebugAarMetadata' is not up-to-date because:
+[        ]   Output property 'dummyOutputDirectory' file C:\Users\Lama\medical_front\build\app\intermediates\aar_metadata_check\debug\checkDebugAarMetadata has been removed.
+[        ] > Task :app:mergeDebugShaders
+[        ] Caching disabled for task ':app:mergeDebugShaders' because:
+[        ]   Build cache is disabled
+[        ]   Simple merging task
+[        ] Task ':app:mergeDebugShaders' is not up-to-date because:
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\merged_shaders\debug\mergeDebugShaders\out has been removed.
+[        ] The input changes require a full rebuild for incremental task ':app:mergeDebugShaders'.
+[        ] Resolve mutations for :app:compileDebugShaders (Thread[#1424,included builds,5,main]) started.
+[        ] :app:compileDebugShaders (Thread[#1424,included builds,5,main]) started.
+[        ] > Task :app:compileDebugShaders NO-SOURCE
+[        ] Skipping task ':app:compileDebugShaders' as it has no source files and no previous output files.
+[        ] Resolve mutations for :app:generateDebugAssets (Thread[#1424,included builds,5,main]) started.
+[        ] :app:generateDebugAssets (Thread[#1424,included builds,5,main]) started.
+[        ] > Task :app:generateDebugAssets UP-TO-DATE
+[        ] Skipping task ':app:generateDebugAssets' as it has no actions.
+[        ] Resolve mutations for :app:mergeDebugAssets (Thread[#1424,included builds,5,main]) started.
+[        ] :app:mergeDebugAssets (Thread[#1424,included builds,5,main]) started.
+[        ] > Task :app:mergeDebugAssets
+[        ] Caching disabled for task ':app:mergeDebugAssets' because:
+[        ]   Build cache is disabled
+[        ]   Simple merging task
+[        ] Task ':app:mergeDebugAssets' is not up-to-date because:
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\assets\debug\mergeDebugAssets has been removed.
+[        ] The input changes require a full rebuild for incremental task ':app:mergeDebugAssets'.
+[        ] Resolve mutations for :app:copyFlutterAssetsDebug (Thread[#1424,included builds,5,main]) started.
+[        ] :app:copyFlutterAssetsDebug (Thread[#1424,included builds,5,main]) started.
+[ +974 ms] > Task :app:copyFlutterAssetsDebug
+[        ] Caching disabled for task ':app:copyFlutterAssetsDebug' because:
+[        ]   Build cache is disabled
+[        ]   Not worth caching
+[        ] Task ':app:copyFlutterAssetsDebug' is not up-to-date because:
+[        ]   Output property 'destinationDir' file C:\Users\Lama\medical_front\build\app\intermediates\assets\debug\mergeDebugAssets\flutter_assets has been removed.
+[        ]   Output property 'destinationDir' file C:\Users\Lama\medical_front\build\app\intermediates\assets\debug\mergeDebugAssets\flutter_assets\AssetManifest.bin has been removed.
+[        ]   Output property 'destinationDir' file C:\Users\Lama\medical_front\build\app\intermediates\assets\debug\mergeDebugAssets\flutter_assets\AssetManifest.json has been removed.
+[        ]   and more...
+[        ] Resolve mutations for :app:generateDebugResValues (Thread[#1424,included builds,5,main]) started.
+[   +1 ms] :app:generateDebugResValues (Thread[#1424,included builds,5,main]) started.
+[        ] > Task :app:generateDebugResValues
+[        ] Caching disabled for task ':app:generateDebugResValues' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:generateDebugResValues' is not up-to-date because:
+[        ]   Output property 'outputDirectory' file C:\Users\Lama\medical_front\build\app\generated\res\resValues\debug has been removed.
+[        ] Resolve mutations for :app:mapDebugSourceSetPaths (Thread[#1424,included builds,5,main]) started.
+[        ] :app:mapDebugSourceSetPaths (Thread[#1424,included builds,5,main]) started.
+[        ] > Task :app:mapDebugSourceSetPaths
+[        ] Caching disabled for task ':app:mapDebugSourceSetPaths' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:mapDebugSourceSetPaths' is not up-to-date because:
+[        ]   Output property 'filepathMappingFile' file C:\Users\Lama\medical_front\build\app\intermediates\source_set_path_map\debug\mapDebugSourceSetPaths\file-map.txt has been removed.
+[        ] Resolve mutations for :app:generateDebugResources (Thread[#1424,included builds,5,main]) started.
+[        ] :app:generateDebugResources (Thread[#1424,included builds,5,main]) started.
+[        ] > Task :app:generateDebugResources
+[        ] Caching disabled for task ':app:generateDebugResources' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:generateDebugResources' is not up-to-date because:
+[        ]   Output property 'validationReportFile' file C:\Users\Lama\medical_front\build\app\intermediates\nested_resources_validation_report\debug\generateDebugResources\nestedResourcesValidationReport.txt has been removed.
+[        ] Resolve mutations for :app:mergeDebugResources (Thread[#1424,included builds,5,main]) started.
+[        ] :app:mergeDebugResources (Thread[#1424,included builds,5,main]) started.
+[+1026 ms] Resolve mutations for :app:packageDebugResources (Thread[#1433,Execution worker Thread 9,5,main]) started.
+[   +1 ms] :app:packageDebugResources (Thread[#1433,Execution worker Thread 9,5,main]) started.
+[ +167 ms] > Task :app:packageDebugResources
+[        ] Caching disabled for task ':app:packageDebugResources' because:
+[        ]   Build cache is disabled
+[   +1 ms] Task ':app:packageDebugResources' is not up-to-date because:
+[        ]   Output property 'dataBindingLayoutInfoOutFolder' file C:\Users\Lama\medical_front\build\app\intermediates\data_binding_layout_info_type_package\debug\packageDebugResources\out has been removed.
+[        ]   Output property 'incrementalFolder' file C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\packageDebugResources has been removed.
+[        ]   Output property 'incrementalFolder' file C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\packageDebugResources\compile-file-map.properties has been removed.
+[        ]   and more...
+[        ] The input changes require a full rebuild for incremental task ':app:packageDebugResources'.
+[        ] [MergeResources] Inputs are non-incremental full task action.
+[        ] Resolve mutations for :app:parseDebugLocalResources (Thread[#1433,Execution worker Thread 9,5,main]) started.
+[        ] :app:parseDebugLocalResources (Thread[#1433,Execution worker Thread 9,5,main]) started.
+[        ] Resolve mutations for :app:createDebugCompatibleScreenManifests (Thread[#1427,Execution worker Thread 3,5,main]) started.
+[        ] :app:createDebugCompatibleScreenManifests (Thread[#1427,Execution worker Thread 3,5,main]) started.
+[        ] > Task :app:createDebugCompatibleScreenManifests
+[        ] Caching disabled for task ':app:createDebugCompatibleScreenManifests' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:createDebugCompatibleScreenManifests' is not up-to-date because:
+[        ]   Output property 'outputFolder' file C:\Users\Lama\medical_front\build\app\intermediates\compatible_screen_manifest\debug\createDebugCompatibleScreenManifests has been removed.
+[        ]   Output property 'outputFolder' file C:\Users\Lama\medical_front\build\app\intermediates\compatible_screen_manifest\debug\createDebugCompatibleScreenManifests\output-metadata.json has been removed.
+[        ] Resolve mutations for :app:extractDeepLinksDebug (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:extractDeepLinksDebug (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] > Task :app:extractDeepLinksDebug
+[        ] Caching disabled for task ':app:extractDeepLinksDebug' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:extractDeepLinksDebug' is not up-to-date because:
+[        ]   Output property 'navigationJson' file C:\Users\Lama\medical_front\build\app\intermediates\navigation_json\debug\extractDeepLinksDebug\navigation.json has been removed.
+[        ] Resolve mutations for :app:processDebugMainManifest (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:processDebugMainManifest (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] > Task :app:parseDebugLocalResources
+[        ] Caching disabled for task ':app:parseDebugLocalResources' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:parseDebugLocalResources' is not up-to-date because:
+[   +1 ms]   Output property 'librarySymbolsFile' file C:\Users\Lama\medical_front\build\app\intermediates\local_only_symbol_list\debug\parseDebugLocalResources\R-def.txt has been removed.
+[        ] The input changes require a full rebuild for incremental task ':app:parseDebugLocalResources'.
+[  +79 ms] > Task :app:mergeDebugResources
+[        ] Caching disabled for task ':app:mergeDebugResources' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:mergeDebugResources' is not up-to-date because:
+[        ]   Output property 'blameLogOutputFolder' file C:\Users\Lama\medical_front\build\app\intermediates\merged_res_blame_folder\debug\mergeDebugResources\out has been removed.
+[        ]   Output property 'blameLogOutputFolder' file C:\Users\Lama\medical_front\build\app\intermediates\merged_res_blame_folder\debug\mergeDebugResources\out\multi-v2 has been removed.
+[        ]   Output property 'blameLogOutputFolder' file C:\Users\Lama\medical_front\build\app\intermediates\merged_res_blame_folder\debug\mergeDebugResources\out\multi-v2\mergeDebugResources.json has been removed.
+[        ]   and more...
+[        ] The input changes require a full rebuild for incremental task ':app:mergeDebugResources'.
+[        ] [MergeResources] Inputs are non-incremental full task action.
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values\values.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values_values.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-hi\values-hi.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-hi_values-hi.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-lo\values-lo.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-lo_values-lo.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-de\values-de.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-de_values-de.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-ml\values-ml.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-ml_values-ml.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-mn\values-mn.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-mn_values-mn.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-mk\values-mk.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-mk_values-mk.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-it\values-it.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-it_values-it.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-my\values-my.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-my_values-my.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-is\values-is.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-is_values-is.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-lt\values-lt.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-lt_values-lt.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-v21\values-v21.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-v21_values-v21.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-pt\values-pt.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-pt_values-pt.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-nb\values-nb.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-nb_values-nb.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-es-rUS\values-es-rUS.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-es-rUS_values-es-rUS.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-fr-rCA\values-fr-rCA.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-fr-rCA_values-fr-rCA.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-be\values-be.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-be_values-be.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-hr\values-hr.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-hr_values-hr.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-iw\values-iw.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-iw_values-iw.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-sk\values-sk.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-sk_values-sk.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-ur\values-ur.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-ur_values-ur.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-af\values-af.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-af_values-af.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-uz\values-uz.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-uz_values-uz.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-fi\values-fi.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-fi_values-fi.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-ne\values-ne.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-ne_values-ne.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-gl\values-gl.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-gl_values-gl.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-b+sr+Latn\values-b+sr+Latn.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-b+sr+Latn_values-b+sr+Latn.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-zh-rHK\values-zh-rHK.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-zh-rHK_values-zh-rHK.arsc.flat
+[   +1 ms] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-am\values-am.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-am_values-am.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-en-rIN\values-en-rIN.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-en-rIN_values-en-rIN.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-ja\values-ja.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-ja_values-ja.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-zh-rCN\values-zh-rCN.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-zh-rCN_values-zh-rCN.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-tr\values-tr.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-tr_values-tr.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-sl\values-sl.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-sl_values-sl.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-vi\values-vi.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-vi_values-vi.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-hy\values-hy.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-hy_values-hy.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-en-rXC\values-en-rXC.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-en-rXC_values-en-rXC.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-ms\values-ms.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-ms_values-ms.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-bg\values-bg.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-bg_values-bg.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-nl\values-nl.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-nl_values-nl.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-night-v8\values-night-v8.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-night-v8_values-night-v8.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-ta\values-ta.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-ta_values-ta.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-el\values-el.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-el_values-el.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-sr\values-sr.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-sr_values-sr.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-eu\values-eu.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-eu_values-eu.arsc.flat
+[   +1 ms] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-uk\values-uk.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-uk_values-uk.arsc.flat
+[   +1 ms] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-pt-rBR\values-pt-rBR.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-pt-rBR_values-pt-rBR.arsc.flat
+[   +1 ms] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-ar\values-ar.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-ar_values-ar.arsc.flat
+[   +1 ms] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-zu\values-zu.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-zu_values-zu.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-ka\values-ka.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-ka_values-ka.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-en-rAU\values-en-rAU.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-en-rAU_values-en-rAU.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-fa\values-fa.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-fa_values-fa.arsc.flat
+[        ] Compiling image file C:\Users\Lama\medical_front\android\app\src\main\res\mipmap-xxhdpi\ic_launcher.png
+[        ] Compiling file C:\Users\Lama\medical_front\android\app\src\main\res\mipmap-xxhdpi\ic_launcher.png to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\mipmap-xxhdpi_ic_launcher.png.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-bs\values-bs.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-bs_values-bs.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-sw\values-sw.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-sw_values-sw.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-zh-rTW\values-zh-rTW.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-zh-rTW_values-zh-rTW.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-lv\values-lv.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-lv_values-lv.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-pl\values-pl.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-pl_values-pl.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-as\values-as.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-as_values-as.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-hu\values-hu.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-hu_values-hu.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-kn\values-kn.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-kn_values-kn.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-en-rCA\values-en-rCA.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-en-rCA_values-en-rCA.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-ro\values-ro.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-ro_values-ro.arsc.flat
+[   +1 ms] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-pa\values-pa.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-pa_values-pa.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-or\values-or.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-or_values-or.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-en-rGB\values-en-rGB.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-en-rGB_values-en-rGB.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-mr\values-mr.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-mr_values-mr.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-th\values-th.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-th_values-th.arsc.flat
+[        ] Compiling image file C:\Users\Lama\medical_front\android\app\src\main\res\mipmap-xxxhdpi\ic_launcher.png
+[        ] Compiling file C:\Users\Lama\medical_front\android\app\src\main\res\mipmap-xxxhdpi\ic_launcher.png to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\mipmap-xxxhdpi_ic_launcher.png.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-sv\values-sv.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-sv_values-sv.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-ca\values-ca.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-ca_values-ca.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-in\values-in.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-in_values-in.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-et\values-et.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-et_values-et.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-tl\values-tl.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-tl_values-tl.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-ru\values-ru.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-ru_values-ru.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-si\values-si.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-si_values-si.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-gu\values-gu.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-gu_values-gu.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-es\values-es.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-es_values-es.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-pt-rPT\values-pt-rPT.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-pt-rPT_values-pt-rPT.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-sq\values-sq.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-sq_values-sq.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-ko\values-ko.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-ko_values-ko.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-az\values-az.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-az_values-az.arsc.flat
+[        ] Compiling image file C:\Users\Lama\medical_front\android\app\src\main\res\mipmap-hdpi\ic_launcher.png
+[        ] Compiling file C:\Users\Lama\medical_front\android\app\src\main\res\mipmap-hdpi\ic_launcher.png to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\mipmap-hdpi_ic_launcher.png.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-bn\values-bn.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-bn_values-bn.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-ky\values-ky.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-ky_values-ky.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-da\values-da.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-da_values-da.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-fr\values-fr.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-fr_values-fr.arsc.flat
+[   +1 ms] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-km\values-km.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-km_values-km.arsc.flat
+[        ] Compiling image file C:\Users\Lama\medical_front\android\app\src\main\res\mipmap-xhdpi\ic_launcher.png
+[        ] Compiling file C:\Users\Lama\medical_front\android\app\src\main\res\mipmap-xhdpi\ic_launcher.png to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\mipmap-xhdpi_ic_launcher.png.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-te\values-te.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-te_values-te.arsc.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-kk\values-kk.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-kk_values-kk.arsc.flat
+[        ] Compiling xml file C:\Users\Lama\medical_front\android\app\src\main\res\drawable-v21\launch_background.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\drawable-v21_launch_background.xml.flat
+[        ] Compiling XML table C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir\values-cs\values-cs.xml to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\values-cs_values-cs.arsc.flat
+[        ] Compiling image file C:\Users\Lama\medical_front\android\app\src\main\res\mipmap-mdpi\ic_launcher.png
+[        ] Compiling file C:\Users\Lama\medical_front\android\app\src\main\res\mipmap-mdpi\ic_launcher.png to C:\Users\Lama\medical_front\build\app\intermediates\merged_res\debug\mergeDebugResources\mipmap-mdpi_ic_launcher.png.flat
+[  +35 ms] > Task :app:processDebugMainManifest
+[        ] Caching disabled for task ':app:processDebugMainManifest' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:processDebugMainManifest' is not up-to-date because:
+[        ]   Output property 'mergeBlameFile' file C:\Users\Lama\medical_front\build\app\intermediates\manifest_merge_blame_file\debug\processDebugMainManifest\manifest-merger-blame-debug-report.txt has been removed.
+[        ]   Output property 'mergedManifest' file C:\Users\Lama\medical_front\build\app\intermediates\merged_manifest\debug\processDebugMainManifest\AndroidManifest.xml has been removed.
+[        ]   Output property 'reportFile' file C:\Users\Lama\medical_front\build\app\outputs\logs\manifest-merger-debug-report.txt has been removed.
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\7d4d4ce414a44a3730885ae01f2fb152\transformed\fragment-1.7.1\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\6ca1db17970615e3e029777992983e6b\transformed\jetified-window-1.2.0\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\bf65acc7f777a00d59a317272535c12d\transformed\jetified-window-java-1.2.0\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\4cf3214028424c9d85b548dd56ac3cf2\transformed\jetified-activity-1.8.1\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\7e78032489b765334547e61e6ea7aed3\transformed\loader-1.0.0\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\cc7fe6a7e987b9713215c3be18f59936\transformed\viewpager-1.0.0\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\d24b8272075e098c083ed9c95fc52958\transformed\jetified-lifecycle-livedata-core-ktx-2.7.0\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\ae506c879913254faf8ad4a868cb5691\transformed\lifecycle-livedata-2.7.0\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\444bb99b45d5f3093a14f2f3c82161dc\transformed\lifecycle-viewmodel-2.7.0\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\d6de01df90fa1cbbf544d2f267f1650c\transformed\lifecycle-livedata-core-2.7.0\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\47080e52f42fb85d5acc0d8bd39630dc\transformed\jetified-lifecycle-viewmodel-savedstate-2.7.0\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\364b6d67c783a7ef23e5e4907033002f\transformed\jetified-core-ktx-1.13.1\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\657debf020188ac0cc762afb07718e33\transformed\customview-1.0.0\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\b1eb6682c3f06d5937f76fce498ba76c\transformed\core-1.13.1\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\c225580ff9ba548683b0b22a7305e036\transformed\lifecycle-runtime-2.7.0\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\2c40b3605ce1f863a0ab38c5cd772a02\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\ed1f2a84141e93c19d75fdc67842bc1f\transformed\jetified-savedstate-1.2.1\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\38e3f381553bfb1e561f2f5b45f177d5\transformed\jetified-annotation-experimental-1.4.0\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\42d478d6013065b32538b12d3ef7b157\transformed\jetified-startup-runtime-1.1.1\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\f51db27e9bc46f3ecc6c36bd261e5748\transformed\jetified-tracing-1.2.0\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\2f86bb2847f8c1eeeb6a949d522eada3\transformed\core-runtime-2.2.0\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\ad54c48eb38304d58afae8e4a7584e91\transformed\versionedparcelable-1.1.1\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\e10bd6e0b3c29c24c447df1b19c41e12\transformed\interpolator-1.0.0\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\d51c9be43c7540b3db5b1d2f2e0cebbc\transformed\jetified-core-1.0.0\AndroidManifest.xml
+[        ] Loading library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\f19d59ee3776eb9cd1a214b3d04fe751\transformed\jetified-relinker-1.4.5\AndroidManifest.xml
+[        ] Merging flavors and build manifest C:\Users\Lama\medical_front\android\app\src\debug\AndroidManifest.xml 
+[        ] Merging main manifest C:\Users\Lama\medical_front\android\app\src\main\AndroidManifest.xml
+[        ] Merging manifest with lower AndroidManifest.xml:1:1-45:12
+[        ] Adopted [application: null]
+[        ] Adopted [queries: null]
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\7d4d4ce414a44a3730885ae01f2fb152\transformed\fragment-1.7.1\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.fragment:fragment:1.7.1] AndroidManifest.xml:2:1-7:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.fragment:fragment:1.7.1] AndroidManifest.xml:5:5-44
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\6ca1db17970615e3e029777992983e6b\transformed\jetified-window-1.2.0\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.window:window:1.2.0] AndroidManifest.xml:17:1-31:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.window:window:1.2.0] AndroidManifest.xml:20:5-44
+[        ] application defined in both files...
+[        ] Merging application with lower [androidx.window:window:1.2.0] AndroidManifest.xml:22:5-29:19
+[        ] Adopted [uses-library: null]
+[   +1 ms] Adopted [uses-library: null]
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\bf65acc7f777a00d59a317272535c12d\transformed\jetified-window-java-1.2.0\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.window:window-java:1.2.0] AndroidManifest.xml:17:1-21:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.window:window-java:1.2.0] AndroidManifest.xml:19:5-44
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\4cf3214028424c9d85b548dd56ac3cf2\transformed\jetified-activity-1.8.1\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.activity:activity:1.8.1] AndroidManifest.xml:17:1-22:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.activity:activity:1.8.1] AndroidManifest.xml:20:5-44
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\7e78032489b765334547e61e6ea7aed3\transformed\loader-1.0.0\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.loader:loader:1.0.0] AndroidManifest.xml:17:1-22:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.loader:loader:1.0.0] AndroidManifest.xml:20:5-44
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\cc7fe6a7e987b9713215c3be18f59936\transformed\viewpager-1.0.0\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.viewpager:viewpager:1.0.0] AndroidManifest.xml:17:1-22:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.viewpager:viewpager:1.0.0] AndroidManifest.xml:20:5-44
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\d24b8272075e098c083ed9c95fc52958\transformed\jetified-lifecycle-livedata-core-ktx-2.7.0\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.lifecycle:lifecycle-livedata-core-ktx:2.7.0] AndroidManifest.xml:2:1-7:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.lifecycle:lifecycle-livedata-core-ktx:2.7.0] AndroidManifest.xml:5:5-44
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\ae506c879913254faf8ad4a868cb5691\transformed\lifecycle-livedata-2.7.0\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.lifecycle:lifecycle-livedata:2.7.0] AndroidManifest.xml:17:1-22:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.lifecycle:lifecycle-livedata:2.7.0] AndroidManifest.xml:20:5-44
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\444bb99b45d5f3093a14f2f3c82161dc\transformed\lifecycle-viewmodel-2.7.0\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.lifecycle:lifecycle-viewmodel:2.7.0] AndroidManifest.xml:17:1-22:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.lifecycle:lifecycle-viewmodel:2.7.0] AndroidManifest.xml:20:5-44
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\d6de01df90fa1cbbf544d2f267f1650c\transformed\lifecycle-livedata-core-2.7.0\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.lifecycle:lifecycle-livedata-core:2.7.0] AndroidManifest.xml:17:1-22:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.lifecycle:lifecycle-livedata-core:2.7.0] AndroidManifest.xml:20:5-44
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\47080e52f42fb85d5acc0d8bd39630dc\transformed\jetified-lifecycle-viewmodel-savedstate-2.7.0\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.7.0] AndroidManifest.xml:17:1-22:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.7.0] AndroidManifest.xml:20:5-44
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\364b6d67c783a7ef23e5e4907033002f\transformed\jetified-core-ktx-1.13.1\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.core:core-ktx:1.13.1] AndroidManifest.xml:2:1-7:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.core:core-ktx:1.13.1] AndroidManifest.xml:5:5-44
+[   +1 ms] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\657debf020188ac0cc762afb07718e33\transformed\customview-1.0.0\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.customview:customview:1.0.0] AndroidManifest.xml:17:1-22:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.customview:customview:1.0.0] AndroidManifest.xml:20:5-44
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\b1eb6682c3f06d5937f76fce498ba76c\transformed\core-1.13.1\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.core:core:1.13.1] AndroidManifest.xml:17:1-30:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.core:core:1.13.1] AndroidManifest.xml:20:5-44
+[        ] Adopted [permission: null]
+[        ] Adopted [uses-permission: null]
+[        ] application defined in both files...
+[        ] Merging application with lower [androidx.core:core:1.13.1] AndroidManifest.xml:28:5-89
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\c225580ff9ba548683b0b22a7305e036\transformed\lifecycle-runtime-2.7.0\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.lifecycle:lifecycle-runtime:2.7.0] AndroidManifest.xml:2:1-7:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.lifecycle:lifecycle-runtime:2.7.0] AndroidManifest.xml:5:5-44
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\2c40b3605ce1f863a0ab38c5cd772a02\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.lifecycle:lifecycle-process:2.7.0] AndroidManifest.xml:17:1-35:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.lifecycle:lifecycle-process:2.7.0] AndroidManifest.xml:21:5-44
+[        ] application defined in both files...
+[        ] Merging application with lower [androidx.lifecycle:lifecycle-process:2.7.0] AndroidManifest.xml:23:5-33:19
+[        ] Adopted [provider: null]
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\ed1f2a84141e93c19d75fdc67842bc1f\transformed\jetified-savedstate-1.2.1\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.savedstate:savedstate:1.2.1] AndroidManifest.xml:17:1-22:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.savedstate:savedstate:1.2.1] AndroidManifest.xml:20:5-44
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\38e3f381553bfb1e561f2f5b45f177d5\transformed\jetified-annotation-experimental-1.4.0\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.annotation:annotation-experimental:1.4.0] AndroidManifest.xml:2:1-7:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.annotation:annotation-experimental:1.4.0] AndroidManifest.xml:5:5-44
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.profileinstaller:profileinstaller:1.3.1] AndroidManifest.xml:17:1-55:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.profileinstaller:profileinstaller:1.3.1] AndroidManifest.xml:21:5-44
+[   +1 ms] application defined in both files...
+[        ] Merging application with lower [androidx.profileinstaller:profileinstaller:1.3.1] AndroidManifest.xml:23:5-53:19
+[        ] provider#androidx.startup.InitializationProvider defined in both files...
+[        ] Merging provider#androidx.startup.InitializationProvider with lower [androidx.profileinstaller:profileinstaller:1.3.1] AndroidManifest.xml:24:9-32:20
+[        ] Adopted [meta-data: null]
+[        ] Adopted [receiver: null]
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\42d478d6013065b32538b12d3ef7b157\transformed\jetified-startup-runtime-1.1.1\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.startup:startup-runtime:1.1.1] AndroidManifest.xml:17:1-33:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.startup:startup-runtime:1.1.1] AndroidManifest.xml:21:5-23:41
+[        ] application defined in both files...
+[        ] Merging application with lower [androidx.startup:startup-runtime:1.1.1] AndroidManifest.xml:25:5-31:19
+[        ] provider#androidx.startup.InitializationProvider defined in both files...
+[        ] Merging provider#androidx.startup.InitializationProvider with lower [androidx.startup:startup-runtime:1.1.1] AndroidManifest.xml:26:9-30:34
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\f51db27e9bc46f3ecc6c36bd261e5748\transformed\jetified-tracing-1.2.0\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.tracing:tracing:1.2.0] AndroidManifest.xml:17:1-22:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.tracing:tracing:1.2.0] AndroidManifest.xml:20:5-44
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\2f86bb2847f8c1eeeb6a949d522eada3\transformed\core-runtime-2.2.0\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.arch.core:core-runtime:2.2.0] AndroidManifest.xml:17:1-22:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.arch.core:core-runtime:2.2.0] AndroidManifest.xml:20:5-44
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\ad54c48eb38304d58afae8e4a7584e91\transformed\versionedparcelable-1.1.1\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.versionedparcelable:versionedparcelable:1.1.1] AndroidManifest.xml:17:1-27:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.versionedparcelable:versionedparcelable:1.1.1] AndroidManifest.xml:20:5-22:41
+[        ] application defined in both files...
+[        ] Merging application with lower [androidx.versionedparcelable:versionedparcelable:1.1.1] AndroidManifest.xml:24:5-25:19
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\e10bd6e0b3c29c24c447df1b19c41e12\transformed\interpolator-1.0.0\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.interpolator:interpolator:1.0.0] AndroidManifest.xml:17:1-22:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.interpolator:interpolator:1.0.0] AndroidManifest.xml:20:5-44
+[        ] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\d51c9be43c7540b3db5b1d2f2e0cebbc\transformed\jetified-core-1.0.0\AndroidManifest.xml
+[        ] Merging manifest with lower [androidx.window.extensions.core:core:1.0.0] AndroidManifest.xml:2:1-7:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [androidx.window.extensions.core:core:1.0.0] AndroidManifest.xml:5:5-44
+[  +10 ms] Merging library manifest C:\Users\Lama\.gradle\caches\8.12\transforms\f19d59ee3776eb9cd1a214b3d04fe751\transformed\jetified-relinker-1.4.5\AndroidManifest.xml
+[   +5 ms] Merging manifest with lower [com.getkeepsafe.relinker:relinker:1.4.5] AndroidManifest.xml:2:1-7:12
+[        ] uses-sdk defined in both files...
+[        ] Merging uses-sdk with lower [com.getkeepsafe.relinker:relinker:1.4.5] AndroidManifest.xml:5:5-43
+[        ] Merging result: SUCCESS
+[        ] 1<?xml version="1.0" encoding="utf-8"?>
+[   +1 ms] 2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+[        ] 3    package="com.healthtrack.health_track"
+[        ] 4    android:versionCode="1"
+[        ] 5    android:versionName="1.0.0" >
+[        ] 6
+[        ] 7    <uses-sdk
+[        ] 8        android:minSdkVersion="24"
+[        ] 9        android:targetSdkVersion="36" />
+[        ] 10    <!--
+[        ] 11         The INTERNET permission is required for development. Specifically,
+[        ] 12         the Flutter tool needs it to communicate with the running application
+[        ] 13         to allow setting breakpoints, to provide hot reload, etc.
+[        ] 14    -->
+[        ] 15    <uses-permission android:name="android.permission.INTERNET" />
+[        ] 15-->C:\Users\Lama\medical_front\android\app\src\debug\AndroidManifest.xml:6:5-66
+[        ] 15-->C:\Users\Lama\medical_front\android\app\src\debug\AndroidManifest.xml:6:22-64
+[        ] 16    <!--
+[        ] 17     Required to query activities that can process text, see:
+[        ] 18         https://developer.android.com/training/package-visibility and
+[        ] 19         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
+[        ] 20
+[        ] 21         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin.
+[        ] 22    -->
+[        ] 23    <queries>
+[        ] 23-->C:\Users\Lama\medical_front\android\app\src\main\AndroidManifest.xml:39:5-44:15
+[        ] 24        <intent>
+[        ] 24-->C:\Users\Lama\medical_front\android\app\src\main\AndroidManifest.xml:40:9-43:18
+[        ] 25            <action android:name="android.intent.action.PROCESS_TEXT" />
+[        ] 25-->C:\Users\Lama\medical_front\android\app\src\main\AndroidManifest.xml:41:13-72
+[        ] 25-->C:\Users\Lama\medical_front\android\app\src\main\AndroidManifest.xml:41:21-70
+[        ] 26
+[        ] 27            <data android:mimeType="text/plain" />
+[        ] 27-->C:\Users\Lama\medical_front\android\app\src\main\AndroidManifest.xml:42:13-50
+[        ] 27-->C:\Users\Lama\medical_front\android\app\src\main\AndroidManifest.xml:42:19-48
+[        ] 28        </intent>
+[        ] 29    </queries>
+[        ] 30
+[        ] 31    <permission
+[        ] 31-->[androidx.core:core:1.13.1] C:\Users\Lama\.gradle\caches\8.12\transforms\b1eb6682c3f06d5937f76fce498ba76c\transformed\core-1.13.1\AndroidManifest.xml:22:5-24:47
+[        ] 32        android:name="com.healthtrack.health_track.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+[   +1 ms] 32-->[androidx.core:core:1.13.1] C:\Users\Lama\.gradle\caches\8.12\transforms\b1eb6682c3f06d5937f76fce498ba76c\transformed\core-1.13.1\AndroidManifest.xml:23:9-81
+[        ] 33        android:protectionLevel="signature" />
+[        ] 33-->[androidx.core:core:1.13.1] C:\Users\Lama\.gradle\caches\8.12\transforms\b1eb6682c3f06d5937f76fce498ba76c\transformed\core-1.13.1\AndroidManifest.xml:24:9-44
+[        ] 34
+[   +1 ms] 35    <uses-permission android:name="com.healthtrack.health_track.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+[        ] 35-->[androidx.core:core:1.13.1] C:\Users\Lama\.gradle\caches\8.12\transforms\b1eb6682c3f06d5937f76fce498ba76c\transformed\core-1.13.1\AndroidManifest.xml:26:5-97
+[        ] 35-->[androidx.core:core:1.13.1] C:\Users\Lama\.gradle\caches\8.12\transforms\b1eb6682c3f06d5937f76fce498ba76c\transformed\core-1.13.1\AndroidManifest.xml:26:22-94
+[        ] 36
+[        ] 37    <application
+[        ] 38        android:name="android.app.Application"
+[        ] 39        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+[        ] 39-->[androidx.core:core:1.13.1] C:\Users\Lama\.gradle\caches\8.12\transforms\b1eb6682c3f06d5937f76fce498ba76c\transformed\core-1.13.1\AndroidManifest.xml:28:18-86
+[        ] 40        android:debuggable="true"
+[   +1 ms] 41        android:extractNativeLibs="false"
+[        ] 42        android:icon="@mipmap/ic_launcher"
+[        ] 43        android:label="health_track" >
+[        ] 44        <activity
+[        ] 45            android:name="com.healthtrack.health_track.MainActivity"
+[        ] 46            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+[        ] 47            android:exported="true"
+[        ] 48            android:hardwareAccelerated="true"
+[        ] 49            android:launchMode="singleTop"
+[        ] 50            android:taskAffinity=""
+[        ] 51            android:theme="@style/LaunchTheme"
+[        ] 52            android:windowSoftInputMode="adjustResize" >
+[        ] 53
+[        ] 54            <!--
+[        ] 55                 Specifies an Android theme to apply to this Activity as soon as
+[        ] 56                 the Android process has started. This theme is visible to the user
+[        ] 57                 while the Flutter UI initializes. After that, this theme continues
+[        ] 58                 to determine the Window background behind the Flutter UI.
+[        ] 59            -->
+[        ] 60            <meta-data
+[        ] 61                android:name="io.flutter.embedding.android.NormalTheme"
+[        ] 62                android:resource="@style/NormalTheme" />
+[        ] 63
+[        ] 64            <intent-filter>
+[        ] 65                <action android:name="android.intent.action.MAIN" />
+[        ] 66
+[        ] 67                <category android:name="android.intent.category.LAUNCHER" />
+[        ] 68            </intent-filter>
+[        ] 69        </activity>
+[        ] 70        <!--
+[        ] 71             Don't delete the meta-data below.
+[        ] 72             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java
+[        ] 73        -->
+[        ] 74        <meta-data
+[        ] 75            android:name="flutterEmbedding"
+[        ] 76            android:value="2" />
+[        ] 77
+[        ] 78        <uses-library
+[        ] 78-->[androidx.window:window:1.2.0] C:\Users\Lama\.gradle\caches\8.12\transforms\6ca1db17970615e3e029777992983e6b\transformed\jetified-window-1.2.0\AndroidManifest.xml:23:9-25:40
+[        ] 79            android:name="androidx.window.extensions"
+[        ] 79-->[androidx.window:window:1.2.0] C:\Users\Lama\.gradle\caches\8.12\transforms\6ca1db17970615e3e029777992983e6b\transformed\jetified-window-1.2.0\AndroidManifest.xml:24:13-54
+[        ] 80            android:required="false" />
+[        ] 80-->[androidx.window:window:1.2.0] C:\Users\Lama\.gradle\caches\8.12\transforms\6ca1db17970615e3e029777992983e6b\transformed\jetified-window-1.2.0\AndroidManifest.xml:25:13-37
+[        ] 81        <uses-library
+[        ] 81-->[androidx.window:window:1.2.0] C:\Users\Lama\.gradle\caches\8.12\transforms\6ca1db17970615e3e029777992983e6b\transformed\jetified-window-1.2.0\AndroidManifest.xml:26:9-28:40
+[        ] 82            android:name="androidx.window.sidecar"
+[        ] 82-->[androidx.window:window:1.2.0] C:\Users\Lama\.gradle\caches\8.12\transforms\6ca1db17970615e3e029777992983e6b\transformed\jetified-window-1.2.0\AndroidManifest.xml:27:13-51
+[        ] 83            android:required="false" />
+[        ] 83-->[androidx.window:window:1.2.0] C:\Users\Lama\.gradle\caches\8.12\transforms\6ca1db17970615e3e029777992983e6b\transformed\jetified-window-1.2.0\AndroidManifest.xml:28:13-37
+[        ] 84
+[        ] 85        <provider
+[        ] 85-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Lama\.gradle\caches\8.12\transforms\2c40b3605ce1f863a0ab38c5cd772a02\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:24:9-32:20
+[        ] 86            android:name="androidx.startup.InitializationProvider"
+[   +1 ms] 86-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Lama\.gradle\caches\8.12\transforms\2c40b3605ce1f863a0ab38c5cd772a02\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:25:13-67
+[        ] 87            android:authorities="com.healthtrack.health_track.androidx-startup"
+[        ] 87-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Lama\.gradle\caches\8.12\transforms\2c40b3605ce1f863a0ab38c5cd772a02\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:26:13-68
+[        ] 88            android:exported="false" >
+[        ] 88-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Lama\.gradle\caches\8.12\transforms\2c40b3605ce1f863a0ab38c5cd772a02\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:27:13-37
+[        ] 89            <meta-data
+[        ] 89-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Lama\.gradle\caches\8.12\transforms\2c40b3605ce1f863a0ab38c5cd772a02\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:29:13-31:52
+[        ] 90                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+[        ] 90-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Lama\.gradle\caches\8.12\transforms\2c40b3605ce1f863a0ab38c5cd772a02\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:30:17-78
+[        ] 91                android:value="androidx.startup" />
+[        ] 91-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Lama\.gradle\caches\8.12\transforms\2c40b3605ce1f863a0ab38c5cd772a02\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:31:17-49
+[        ] 92            <meta-data
+[        ] 92-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:29:13-31:52
+[   +1 ms] 93                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+[        ] 93-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:30:17-85
+[        ] 94                android:value="androidx.startup" />
+[        ] 94-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:31:17-49
+[        ] 95        </provider>
+[        ] 96
+[        ] 97        <receiver
+[        ] 97-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:34:9-52:20
+[        ] 98            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+[        ] 98-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:35:13-76
+[        ] 99            android:directBootAware="false"
+[        ] 99-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:36:13-44
+[        ] 100            android:enabled="true"
+[        ] 100-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:37:13-35
+[        ] 101            android:exported="true"
+[        ] 101-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:38:13-36
+[        ] 102            android:permission="android.permission.DUMP" >
+[        ] 102-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:39:13-57
+[        ] 103            <intent-filter>
+[        ] 103-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:40:13-42:29
+[        ] 104                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+[        ] 104-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:41:17-91
+[        ] 104-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:41:25-88
+[        ] 105            </intent-filter>
+[        ] 106            <intent-filter>
+[        ] 106-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:43:13-45:29
+[        ] 107                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+[        ] 107-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:44:17-85
+[        ] 107-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:44:25-82
+[        ] 108            </intent-filter>
+[        ] 109            <intent-filter>
+[        ] 109-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:46:13-48:29
+[        ] 110                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+[        ] 110-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:47:17-88
+[        ] 110-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:47:25-85
+[        ] 111            </intent-filter>
+[        ] 112            <intent-filter>
+[        ] 112-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:49:13-51:29
+[        ] 113                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+[        ] 113-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:50:17-95
+[   +1 ms] 113-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Lama\.gradle\caches\8.12\transforms\3922f47838070e6db304cf9a038146fd\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:50:25-92
+[        ] 114            </intent-filter>
+[        ] 115        </receiver>
+[        ] 116    </application>
+[        ] 117
+[        ] 118</manifest>
+[        ] Merged manifest saved to C:\Users\Lama\medical_front\build\app\intermediates\merged_manifest\debug\processDebugMainManifest\AndroidManifest.xml
+[        ] Resolve mutations for :app:processDebugManifest (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:processDebugManifest (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] > Task :app:processDebugManifest
+[        ] Caching disabled for task ':app:processDebugManifest' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:processDebugManifest' is not up-to-date because:
+[        ]   Output property 'multiApkManifestOutputDirectory' file C:\Users\Lama\medical_front\build\app\intermediates\merged_manifests\debug\processDebugManifest has been removed.
+[        ]   Output property 'multiApkManifestOutputDirectory' file C:\Users\Lama\medical_front\build\app\intermediates\merged_manifests\debug\processDebugManifest\AndroidManifest.xml has been removed.
+[        ]   Output property 'multiApkManifestOutputDirectory' file C:\Users\Lama\medical_front\build\app\intermediates\merged_manifests\debug\processDebugManifest\output-metadata.json has been removed.
+[        ] Resolve mutations for :app:processDebugManifestForPackage (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:processDebugManifestForPackage (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] Resolve mutations for :app:javaPreCompileDebug (Thread[#1424,included builds,5,main]) started.
+[        ] :app:javaPreCompileDebug (Thread[#1424,included builds,5,main]) started.
+[        ] > Task :app:processDebugManifestForPackage
+[        ] Custom actions are attached to task ':app:processDebugManifestForPackage'.
+[        ] Caching disabled for task ':app:processDebugManifestForPackage' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:processDebugManifestForPackage' is not up-to-date because:
+[        ]   Output property 'packageManifests' file C:\Users\Lama\medical_front\build\app\intermediates\packaged_manifests\debug\processDebugManifestForPackage has been removed.
+[        ]   Output property 'packageManifests' file C:\Users\Lama\medical_front\build\app\intermediates\packaged_manifests\debug\processDebugManifestForPackage\AndroidManifest.xml has been removed.
+[        ]   Output property 'packageManifests' file C:\Users\Lama\medical_front\build\app\intermediates\packaged_manifests\debug\processDebugManifestForPackage\output-metadata.json has been removed.
+[        ] > Task :app:javaPreCompileDebug
+[        ] Caching disabled for task ':app:javaPreCompileDebug' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:javaPreCompileDebug' is not up-to-date because:
+[        ]   Output property 'annotationProcessorListFile' file C:\Users\Lama\medical_front\build\app\intermediates\annotation_processor_list\debug\javaPreCompileDebug\annotationProcessors.json has been removed.
+[        ] Resolve mutations for :app:processDebugResources (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:processDebugResources (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[  +46 ms] Resolve mutations for :app:compressDebugAssets (Thread[#1424,included builds,5,main]) started.
+[        ] :app:compressDebugAssets (Thread[#1424,included builds,5,main]) started.
+[        ] Resolve mutations for :app:checkDebugDuplicateClasses (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[        ] :app:checkDebugDuplicateClasses (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[        ] Resolve mutations for :app:desugarDebugFileDependencies (Thread[#1430,Execution worker Thread 6,5,main]) started.
+[        ] :app:desugarDebugFileDependencies (Thread[#1430,Execution worker Thread 6,5,main]) started.
+[ +106 ms] Resolve mutations for :app:configureCMakeDebug[arm64-v8a] (Thread[#1432,Execution worker Thread 8,5,main]) started.
+[        ] :app:configureCMakeDebug[arm64-v8a] (Thread[#1432,Execution worker Thread 8,5,main]) started.
+[        ] > Task :app:desugarDebugFileDependencies
+[        ] Caching disabled for task ':app:desugarDebugFileDependencies' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:desugarDebugFileDependencies' is not up-to-date because:
+[        ]   Output property 'outputDirectory' file C:\Users\Lama\medical_front\build\app\intermediates\external_file_lib_dex_archives\debug\desugarDebugFileDependencies has been removed.
+[        ] > Task :app:checkDebugDuplicateClasses
+[        ] Caching disabled for JetifyTransform: C:\Users\Lama\medical_front\build\app\intermediates\flutter\debug\libs.jar because:
+[        ]   Build cache is disabled
+[        ] Caching disabled for IdentityTransform: C:\Users\Lama\.gradle\caches\8.12\transforms\b1724eaec015ac5b4ad6418c35bd39cb\transformed\jetified-libs.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for EnumerateClassesTransform: C:\Users\Lama\.gradle\caches\8.12\transforms\b1724eaec015ac5b4ad6418c35bd39cb\transformed\jetified-libs.jar because:
+[        ]   Build cache is disabled
+[        ] Caching disabled for task ':app:checkDebugDuplicateClasses' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:checkDebugDuplicateClasses' is not up-to-date because:
+[        ]   Output property 'dummyOutputDirectory' file C:\Users\Lama\medical_front\build\app\intermediates\duplicate_classes_check\debug\checkDebugDuplicateClasses has been removed.
+[ +788 ms] > Task :app:processDebugResources
+[        ] Caching disabled for task ':app:processDebugResources' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:processDebugResources' is not up-to-date because:
+[        ]   Output property 'RClassOutputJar' file C:\Users\Lama\medical_front\build\app\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar has been removed.
+[        ]   Output property 'linkedResourcesOutputDir' file C:\Users\Lama\medical_front\build\app\intermediates\linked_resources_binary_format\debug\processDebugResources has been removed.
+[        ]   Output property 'linkedResourcesOutputDir' file C:\Users\Lama\medical_front\build\app\intermediates\linked_resources_binary_format\debug\processDebugResources\linked-resources-binary-format-debug.ap_ has been removed.
+[        ]   and more...
+[        ] The input changes require a full rebuild for incremental task ':app:processDebugResources'.
+[        ] AAPT2 aapt2-8.9.1-12782657-windows Daemon #0: starting
+[        ] Aapt output file C:\Users\Lama\medical_front\build\app\intermediates\linked_resources_binary_format\debug\processDebugResources\linked-resources-binary-format-debug.ap_
+[ +898 ms] > Task :app:compressDebugAssets
+[        ] Caching disabled for task ':app:compressDebugAssets' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:compressDebugAssets' is not up-to-date because:
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\compressed_assets\debug\compressDebugAssets\out has been removed.
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\compressed_assets\debug\compressDebugAssets\out\assets has been removed.
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\compressed_assets\debug\compressDebugAssets\out\assets\flutter_assets has been removed.
+[        ]   and more...
+[        ] The input changes require a full rebuild for incremental task ':app:compressDebugAssets'.
+[ +184 ms] > Task :app:configureCMakeDebug[arm64-v8a]
+[        ] Caching disabled for task ':app:configureCMakeDebug[arm64-v8a]' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:configureCMakeDebug[arm64-v8a]' is not up-to-date because:
+[        ]   Task.upToDateWhen is false.
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|arm64-v8a : Start JSON generation. Platform version: 24 min SDK version: arm64-v8a
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|arm64-v8a : rebuilding JSON C:\Users\Lama\medical_front\build\.cxx\debug\5y5x6jg6\arm64-v8a\android_gradle_build.json due to:
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|arm64-v8a : - no fingerprint file, will remove stale configuration folder
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|arm64-v8a : removing stale contents from 'C:\Users\Lama\medical_front\build\.cxx\debug\5y5x6jg6\arm64-v8a'
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|arm64-v8a : created folder 'C:\Users\Lama\medical_front\build\.cxx\debug\5y5x6jg6\arm64-v8a'
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|arm64-v8a : executing cmake @echo off
+[        ] "C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\cmake.exe" ^
+[        ]   "-HC:\\flutter_windows_3.32.7-stable\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\scripts" ^
+[        ]   "-DCMAKE_SYSTEM_NAME=Android" ^
+[        ]   "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON" ^
+[        ]   "-DCMAKE_SYSTEM_VERSION=24" ^
+[        ]   "-DANDROID_PLATFORM=android-24" ^
+[        ]   "-DANDROID_ABI=arm64-v8a" ^
+[        ]   "-DCMAKE_ANDROID_ARCH_ABI=arm64-v8a" ^
+[        ]   "-DANDROID_NDK=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973" ^
+[        ]   "-DCMAKE_ANDROID_NDK=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973" ^
+[   +1 ms]   "-DCMAKE_TOOLCHAIN_FILE=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\build\\cmake\\android.toolchain.cmake" ^
+[        ]   "-DCMAKE_MAKE_PROGRAM=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe" ^
+[        ]   "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=C:\\Users\\Lama\\medical_front\\build\\app\\intermediates\\cxx\\debug\\5y5x6jg6\\obj\\arm64-v8a" ^
+[        ]   "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=C:\\Users\\Lama\\medical_front\\build\\app\\intermediates\\cxx\\debug\\5y5x6jg6\\obj\\arm64-v8a" ^
+[        ]   "-BC:\\Users\\Lama\\medical_front\\build\\.cxx\\debug\\5y5x6jg6\\arm64-v8a" ^
+[        ]   -GNinja ^
+[        ]   -Wno-dev ^
+[        ]   --no-warn-unused-cli ^
+[        ]   "-DCMAKE_BUILD_TYPE=debug"
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|arm64-v8a : @echo off
+[        ] "C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\cmake.exe" ^
+[        ]   "-HC:\\flutter_windows_3.32.7-stable\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\scripts" ^
+[        ]   "-DCMAKE_SYSTEM_NAME=Android" ^
+[        ]   "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON" ^
+[        ]   "-DCMAKE_SYSTEM_VERSION=24" ^
+[        ]   "-DANDROID_PLATFORM=android-24" ^
+[        ]   "-DANDROID_ABI=arm64-v8a" ^
+[        ]   "-DCMAKE_ANDROID_ARCH_ABI=arm64-v8a" ^
+[        ]   "-DANDROID_NDK=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973" ^
+[        ]   "-DCMAKE_ANDROID_NDK=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973" ^
+[        ]   "-DCMAKE_TOOLCHAIN_FILE=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\build\\cmake\\android.toolchain.cmake" ^
+[        ]   "-DCMAKE_MAKE_PROGRAM=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe" ^
+[        ]   "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=C:\\Users\\Lama\\medical_front\\build\\app\\intermediates\\cxx\\debug\\5y5x6jg6\\obj\\arm64-v8a" ^
+[        ]   "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=C:\\Users\\Lama\\medical_front\\build\\app\\intermediates\\cxx\\debug\\5y5x6jg6\\obj\\arm64-v8a" ^
+[        ]   "-BC:\\Users\\Lama\\medical_front\\build\\.cxx\\debug\\5y5x6jg6\\arm64-v8a" ^
+[        ]   -GNinja ^
+[        ]   -Wno-dev ^
+[        ]   --no-warn-unused-cli ^
+[        ]   "-DCMAKE_BUILD_TYPE=debug"
+[   +1 ms] Starting process 'command 'C:\Users\Lama\AppData\Local\Android\Sdk\cmake\3.22.1\bin\cmake.exe''. Working directory: C:\Users\Lama\medical_front\android Command: C:\Users\Lama\AppData\Local\Android\Sdk\cmake\3.22.1\bin\cmake.exe -HC:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts -DCMAKE_SYSTEM_NAME=Android -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_SYSTEM_VERSION=24 -DANDROID_PLATFORM=android-24 -DANDROID_ABI=arm64-v8a -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DANDROID_NDK=C:\Users\Lama\AppData\Local\Android\Sdk\ndk\27.0.12077973 -DCMAKE_ANDROID_NDK=C:\Users\Lama\AppData\Local\Android\Sdk\ndk\27.0.12077973 -DCMAKE_TOOLCHAIN_FILE=C:\Users\Lama\AppData\Local\Android\Sdk\ndk\27.0.12077973\build\cmake\android.toolchain.cmake -DCMAKE_MAKE_PROGRAM=C:\Users\Lama\AppData\Local\Android\Sdk\cmake\3.22.1\bin\ninja.exe -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=C:\Users\Lama\medical_front\build\app\intermediates\cxx\debug\5y5x6jg6\obj\arm64-v8a -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=C:\Users\Lama\medical_front\build\app\intermediates\cxx\debug\5y5x6jg6\obj\arm64-v8a -BC:\Users\Lama\medical_front\build\.cxx\debug\5y5x6jg6\arm64-v8a -GNinja -Wno-dev --no-warn-unused-cli -DCMAKE_BUILD_TYPE=debug
+[        ] Successfully started process 'command 'C:\Users\Lama\AppData\Local\Android\Sdk\cmake\3.22.1\bin\cmake.exe''
+[+2176 ms] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|arm64-v8a : Received process result: 0
+[ +108 ms] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|arm64-v8a : C:\Users\Lama\medical_front\build\.cxx\debug\5y5x6jg6\arm64-v8a\compile_commands.json.bin existed but not C:\Users\Lama\medical_front\build\.cxx\debug\5y5x6jg6\arm64-v8a\compile_commands.json
+[   +1 ms] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|arm64-v8a : done executing cmake
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|arm64-v8a : JSON generation completed without problems
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|arm64-v8a : Writing build model to C:\Users\Lama\medical_front\build\app\intermediates\cxx\debug\5y5x6jg6\logs\arm64-v8a\build_model.json
+[        ] Resolve mutations for :app:compileDebugKotlin (Thread[#1432,Execution worker Thread 8,5,main]) started.
+[        ] :app:compileDebugKotlin (Thread[#1432,Execution worker Thread 8,5,main]) started.
+[ +199 ms] Resolve mutations for :app:mergeExtDexDebug (Thread[#1434,Execution worker Thread 10,5,main]) started.
+[        ] :app:mergeExtDexDebug (Thread[#1434,Execution worker Thread 10,5,main]) started.
+[  +92 ms] Resolve mutations for :app:mergeLibDexDebug (Thread[#1433,Execution worker Thread 9,5,main]) started.
+[        ] :app:mergeLibDexDebug (Thread[#1433,Execution worker Thread 9,5,main]) started.
+[        ] Resolve mutations for :app:buildCMakeDebug[arm64-v8a] (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:buildCMakeDebug[arm64-v8a] (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] > Task :app:buildCMakeDebug[arm64-v8a]
+[        ] Caching disabled for task ':app:buildCMakeDebug[arm64-v8a]' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:buildCMakeDebug[arm64-v8a]' is not up-to-date because:
+[        ]   Task.upToDateWhen is false.
+[        ] C/C++: starting build
+[        ] C/C++: reading expected JSONs
+[        ] C/C++: done reading expected JSONs
+[        ] C/C++: executing build commands for targets that produce .so files or executables
+[        ] C/C++: evaluate miniconfig
+[        ] C/C++: no libraries
+[        ] Resolve mutations for :app:configureCMakeDebug[armeabi-v7a] (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:configureCMakeDebug[armeabi-v7a] (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[ +101 ms] > Task :app:mergeLibDexDebug
+[        ] Caching disabled for task ':app:mergeLibDexDebug' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:mergeLibDexDebug' is not up-to-date because:
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\dex\debug\mergeLibDexDebug has been removed.
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\dex\debug\mergeLibDexDebug\0 has been removed.
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\dex\debug\mergeLibDexDebug\1 has been removed.
+[        ]   and more...
+[        ] The input changes require a full rebuild for incremental task ':app:mergeLibDexDebug'.
+[+1593 ms] > Task :app:compileDebugKotlin
+[        ] Adding -Xuse-inline-scopes-numbers Kotlin compiler flag for task :app:compileDebugAndroidTestKotlin
+[        ] Caching disabled for BuildToolsApiClasspathEntrySnapshotTransform: C:\Users\Lama\.gradle\caches\8.12\transforms\b1724eaec015ac5b4ad6418c35bd39cb\transformed\jetified-libs.jar because:
+[        ]   Build cache is disabled
+[        ] Caching disabled for task ':app:compileDebugKotlin' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:compileDebugKotlin' is not up-to-date because:
+[        ]   Output property 'classpathSnapshotProperties.classpathSnapshotDir' file C:\Users\Lama\medical_front\build\app\kotlin\compileDebugKotlin\classpath-snapshot has been removed.
+[        ]   Output property 'classpathSnapshotProperties.classpathSnapshotDir' file C:\Users\Lama\medical_front\build\app\kotlin\compileDebugKotlin\classpath-snapshot\shrunk-classpath-snapshot.bin has been removed.
+[        ]   Output property 'destinationDirectory' file C:\Users\Lama\medical_front\build\app\tmp\kotlin-classes\debug has been removed.
+[        ]   and more...
+[   +1 ms] The input changes require a full rebuild for incremental task ':app:compileDebugKotlin'.
+[   +1 ms] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\kotlin', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\java', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\kotlin', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\kotlin', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\java', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\java', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\kotlin', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\java', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\kotlin', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\kotlin', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\java', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\kotlin', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\java', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\kotlin', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\kotlin', not found
+[   +1 ms] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\java', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\java', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\kotlin', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\java', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\kotlin', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\kotlin', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\java', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\java', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\kotlin', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\java', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\kotlin', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\kotlin', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\java', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\java', not found
+[        ] Kotlin source files: C:\Users\Lama\medical_front\android\app\src\main\kotlin\com\healthtrack\health_track\MainActivity.kt
+[        ] Java source files: C:\Users\Lama\medical_front\android\app\src\main\java\io\flutter\plugins\GeneratedPluginRegistrant.java
+[        ] Script source files: 
+[        ] Script file extensions: 
+[        ] Using Kotlin/JVM incremental compilation
+[        ] [KOTLIN] Kotlin compilation 'jdkHome' argument: null
+[   +1 ms] Options for KOTLIN DAEMON: IncrementalCompilationOptions(super=CompilationOptions(compilerMode=INCREMENTAL_COMPILER, targetPlatform=JVM, reportCategories=[0, 3], reportSeverity=2, requestedCompilationResults=[0], kotlinScriptExtensions=[]), areFileChangesKnown=false, modifiedFiles=null, deletedFiles=null, classpathChanges=NotAvailableForNonIncrementalRun, workingDir=C:\Users\Lama\medical_front\build\app\kotlin\compileDebugKotlin\cacheable, multiModuleICSettings=MultiModuleICSettings(buildHistoryFile=C:\Users\Lama\medical_front\build\app\kotlin\compileDebugKotlin\local-state\build-history.bin, useModuleDetection=true), usePreciseJavaTracking=true, icFeatures=IncrementalCompilationFeatures(withAbiSnapshot=false, preciseCompilationResultsBackup=true, keepIncrementalCompilationCachesInMemory=true, enableUnsafeIncrementalCompilationForMultiplatform=false), outputFiles=[C:\Users\Lama\medical_front\build\app\tmp\kotlin-classes\debug, C:\Users\Lama\medical_front\build\app\kotlin\compileDebugKotlin\cacheable, C:\Users\Lama\medical_front\build\app\kotlin\compileDebugKotlin\local-state])
+[ +573 ms] Finished executing kotlin compiler using DAEMON strategy
+[ +107 ms] > Task :app:mergeExtDexDebug
+[        ] Caching disabled for task ':app:mergeExtDexDebug' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:mergeExtDexDebug' is not up-to-date because:
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\dex\debug\mergeExtDexDebug has been removed.
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\dex\debug\mergeExtDexDebug\classes.dex has been removed.
+[        ] The input changes require a full rebuild for incremental task ':app:mergeExtDexDebug'.
+[   +2 ms] Merging to 'C:\Users\Lama\medical_front\build\app\intermediates\dex\debug\mergeExtDexDebug' with D8 from all or a subset of dex files in C:\Users\Lama\.gradle\caches\8.12\transforms\9893d34559164ca618ce6d038f179f49\transformed\jetified-flutter_embedding_debug-1.0.0-d3d45dcf251823c1769909cd43698d126db38deb, C:\Users\Lama\.gradle\caches\8.12\transforms\ac6cab1817db375fc3d2341735b8c189\transformed\fragment-1.7.1-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\c444b5d46d4d88e79461a09bd8740e66\transformed\jetified-window-1.2.0-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\94af5c3229400a630480a188d532c855\transformed\jetified-window-java-1.2.0-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\0da55ffc632ffde9146e8d68c7cd3456\transformed\jetified-activity-1.8.1-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\a1673ccc73a81727b12e103970592d9c\transformed\loader-1.0.0-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\5487c4483945445457b85adea5ddbb6d\transformed\viewpager-1.0.0-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\78710f4a44f418e3c6230bfde600bd70\transformed\jetified-lifecycle-livedata-core-ktx-2.7.0-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\15b30de08001463f177bf0e6559eb412\transformed\lifecycle-livedata-2.7.0-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\c5d871a6a614f3f27361b5f2830f724e\transformed\lifecycle-viewmodel-2.7.0-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\0cc4aa90be79020111482bc93a1803d7\transformed\lifecycle-livedata-core-2.7.0-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\8d18705428f3c134899df938110d8780\transformed\jetified-lifecycle-viewmodel-savedstate-2.7.0-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\e0dd6ace7a7419ff7ed39940ff0dfc33\transformed\jetified-core-ktx-1.13.1-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\12b624f2352e76b6a11e2b6023d2c5ac\transformed\customview-1.0.0-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\f0a92f64259c71f1b77d0aebb5376e57\transformed\core-1.13.1-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\6b483335f2e41fbb3b14526b70d09266\transformed\lifecycle-runtime-2.7.0-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\ee7ba1177b423f2b82943c77f5321dd6\transformed\jetified-lifecycle-process-2.7.0-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\7efd883f8a04f1595f89437f4dc00f36\transformed\jetified-savedstate-1.2.1-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\03008815aa6619586d44a22e38ad3156\transformed\lifecycle-common-2.7.0, C:\Users\Lama\.gradle\caches\8.12\transforms\9bfe49063e8c7348e777033373175dde\transformed\jetified-annotation-experimental-1.4.0-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\87c5f13258096ff2db5a7b3d98942cc8\transformed\jetified-profileinstaller-1.3.1-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\dc3dd41f37d6538ccd735562993e69a2\transformed\jetified-startup-runtime-1.1.1-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\ae4861c14c008b1ff80fff5177bbacef\transformed\jetified-tracing-1.2.0-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\edb54b549f44fccdec95719ada775e1d\transformed\core-runtime-2.2.0-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\057c3a41b1bb76df3e5c9ac193376ec0\transformed\core-common-2.2.0, C:\Users\Lama\.gradle\caches\8.12\transforms\352d5972e569cda557c1e1276ebaa847\transformed\versionedparcelable-1.1.1-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\9833f678b3a33ea14f9a7486e167ff31\transformed\collection-1.1.0, C:\Users\Lama\.gradle\caches\8.12\transforms\cd844e5a01f796d28ebf7800a9e1d954\transformed\interpolator-1.0.0-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\061ecbea5a013d53996c51d5f9d75dc9\transformed\jetified-concurrent-futures-1.1.0, C:\Users\Lama\.gradle\caches\8.12\transforms\cdc5d3f5298b7eea811f6c9353c59f81\transformed\jetified-core-1.0.0-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\c1b1e1aa24d14af590da52cd1eff1445\transformed\jetified-annotation-jvm-1.8.0, C:\Users\Lama\.gradle\caches\8.12\transforms\ae0dfef011cd1d732dc4e9fd00f87066\transformed\jetified-kotlinx-coroutines-android-1.7.1, C:\Users\Lama\.gradle\caches\8.12\transforms\5ed63c36779b633df1133e56cc7e07fe\transformed\jetified-kotlinx-coroutines-core-jvm-1.7.1, C:\Users\Lama\.gradle\caches\8.12\transforms\a25ac52d51b5a57883d8c8566de84e5a\transformed\jetified-kotlin-stdlib-2.1.0, C:\Users\Lama\.gradle\caches\8.12\transforms\69580c689fbc82684829f070dcfc7e9c\transformed\jetified-annotations-23.0.0, C:\Users\Lama\.gradle\caches\8.12\transforms\fc3a21cfde02149d72a8ab2d12e3698d\transformed\jetified-relinker-1.4.5-runtime, C:\Users\Lama\.gradle\caches\8.12\transforms\6a4b693cacd32b19d78257aeb4d0b4d5\transformed\jetified-listenablefuture-1.0, and from all global synthetics files in 
+[  +88 ms] > Task :app:configureCMakeDebug[armeabi-v7a]
+[        ] Caching disabled for task ':app:configureCMakeDebug[armeabi-v7a]' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:configureCMakeDebug[armeabi-v7a]' is not up-to-date because:
+[        ]   Task.upToDateWhen is false.
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|armeabi-v7a : Start JSON generation. Platform version: 24 min SDK version: armeabi-v7a
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|armeabi-v7a : rebuilding JSON C:\Users\Lama\medical_front\build\.cxx\debug\5y5x6jg6\armeabi-v7a\android_gradle_build.json due to:
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|armeabi-v7a : - no fingerprint file, will remove stale configuration folder
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|armeabi-v7a : removing stale contents from 'C:\Users\Lama\medical_front\build\.cxx\debug\5y5x6jg6\armeabi-v7a'
+[   +1 ms] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|armeabi-v7a : created folder 'C:\Users\Lama\medical_front\build\.cxx\debug\5y5x6jg6\armeabi-v7a'
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|armeabi-v7a : executing cmake @echo off
+[        ] "C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\cmake.exe" ^
+[        ]   "-HC:\\flutter_windows_3.32.7-stable\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\scripts" ^
+[        ]   "-DCMAKE_SYSTEM_NAME=Android" ^
+[        ]   "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON" ^
+[        ]   "-DCMAKE_SYSTEM_VERSION=24" ^
+[        ]   "-DANDROID_PLATFORM=android-24" ^
+[        ]   "-DANDROID_ABI=armeabi-v7a" ^
+[        ]   "-DCMAKE_ANDROID_ARCH_ABI=armeabi-v7a" ^
+[        ]   "-DANDROID_NDK=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973" ^
+[        ]   "-DCMAKE_ANDROID_NDK=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973" ^
+[        ]   "-DCMAKE_TOOLCHAIN_FILE=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\build\\cmake\\android.toolchain.cmake" ^
+[        ]   "-DCMAKE_MAKE_PROGRAM=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe" ^
+[        ]   "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=C:\\Users\\Lama\\medical_front\\build\\app\\intermediates\\cxx\\debug\\5y5x6jg6\\obj\\armeabi-v7a" ^
+[        ]   "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=C:\\Users\\Lama\\medical_front\\build\\app\\intermediates\\cxx\\debug\\5y5x6jg6\\obj\\armeabi-v7a" ^
+[        ]   "-BC:\\Users\\Lama\\medical_front\\build\\.cxx\\debug\\5y5x6jg6\\armeabi-v7a" ^
+[        ]   -GNinja ^
+[        ]   -Wno-dev ^
+[        ]   --no-warn-unused-cli ^
+[        ]   "-DCMAKE_BUILD_TYPE=debug"
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|armeabi-v7a : @echo off
+[        ] "C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\cmake.exe" ^
+[        ]   "-HC:\\flutter_windows_3.32.7-stable\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\scripts" ^
+[        ]   "-DCMAKE_SYSTEM_NAME=Android" ^
+[        ]   "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON" ^
+[        ]   "-DCMAKE_SYSTEM_VERSION=24" ^
+[        ]   "-DANDROID_PLATFORM=android-24" ^
+[        ]   "-DANDROID_ABI=armeabi-v7a" ^
+[        ]   "-DCMAKE_ANDROID_ARCH_ABI=armeabi-v7a" ^
+[        ]   "-DANDROID_NDK=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973" ^
+[        ]   "-DCMAKE_ANDROID_NDK=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973" ^
+[        ]   "-DCMAKE_TOOLCHAIN_FILE=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\build\\cmake\\android.toolchain.cmake" ^
+[        ]   "-DCMAKE_MAKE_PROGRAM=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe" ^
+[        ]   "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=C:\\Users\\Lama\\medical_front\\build\\app\\intermediates\\cxx\\debug\\5y5x6jg6\\obj\\armeabi-v7a" ^
+[        ]   "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=C:\\Users\\Lama\\medical_front\\build\\app\\intermediates\\cxx\\debug\\5y5x6jg6\\obj\\armeabi-v7a" ^
+[        ]   "-BC:\\Users\\Lama\\medical_front\\build\\.cxx\\debug\\5y5x6jg6\\armeabi-v7a" ^
+[        ]   -GNinja ^
+[        ]   -Wno-dev ^
+[        ]   --no-warn-unused-cli ^
+[        ]   "-DCMAKE_BUILD_TYPE=debug"
+[        ] Starting process 'command 'C:\Users\Lama\AppData\Local\Android\Sdk\cmake\3.22.1\bin\cmake.exe''. Working directory: C:\Users\Lama\medical_front\android Command: C:\Users\Lama\AppData\Local\Android\Sdk\cmake\3.22.1\bin\cmake.exe -HC:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts -DCMAKE_SYSTEM_NAME=Android -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_SYSTEM_VERSION=24 -DANDROID_PLATFORM=android-24 -DANDROID_ABI=armeabi-v7a -DCMAKE_ANDROID_ARCH_ABI=armeabi-v7a -DANDROID_NDK=C:\Users\Lama\AppData\Local\Android\Sdk\ndk\27.0.12077973 -DCMAKE_ANDROID_NDK=C:\Users\Lama\AppData\Local\Android\Sdk\ndk\27.0.12077973 -DCMAKE_TOOLCHAIN_FILE=C:\Users\Lama\AppData\Local\Android\Sdk\ndk\27.0.12077973\build\cmake\android.toolchain.cmake -DCMAKE_MAKE_PROGRAM=C:\Users\Lama\AppData\Local\Android\Sdk\cmake\3.22.1\bin\ninja.exe -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=C:\Users\Lama\medical_front\build\app\intermediates\cxx\debug\5y5x6jg6\obj\armeabi-v7a -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=C:\Users\Lama\medical_front\build\app\intermediates\cxx\debug\5y5x6jg6\obj\armeabi-v7a -BC:\Users\Lama\medical_front\build\.cxx\debug\5y5x6jg6\armeabi-v7a -GNinja -Wno-dev --no-warn-unused-cli -DCMAKE_BUILD_TYPE=debug
+[        ] Successfully started process 'command 'C:\Users\Lama\AppData\Local\Android\Sdk\cmake\3.22.1\bin\cmake.exe''
+[+1586 ms] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|armeabi-v7a : Received process result: 0
+[  +93 ms] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|armeabi-v7a : C:\Users\Lama\medical_front\build\.cxx\debug\5y5x6jg6\armeabi-v7a\compile_commands.json.bin existed but not C:\Users\Lama\medical_front\build\.cxx\debug\5y5x6jg6\armeabi-v7a\compile_commands.json
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|armeabi-v7a : done executing cmake
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|armeabi-v7a : JSON generation completed without problems
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|armeabi-v7a : Writing build model to C:\Users\Lama\medical_front\build\app\intermediates\cxx\debug\5y5x6jg6\logs\armeabi-v7a\build_model.json
+[        ] Resolve mutations for :app:compileDebugJavaWithJavac (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:compileDebugJavaWithJavac (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[ +803 ms] > Task :app:compileDebugJavaWithJavac
+[        ] Custom actions are attached to task ':app:compileDebugJavaWithJavac'.
+[        ] Caching disabled for task ':app:compileDebugJavaWithJavac' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:compileDebugJavaWithJavac' is not up-to-date because:
+[        ]   Output property 'destinationDirectory' file C:\Users\Lama\medical_front\build\app\intermediates\javac\debug\compileDebugJavaWithJavac\classes has been removed.
+[        ]   Output property 'destinationDirectory' file C:\Users\Lama\medical_front\build\app\intermediates\javac\debug\compileDebugJavaWithJavac\classes\io has been removed.
+[        ]   Output property 'destinationDirectory' file C:\Users\Lama\medical_front\build\app\intermediates\javac\debug\compileDebugJavaWithJavac\classes\io\flutter has been removed.
+[        ]   and more...
+[        ] The input changes require a full rebuild for incremental task ':app:compileDebugJavaWithJavac'.
+[        ] Compilation mode: in-process compilation
+[        ] Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.
+[        ] Compiling with toolchain 'C:\Program Files\Android\Android Studio\jbr'.
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\java', not found
+[        ] Compiling with JDK Java compiler API.
+[        ] Class dependency analysis for incremental compilation took 0.009 secs.
+[        ] Created classpath snapshot for incremental compilation in 0.026 secs.
+[        ] Resolve mutations for :app:processDebugJavaRes (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:processDebugJavaRes (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] > Task :app:processDebugJavaRes
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\main\resources', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\resources', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\main\resources', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\resources', not found
+[        ] Caching disabled for task ':app:processDebugJavaRes' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:processDebugJavaRes' is not up-to-date because:
+[        ]   Output property 'outDirectory' file C:\Users\Lama\medical_front\build\app\intermediates\java_res\debug\processDebugJavaRes\out has been removed.
+[        ]   Output property 'outDirectory' file C:\Users\Lama\medical_front\build\app\intermediates\java_res\debug\processDebugJavaRes\out\com has been removed.
+[        ]   Output property 'outDirectory' file C:\Users\Lama\medical_front\build\app\intermediates\java_res\debug\processDebugJavaRes\out\com\healthtrack has been removed.
+[        ]   and more...
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\main\resources', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\resources', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\main\resources', not found
+[        ] file or directory 'C:\Users\Lama\medical_front\android\app\src\debug\resources', not found
+[        ] Resolve mutations for :app:mergeDebugJavaResource (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:mergeDebugJavaResource (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] Resolve mutations for :app:dexBuilderDebug (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[        ] :app:dexBuilderDebug (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[ +179 ms] > Task :app:dexBuilderDebug
+[        ] Caching disabled for task ':app:dexBuilderDebug' because:
+[   +1 ms]   Build cache is disabled
+[        ] Task ':app:dexBuilderDebug' is not up-to-date because:
+[        ]   Output property 'externalLibsFromArtifactTransformsOutputs.dex' file C:\Users\Lama\medical_front\build\app\intermediates\external_libs_dex_archive_with_artifact_transforms\debug\dexBuilderDebug\out has been removed.
+[        ]   Output property 'externalLibsOutputs.dex' file C:\Users\Lama\medical_front\build\app\intermediates\external_libs_dex_archive\debug\dexBuilderDebug\out has been removed.
+[        ]   Output property 'mixedScopeOutputs.dex' file C:\Users\Lama\medical_front\build\app\intermediates\mixed_scope_dex_archive\debug\dexBuilderDebug\out has been removed.
+[        ]   and more...
+[        ] The input changes require a full rebuild for incremental task ':app:dexBuilderDebug'.
+[        ] Dex builder is incremental : false 
+[        ] Processing input C:\Users\Lama\medical_front\build\app\tmp\kotlin-classes\debug
+[        ] Processing input C:\Users\Lama\medical_front\build\app\intermediates\javac\debug\compileDebugJavaWithJavac\classes
+[        ] Dexing C:\Users\Lama\medical_front\build\app\tmp\kotlin-classes\debug
+[        ] Dexing C:\Users\Lama\medical_front\build\app\intermediates\javac\debug\compileDebugJavaWithJavac\classes
+[        ] Dexing 'C:\Users\Lama\medical_front\build\app\tmp\kotlin-classes\debug' to 'C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+[        ] Dexing 'C:\Users\Lama\medical_front\build\app\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+[        ] Dexing 'C:\Users\Lama\medical_front\build\app\tmp\kotlin-classes\debug' to 'C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+[        ] Dexing 'C:\Users\Lama\medical_front\build\app\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+[        ] Dexing 'C:\Users\Lama\medical_front\build\app\tmp\kotlin-classes\debug' to 'C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+[        ] Dexing 'C:\Users\Lama\medical_front\build\app\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+[        ] Dexing 'C:\Users\Lama\medical_front\build\app\tmp\kotlin-classes\debug' to 'C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+[        ] Dexing 'C:\Users\Lama\medical_front\build\app\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+[        ] Dexing 'C:\Users\Lama\medical_front\build\app\tmp\kotlin-classes\debug' to 'C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+[        ] Dexing 'C:\Users\Lama\medical_front\build\app\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+[        ] Processing input C:\Users\Lama\medical_front\build\app\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar
+[        ] Dexing C:\Users\Lama\medical_front\build\app\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar
+[        ] Dexing 'C:\Users\Lama\medical_front\build\app\tmp\kotlin-classes\debug' to 'C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+[        ] Dexing 'C:\Users\Lama\medical_front\build\app\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+[        ] Dexing 'C:\Users\Lama\medical_front\build\app\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out\1f447a7cead9c33b7839d53e369735bae842ee1f3bd8669c1fb5fb8ba9862bfc_0.jar'
+[        ] Dexing 'C:\Users\Lama\medical_front\build\app\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out\1f447a7cead9c33b7839d53e369735bae842ee1f3bd8669c1fb5fb8ba9862bfc_1.jar'
+[        ] Dexing 'C:\Users\Lama\medical_front\build\app\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out\1f447a7cead9c33b7839d53e369735bae842ee1f3bd8669c1fb5fb8ba9862bfc_2.jar'
+[        ] Dexing 'C:\Users\Lama\medical_front\build\app\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out\1f447a7cead9c33b7839d53e369735bae842ee1f3bd8669c1fb5fb8ba9862bfc_3.jar'
+[        ] Dexing 'C:\Users\Lama\medical_front\build\app\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out\1f447a7cead9c33b7839d53e369735bae842ee1f3bd8669c1fb5fb8ba9862bfc_4.jar'
+[        ] Dexing 'C:\Users\Lama\medical_front\build\app\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out\1f447a7cead9c33b7839d53e369735bae842ee1f3bd8669c1fb5fb8ba9862bfc_5.jar'
+[        ] Done with all dex archive conversions
+[        ] Resolve mutations for :app:mergeProjectDexDebug (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[        ] :app:mergeProjectDexDebug (Thread[#1426,Execution worker Thread 2,5,main]) started.
+[        ] Resolve mutations for :app:buildCMakeDebug[armeabi-v7a] (Thread[#1432,Execution worker Thread 8,5,main]) started.
+[        ] :app:buildCMakeDebug[armeabi-v7a] (Thread[#1432,Execution worker Thread 8,5,main]) started.
+[        ] > Task :app:buildCMakeDebug[armeabi-v7a]
+[        ] Caching disabled for task ':app:buildCMakeDebug[armeabi-v7a]' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:buildCMakeDebug[armeabi-v7a]' is not up-to-date because:
+[        ]   Task.upToDateWhen is false.
+[        ] C/C++: starting build
+[        ] C/C++: reading expected JSONs
+[        ] C/C++: done reading expected JSONs
+[        ] C/C++: executing build commands for targets that produce .so files or executables
+[        ] C/C++: evaluate miniconfig
+[        ] C/C++: no libraries
+[        ] Resolve mutations for :app:configureCMakeDebug[x86_64] (Thread[#1432,Execution worker Thread 8,5,main]) started.
+[        ] :app:configureCMakeDebug[x86_64] (Thread[#1432,Execution worker Thread 8,5,main]) started.
+[  +82 ms] > Task :app:mergeProjectDexDebug
+[        ] Caching disabled for task ':app:mergeProjectDexDebug' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:mergeProjectDexDebug' is not up-to-date because:
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\dex\debug\mergeProjectDexDebug has been removed.
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\dex\debug\mergeProjectDexDebug\0 has been removed.
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\dex\debug\mergeProjectDexDebug\0\classes.dex has been removed.
+[        ]   and more...
+[        ] The input changes require a full rebuild for incremental task ':app:mergeProjectDexDebug'.
+[        ] Merging to 'C:\Users\Lama\medical_front\build\app\intermediates\dex\debug\mergeProjectDexDebug\1' with D8 from all or a subset of dex files in C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out, and from all global synthetics files in 
+[        ] Merging to 'C:\Users\Lama\medical_front\build\app\intermediates\dex\debug\mergeProjectDexDebug\0' with D8 from all or a subset of dex files in C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out\1f447a7cead9c33b7839d53e369735bae842ee1f3bd8669c1fb5fb8ba9862bfc_0.jar, C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out\1f447a7cead9c33b7839d53e369735bae842ee1f3bd8669c1fb5fb8ba9862bfc_1.jar, C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out\1f447a7cead9c33b7839d53e369735bae842ee1f3bd8669c1fb5fb8ba9862bfc_2.jar, C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out\1f447a7cead9c33b7839d53e369735bae842ee1f3bd8669c1fb5fb8ba9862bfc_3.jar, C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out\1f447a7cead9c33b7839d53e369735bae842ee1f3bd8669c1fb5fb8ba9862bfc_4.jar, C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out\1f447a7cead9c33b7839d53e369735bae842ee1f3bd8669c1fb5fb8ba9862bfc_5.jar, and from all global synthetics files in 
+[        ] Merging to 'C:\Users\Lama\medical_front\build\app\intermediates\dex\debug\mergeProjectDexDebug\10' with D8 from all or a subset of dex files in C:\Users\Lama\medical_front\build\app\intermediates\project_dex_archive\debug\dexBuilderDebug\out, and from all global synthetics files in 
+[+1693 ms] > Task :app:mergeDebugJavaResource
+[        ] Caching disabled for task ':app:mergeDebugJavaResource' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:mergeDebugJavaResource' is not up-to-date because:
+[        ]   Output property 'cacheDir' file C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug-mergeJavaRes\zip-cache has been removed.
+[        ]   Output property 'cacheDir' file C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug-mergeJavaRes\zip-cache\+E5EawYLvW2CTLk4wf7qgerY_yM= has been removed.
+[        ]   Output property 'cacheDir' file C:\Users\Lama\medical_front\build\app\intermediates\incremental\debug-mergeJavaRes\zip-cache\2LlXZ4AElPkT4wsSlabf3MQIxo8= has been removed.
+[        ]   and more...
+[        ] The input changes require a full rebuild for incremental task ':app:mergeDebugJavaResource'.
+[ +197 ms] > Task :app:configureCMakeDebug[x86_64]
+[        ] Caching disabled for task ':app:configureCMakeDebug[x86_64]' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:configureCMakeDebug[x86_64]' is not up-to-date because:
+[        ]   Task.upToDateWhen is false.
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|x86_64 : Start JSON generation. Platform version: 24 min SDK version: x86_64
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|x86_64 : rebuilding JSON C:\Users\Lama\medical_front\build\.cxx\debug\5y5x6jg6\x86_64\android_gradle_build.json due to:
+[   +1 ms] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|x86_64 : - no fingerprint file, will remove stale configuration folder
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|x86_64 : removing stale contents from 'C:\Users\Lama\medical_front\build\.cxx\debug\5y5x6jg6\x86_64'
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|x86_64 : created folder 'C:\Users\Lama\medical_front\build\.cxx\debug\5y5x6jg6\x86_64'
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|x86_64 : executing cmake @echo off
+[        ] "C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\cmake.exe" ^
+[        ]   "-HC:\\flutter_windows_3.32.7-stable\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\scripts" ^
+[        ]   "-DCMAKE_SYSTEM_NAME=Android" ^
+[        ]   "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON" ^
+[        ]   "-DCMAKE_SYSTEM_VERSION=24" ^
+[        ]   "-DANDROID_PLATFORM=android-24" ^
+[        ]   "-DANDROID_ABI=x86_64" ^
+[        ]   "-DCMAKE_ANDROID_ARCH_ABI=x86_64" ^
+[        ]   "-DANDROID_NDK=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973" ^
+[        ]   "-DCMAKE_ANDROID_NDK=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973" ^
+[        ]   "-DCMAKE_TOOLCHAIN_FILE=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\build\\cmake\\android.toolchain.cmake" ^
+[        ]   "-DCMAKE_MAKE_PROGRAM=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe" ^
+[        ]   "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=C:\\Users\\Lama\\medical_front\\build\\app\\intermediates\\cxx\\debug\\5y5x6jg6\\obj\\x86_64" ^
+[        ]   "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=C:\\Users\\Lama\\medical_front\\build\\app\\intermediates\\cxx\\debug\\5y5x6jg6\\obj\\x86_64" ^
+[        ]   "-BC:\\Users\\Lama\\medical_front\\build\\.cxx\\debug\\5y5x6jg6\\x86_64" ^
+[        ]   -GNinja ^
+[        ]   -Wno-dev ^
+[        ]   --no-warn-unused-cli ^
+[        ]   "-DCMAKE_BUILD_TYPE=debug"
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|x86_64 : @echo off
+[        ] "C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\cmake.exe" ^
+[   +1 ms]   "-HC:\\flutter_windows_3.32.7-stable\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\scripts" ^
+[        ]   "-DCMAKE_SYSTEM_NAME=Android" ^
+[        ]   "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON" ^
+[        ]   "-DCMAKE_SYSTEM_VERSION=24" ^
+[        ]   "-DANDROID_PLATFORM=android-24" ^
+[        ]   "-DANDROID_ABI=x86_64" ^
+[        ]   "-DCMAKE_ANDROID_ARCH_ABI=x86_64" ^
+[        ]   "-DANDROID_NDK=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973" ^
+[        ]   "-DCMAKE_ANDROID_NDK=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973" ^
+[        ]   "-DCMAKE_TOOLCHAIN_FILE=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\build\\cmake\\android.toolchain.cmake" ^
+[        ]   "-DCMAKE_MAKE_PROGRAM=C:\\Users\\Lama\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe" ^
+[        ]   "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=C:\\Users\\Lama\\medical_front\\build\\app\\intermediates\\cxx\\debug\\5y5x6jg6\\obj\\x86_64" ^
+[        ]   "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=C:\\Users\\Lama\\medical_front\\build\\app\\intermediates\\cxx\\debug\\5y5x6jg6\\obj\\x86_64" ^
+[        ]   "-BC:\\Users\\Lama\\medical_front\\build\\.cxx\\debug\\5y5x6jg6\\x86_64" ^
+[        ]   -GNinja ^
+[        ]   -Wno-dev ^
+[        ]   --no-warn-unused-cli ^
+[        ]   "-DCMAKE_BUILD_TYPE=debug"
+[   +1 ms] Starting process 'command 'C:\Users\Lama\AppData\Local\Android\Sdk\cmake\3.22.1\bin\cmake.exe''. Working directory: C:\Users\Lama\medical_front\android Command: C:\Users\Lama\AppData\Local\Android\Sdk\cmake\3.22.1\bin\cmake.exe -HC:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts -DCMAKE_SYSTEM_NAME=Android -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_SYSTEM_VERSION=24 -DANDROID_PLATFORM=android-24 -DANDROID_ABI=x86_64 -DCMAKE_ANDROID_ARCH_ABI=x86_64 -DANDROID_NDK=C:\Users\Lama\AppData\Local\Android\Sdk\ndk\27.0.12077973 -DCMAKE_ANDROID_NDK=C:\Users\Lama\AppData\Local\Android\Sdk\ndk\27.0.12077973 -DCMAKE_TOOLCHAIN_FILE=C:\Users\Lama\AppData\Local\Android\Sdk\ndk\27.0.12077973\build\cmake\android.toolchain.cmake -DCMAKE_MAKE_PROGRAM=C:\Users\Lama\AppData\Local\Android\Sdk\cmake\3.22.1\bin\ninja.exe -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=C:\Users\Lama\medical_front\build\app\intermediates\cxx\debug\5y5x6jg6\obj\x86_64 -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=C:\Users\Lama\medical_front\build\app\intermediates\cxx\debug\5y5x6jg6\obj\x86_64 -BC:\Users\Lama\medical_front\build\.cxx\debug\5y5x6jg6\x86_64 -GNinja -Wno-dev --no-warn-unused-cli -DCMAKE_BUILD_TYPE=debug
+[        ] Successfully started process 'command 'C:\Users\Lama\AppData\Local\Android\Sdk\cmake\3.22.1\bin\cmake.exe''
+[+2076 ms] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|x86_64 : Received process result: 0
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|x86_64 : C:\Users\Lama\medical_front\build\.cxx\debug\5y5x6jg6\x86_64\compile_commands.json.bin existed but not C:\Users\Lama\medical_front\build\.cxx\debug\5y5x6jg6\x86_64\compile_commands.json
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|x86_64 : done executing cmake
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|x86_64 : JSON generation completed without problems
+[        ] C/C++: C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle\src\main\scripts\CMakeLists.txt debug|x86_64 : Writing build model to C:\Users\Lama\medical_front\build\app\intermediates\cxx\debug\5y5x6jg6\logs\x86_64\build_model.json
+[        ] Resolve mutations for :app:buildCMakeDebug[x86_64] (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:buildCMakeDebug[x86_64] (Thread[#1434,Execution worker Thread 10,5,main]) started.
+[        ] > Task :app:buildCMakeDebug[x86_64]
+[        ] Caching disabled for task ':app:buildCMakeDebug[x86_64]' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:buildCMakeDebug[x86_64]' is not up-to-date because:
+[        ]   Task.upToDateWhen is false.
+[        ] C/C++: starting build
+[        ] C/C++: reading expected JSONs
+[        ] C/C++: done reading expected JSONs
+[        ] C/C++: executing build commands for targets that produce .so files or executables
+[        ] C/C++: evaluate miniconfig
+[        ] C/C++: no libraries
+[        ] Resolve mutations for :app:mergeDebugJniLibFolders (Thread[#1434,Execution worker Thread 10,5,main]) started.
+[        ] :app:mergeDebugJniLibFolders (Thread[#1434,Execution worker Thread 10,5,main]) started.
+[        ] > Task :app:mergeDebugJniLibFolders
+[        ] Caching disabled for task ':app:mergeDebugJniLibFolders' because:
+[        ]   Build cache is disabled
+[        ]   Simple merging task
+[        ] Task ':app:mergeDebugJniLibFolders' is not up-to-date because:
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\merged_jni_libs\debug\mergeDebugJniLibFolders\out has been removed.
+[        ] The input changes require a full rebuild for incremental task ':app:mergeDebugJniLibFolders'.
+[        ] Resolve mutations for :app:mergeDebugNativeLibs (Thread[#1434,Execution worker Thread 10,5,main]) started.
+[        ] :app:mergeDebugNativeLibs (Thread[#1434,Execution worker Thread 10,5,main]) started.
+[  +84 ms] Resolve mutations for :app:validateSigningDebug (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:validateSigningDebug (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] > Task :app:validateSigningDebug
+[        ] Caching disabled for task ':app:validateSigningDebug' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:validateSigningDebug' is not up-to-date because:
+[        ]   Output property 'dummyOutputDirectory' file C:\Users\Lama\medical_front\build\app\intermediates\validate_signing_config\debug\validateSigningDebug has been removed.
+[        ] Resolve mutations for :app:writeDebugAppMetadata (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:writeDebugAppMetadata (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] > Task :app:writeDebugAppMetadata
+[        ] Caching disabled for task ':app:writeDebugAppMetadata' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:writeDebugAppMetadata' is not up-to-date because:
+[        ]   Output property 'outputFile' file C:\Users\Lama\medical_front\build\app\intermediates\app_metadata\debug\writeDebugAppMetadata\app-metadata.properties has been removed.
+[        ] Resolve mutations for :app:writeDebugSigningConfigVersions (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] :app:writeDebugSigningConfigVersions (Thread[#1431,Execution worker Thread 7,5,main]) started.
+[        ] > Task :app:writeDebugSigningConfigVersions
+[        ] Caching disabled for task ':app:writeDebugSigningConfigVersions' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:writeDebugSigningConfigVersions' is not up-to-date because:
+[        ]   Output property 'outputFile' file C:\Users\Lama\medical_front\build\app\intermediates\signing_config_versions\debug\writeDebugSigningConfigVersions\signing-config-versions.json has been removed.
+[+1894 ms] > Task :app:mergeDebugNativeLibs
+[        ] Caching disabled for ExtractJniTransform: C:\Users\Lama\.gradle\caches\8.12\transforms\b1724eaec015ac5b4ad6418c35bd39cb\transformed\jetified-libs.jar because:
+[        ]   Build cache is disabled
+[        ] Caching disabled for task ':app:mergeDebugNativeLibs' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:mergeDebugNativeLibs' is not up-to-date because:
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\merged_native_libs\debug\mergeDebugNativeLibs\out has been removed.
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\merged_native_libs\debug\mergeDebugNativeLibs\out\lib has been removed.
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\merged_native_libs\debug\mergeDebugNativeLibs\out\lib\x86_64 has been removed.
+[        ]   and more...
+[+1585 ms] Resolve mutations for :app:stripDebugDebugSymbols (Thread[#1434,Execution worker Thread 10,5,main]) started.
+[        ] :app:stripDebugDebugSymbols (Thread[#1434,Execution worker Thread 10,5,main]) started.
+[ +606 ms] > Task :app:stripDebugDebugSymbols
+[        ] Caching disabled for task ':app:stripDebugDebugSymbols' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:stripDebugDebugSymbols' is not up-to-date because:
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\stripped_native_libs\debug\stripDebugDebugSymbols\out has been removed.
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\stripped_native_libs\debug\stripDebugDebugSymbols\out\lib has been removed.
+[        ]   Output property 'outputDir' file C:\Users\Lama\medical_front\build\app\intermediates\stripped_native_libs\debug\stripDebugDebugSymbols\out\lib\x86_64 has been removed.
+[        ]   and more...
+[        ] The input changes require a full rebuild for incremental task ':app:stripDebugDebugSymbols'.
+[        ] C/C++: android.ndkVersion from module build.gradle is [27.0.12077973]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Lama\AppData\Local\Android\Sdk
+[        ] Starting process 'command 'C:\Users\Lama\AppData\Local\Android\Sdk\ndk\27.0.12077973\toolchains\llvm\prebuilt\windows-x86_64\bin\llvm-strip''. Working directory: C:\Users\Lama\medical_front\android Command: C:\Users\Lama\AppData\Local\Android\Sdk\ndk\27.0.12077973\toolchains\llvm\prebuilt\windows-x86_64\bin\llvm-strip --strip-unneeded -o C:\Users\Lama\medical_front\build\app\intermediates\stripped_native_libs\debug\stripDebugDebugSymbols\out\lib\x86_64\libflutter.so C:\Users\Lama\medical_front\build\app\intermediates\merged_native_libs\debug\mergeDebugNativeLibs\out\lib\x86_64\libflutter.so
+[        ] Successfully started process 'command 'C:\Users\Lama\AppData\Local\Android\Sdk\ndk\27.0.12077973\toolchains\llvm\prebuilt\windows-x86_64\bin\llvm-strip''
+[        ] Resolve mutations for :app:packageDebug (Thread[#1434,Execution worker Thread 10,5,main]) started.
+[        ] :app:packageDebug (Thread[#1434,Execution worker Thread 10,5,main]) started.
+[ +993 ms] > Task :app:packageDebug
+[        ] Custom actions are attached to task ':app:packageDebug'.
+[        ] Caching disabled for task ':app:packageDebug' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:packageDebug' is not up-to-date because:
+[        ]   Output property 'ideModelOutputFile' file C:\Users\Lama\medical_front\build\app\outputs\apk\debug\output-metadata.json has been removed.
+[        ]   Output property 'incrementalFolder' file C:\Users\Lama\medical_front\build\app\intermediates\incremental\packageDebug\tmp has been removed.
+[        ]   Output property 'incrementalFolder' file C:\Users\Lama\medical_front\build\app\intermediates\incremental\packageDebug\tmp\debug has been removed.
+[        ]   and more...
+[        ] The input changes require a full rebuild for incremental task ':app:packageDebug'.
+[        ] There are no .so files available to package in the APK for arm64-v8a, armeabi-v7a.
+[        ] Resolve mutations for :app:createDebugApkListingFileRedirect (Thread[#1434,Execution worker Thread 10,5,main]) started.
+[        ] :app:createDebugApkListingFileRedirect (Thread[#1430,Execution worker Thread 6,5,main]) started.
+[        ] > Task :app:createDebugApkListingFileRedirect
+[        ] Caching disabled for task ':app:createDebugApkListingFileRedirect' because:
+[        ]   Build cache is disabled
+[        ]   Caching has been disabled for the task
+[        ] Task ':app:createDebugApkListingFileRedirect' is not up-to-date because:
+[        ]   Output property 'redirectFile' file C:\Users\Lama\medical_front\build\app\intermediates\apk_ide_redirect_file\debug\createDebugApkListingFileRedirect\redirect.txt has been removed.
+[        ] Resolve mutations for :app:assembleDebug (Thread[#1430,Execution worker Thread 6,5,main]) started.
+[        ] :app:assembleDebug (Thread[#1430,Execution worker Thread 6,5,main]) started.
+[ +288 ms] > Task :app:assembleDebug
+[        ] Caching disabled for task ':app:assembleDebug' because:
+[        ]   Build cache is disabled
+[        ] Task ':app:assembleDebug' is not up-to-date because:
+[        ]   Task has not declared any outputs despite executing actions.
+[ +402 ms] AAPT2 aapt2-8.9.1-12782657-windows Daemon #0: shutdown
+[        ] [Incubating] Problems report is available at: file:///C:/Users/Lama/medical_front/build/reports/problems/problems-report.html
+[        ] Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+[        ] You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+[        ] For more on this, please refer to https://docs.gradle.org/8.12/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+[        ] BUILD SUCCESSFUL in 57s
+[        ] 51 actionable tasks: 46 executed, 5 up-to-date
+[        ] Watched directory hierarchies: [C:\flutter_windows_3.32.7-stable\flutter\packages\flutter_tools\gradle, C:\Users\Lama\medical_front\android]
+[ +157 ms] Running Gradle task 'assembleDebug'... (completed in 57.7s)
+[  +45 ms] Calculate SHA1: LocalDirectory: 'C:\Users\Lama\medical_front\build\app\outputs\flutter-apk'/app-debug.apk
+[+2000 ms] √ Built build\app\outputs\flutter-apk\app-debug.apk
+[  +16 ms] executing: C:\Users\Lama\AppData\Local\Android\Sdk\build-tools\36.0.0\aapt dump xmltree C:\Users\Lama\medical_front\build\app\outputs\flutter-apk\app-debug.apk AndroidManifest.xml
+[ +140 ms] Exit code 0 from: C:\Users\Lama\AppData\Local\Android\Sdk\build-tools\36.0.0\aapt dump xmltree C:\Users\Lama\medical_front\build\app\outputs\flutter-apk\app-debug.apk AndroidManifest.xml
+[        ] N: android=http://schemas.android.com/apk/res/android
+             E: manifest (line=2)
+               A: android:versionCode(0x0101021b)=(type 0x10)0x1
+               A: android:versionName(0x0101021c)="1.0.0" (Raw: "1.0.0")
+               A: android:compileSdkVersion(0x01010572)=(type 0x10)0x24
+               A: android:compileSdkVersionCodename(0x01010573)="16" (Raw: "16")
+               A: package="com.healthtrack.health_track" (Raw: "com.healthtrack.health_track")
+               A: platformBuildVersionCode=(type 0x10)0x24
+               A: platformBuildVersionName=(type 0x10)0x10
+               E: uses-sdk (line=7)
+                 A: android:minSdkVersion(0x0101020c)=(type 0x10)0x18
+                 A: android:targetSdkVersion(0x01010270)=(type 0x10)0x24
+               E: uses-permission (line=15)
+                 A: android:name(0x01010003)="android.permission.INTERNET" (Raw: "android.permission.INTERNET")
+               E: queries (line=23)
+                 E: intent (line=24)
+                   E: action (line=25)
+                     A: android:name(0x01010003)="android.intent.action.PROCESS_TEXT" (Raw: "android.intent.action.PROCESS_TEXT")
+                   E: data (line=27)
+                     A: android:mimeType(0x01010026)="text/plain" (Raw: "text/plain")
+               E: permission (line=31)
+                 A: android:name(0x01010003)="com.healthtrack.health_track.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" (Raw: "com.healthtrack.health_track.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION")
+                 A: android:protectionLevel(0x01010009)=(type 0x11)0x2
+               E: uses-permission (line=35)
+                 A: android:name(0x01010003)="com.healthtrack.health_track.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" (Raw: "com.healthtrack.health_track.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION")
+               E: application (line=37)
+                 A: android:label(0x01010001)="health_track" (Raw: "health_track")
+                 A: android:icon(0x01010002)=@0x7f0a0000
+                 A: android:name(0x01010003)="android.app.Application" (Raw: "android.app.Application")
+                 A: android:debuggable(0x0101000f)=(type 0x12)0xffffffff
+                 A: android:extractNativeLibs(0x010104ea)=(type 0x12)0x0
+                 A: android:appComponentFactory(0x0101057a)="androidx.core.app.CoreComponentFactory" (Raw: "androidx.core.app.CoreComponentFactory")
+                 E: activity (line=44)
+                   A: android:theme(0x01010000)=@0x7f0c0000
+                   A: android:name(0x01010003)="com.healthtrack.health_track.MainActivity" (Raw: "com.healthtrack.health_track.MainActivity")
+                   A: android:exported(0x01010010)=(type 0x12)0xffffffff
+                   A: android:taskAffinity(0x01010012)="" (Raw: "")
+                   A: android:launchMode(0x0101001d)=(type 0x10)0x1
+                   A: android:configChanges(0x0101001f)=(type 0x11)0x40003fb4
+                   A: android:windowSoftInputMode(0x0101022b)=(type 0x11)0x10
+                   A: android:hardwareAccelerated(0x010102d3)=(type 0x12)0xffffffff
+                   E: meta-data (line=60)
+                     A: android:name(0x01010003)="io.flutter.embedding.android.NormalTheme" (Raw: "io.flutter.embedding.android.NormalTheme")
+                     A: android:resource(0x01010025)=@0x7f0c0001
+                   E: intent-filter (line=64)
+                     E: action (line=65)
+                       A: android:name(0x01010003)="android.intent.action.MAIN" (Raw: "android.intent.action.MAIN")
+                     E: category (line=67)
+                       A: android:name(0x01010003)="android.intent.category.LAUNCHER" (Raw: "android.intent.category.LAUNCHER")
+                 E: meta-data (line=74)
+                   A: android:name(0x01010003)="flutterEmbedding" (Raw: "flutterEmbedding")
+                   A: android:value(0x01010024)=(type 0x10)0x2
+                 E: uses-library (line=78)
+                   A: android:name(0x01010003)="androidx.window.extensions" (Raw: "androidx.window.extensions")
+                   A: android:required(0x0101028e)=(type 0x12)0x0
+                 E: uses-library (line=81)
+                   A: android:name(0x01010003)="androidx.window.sidecar" (Raw: "androidx.window.sidecar")
+                   A: android:required(0x0101028e)=(type 0x12)0x0
+                 E: provider (line=85)
+                   A: android:name(0x01010003)="androidx.startup.InitializationProvider" (Raw: "androidx.startup.InitializationProvider")
+                   A: android:exported(0x01010010)=(type 0x12)0x0
+                   A: android:authorities(0x01010018)="com.healthtrack.health_track.androidx-startup" (Raw: "com.healthtrack.health_track.androidx-startup")
+                   E: meta-data (line=89)
+                     A: android:name(0x01010003)="androidx.lifecycle.ProcessLifecycleInitializer" (Raw: "androidx.lifecycle.ProcessLifecycleInitializer")
+                     A: android:value(0x01010024)="androidx.startup" (Raw: "androidx.startup")
+                   E: meta-data (line=92)
+                     A: android:name(0x01010003)="androidx.profileinstaller.ProfileInstallerInitializer" (Raw: "androidx.profileinstaller.ProfileInstallerInitializer")
+                     A: android:value(0x01010024)="androidx.startup" (Raw: "androidx.startup")
+                 E: receiver (line=97)
+                   A: android:name(0x01010003)="androidx.profileinstaller.ProfileInstallReceiver" (Raw: "androidx.profileinstaller.ProfileInstallReceiver")
+                   A: android:permission(0x01010006)="android.permission.DUMP" (Raw: "android.permission.DUMP")
+                   A: android:enabled(0x0101000e)=(type 0x12)0xffffffff
+                   A: android:exported(0x01010010)=(type 0x12)0xffffffff
+                   A: android:directBootAware(0x01010505)=(type 0x12)0x0
+                   E: intent-filter (line=103)
+                     E: action (line=104)
+                       A: android:name(0x01010003)="androidx.profileinstaller.action.INSTALL_PROFILE" (Raw: "androidx.profileinstaller.action.INSTALL_PROFILE")
+                   E: intent-filter (line=106)
+                     E: action (line=107)
+                       A: android:name(0x01010003)="androidx.profileinstaller.action.SKIP_FILE" (Raw: "androidx.profileinstaller.action.SKIP_FILE")
+                   E: intent-filter (line=109)
+                     E: action (line=110)
+                       A: android:name(0x01010003)="androidx.profileinstaller.action.SAVE_PROFILE" (Raw: "androidx.profileinstaller.action.SAVE_PROFILE")
+                   E: intent-filter (line=112)
+                     E: action (line=113)
+                       A: android:name(0x01010003)="androidx.profileinstaller.action.BENCHMARK_OPERATION" (Raw: "androidx.profileinstaller.action.BENCHMARK_OPERATION")
+[  +21 ms] Stopping app 'app-debug.apk' on sdk gphone64 x86 64.
+[   +1 ms] executing: C:\Users\Lama\AppData\Local\Android\Sdk\platform-tools\adb.exe -s emulator-5554 shell am force-stop com.healthtrack.health_track
+[ +262 ms] Installing APK.
+[   +3 ms] Installing build\app\outputs\flutter-apk\app-debug.apk...
+[        ] executing: C:\Users\Lama\AppData\Local\Android\Sdk\platform-tools\adb.exe -s emulator-5554 install -t -r C:\Users\Lama\medical_front\build\app\outputs\flutter-apk\app-debug.apk
+[+2618 ms] Performing Streamed Install
+
+           adb.exe: failed to install C:\Users\Lama\medical_front\build\app\outputs\flutter-apk\app-debug.apk: Failure [INSTALL_FAILED_INSUFFICIENT_STORAGE: Failed to override installation location]
+[        ] Installing build\app\outputs\flutter-apk\app-debug.apk... (completed in 2,618ms)
+[   +2 ms] Error: ADB exited with exit code 1
+[   +2 ms] Performing Streamed Install
+
+           adb.exe: failed to install C:\Users\Lama\medical_front\build\app\outputs\flutter-apk\app-debug.apk: Failure [INSTALL_FAILED_INSUFFICIENT_STORAGE: Failed to override installation location]
+[        ] Warning: Failed to install APK.
+[   +1 ms] executing: C:\Users\Lama\AppData\Local\Android\Sdk\platform-tools\adb.exe -s emulator-5554 shell pm list packages com.healthtrack.health_track
+[ +321 ms] Error launching application on sdk gphone64 x86 64.
+[  +11 ms] "flutter run" took 68,525ms.
+[ +278 ms] 
+           #0      throwToolExit (package:flutter_tools/src/base/common.dart:34:3)
+           #1      RunCommand.runCommand (package:flutter_tools/src/commands/run.dart:872:9)
+           <asynchronous suspension>
+           #2      FlutterCommand.run.<anonymous closure> (package:flutter_tools/src/runner/flutter_command.dart:1581:27)
+           <asynchronous suspension>
+           #3      AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+           <asynchronous suspension>
+           #4      CommandRunner.runCommand (package:args/command_runner.dart:212:13)
+           <asynchronous suspension>
+           #5      FlutterCommandRunner.runCommand.<anonymous closure> (package:flutter_tools/src/runner/flutter_command_runner.dart:503:9)
+           <asynchronous suspension>
+           #6      AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+           <asynchronous suspension>
+           #7      FlutterCommandRunner.runCommand (package:flutter_tools/src/runner/flutter_command_runner.dart:438:5)
+           <asynchronous suspension>
+           #8      run.<anonymous closure>.<anonymous closure> (package:flutter_tools/runner.dart:98:11)
+           <asynchronous suspension>
+           #9      AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+           <asynchronous suspension>
+           #10     main (package:flutter_tools/executable.dart:101:3)
+           <asynchronous suspension>
+
+
+[        ] Running 3 shutdown hooks
+[  +20 ms] Shutdown hooks complete
+[ +256 ms] exiting with code 1
