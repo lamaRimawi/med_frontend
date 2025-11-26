@@ -4,6 +4,8 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../widgets/animated_bubble_background.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
+import '../widgets/alert_banner.dart';
+import '../utils/validators.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
@@ -16,26 +18,52 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
+  String? _alertMessage;
+  bool _isAlertError = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _passwordController.addListener(_validateForm);
+    _confirmPasswordController.addListener(_validateForm);
+  }
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  void _validateForm() {
+    setState(() {
+      _alertMessage = null;
+    });
+  }
+
+  bool _isFormValid() {
+    final passwordError = Validators.validatePassword(_passwordController.text);
+    final confirmError = Validators.validateConfirmPassword(
+      _confirmPasswordController.text,
+      _passwordController.text,
+    );
+    return passwordError == null && confirmError == null;
+  }
 
   void _handleReset() {
-    if (_passwordController.text.isEmpty || _confirmPasswordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all fields')),
-      );
-      return;
-    }
+    final passwordError = Validators.validatePassword(_passwordController.text);
+    final confirmError = Validators.validateConfirmPassword(
+      _confirmPasswordController.text,
+      _passwordController.text,
+    );
 
-    if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match')),
-      );
-      return;
-    }
-
-    if (_passwordController.text.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password must be at least 6 characters')),
-      );
+    if (passwordError != null || confirmError != null) {
+      setState(() {
+        _alertMessage = 'Please fix all errors before continuing';
+        _isAlertError = true;
+      });
       return;
     }
 
@@ -44,11 +72,17 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     // Simulate API call
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password reset successfully')),
-        );
-        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+        setState(() {
+          _isLoading = false;
+          _alertMessage = 'Password reset successfully!';
+          _isAlertError = false;
+        });
+        
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) {
+            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+          }
+        });
       }
     });
   }
@@ -113,27 +147,45 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
                   // Icon
                   Container(
-                    width: 100,
-                    height: 100,
+                    width: 120,
+                    height: 120,
                     decoration: BoxDecoration(
                       color: const Color(0xFF39A4E6).withValues(alpha: 0.1),
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF39A4E6).withValues(alpha: 0.2),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        ),
+                      ],
                     ),
                     child: const Icon(
                       LucideIcons.lock,
-                      size: 48,
+                      size: 60,
                       color: Color(0xFF39A4E6),
                     ),
-                  ).animate().scale(delay: 500.ms, duration: 500.ms, curve: Curves.elasticOut),
+                  )
+                  .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                  .scale(begin: const Offset(1, 1), end: const Offset(1.1, 1.1), duration: 2.seconds)
+                  .then()
+                  .animate()
+                  .fadeIn(delay: 200.ms)
+                  .scale(duration: 500.ms, curve: Curves.elasticOut),
 
                   const SizedBox(height: 32),
 
-                  Text(
-                    'Create New Password',
-                    style: const TextStyle(
-                      color: Color(0xFF39A4E6),
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                  ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9), Color(0xFF39A4E6)],
+                    ).createShader(bounds),
+                    child: const Text(
+                      'Create New Password',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
 
@@ -144,38 +196,56 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.grey[600],
-                      fontSize: 14,
+                      fontSize: 16,
                       height: 1.5,
                     ),
                   ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
 
                   const SizedBox(height: 40),
 
+                  // Alert Banner
+                  if (_alertMessage != null)
+                    AlertBanner(
+                      message: _alertMessage!,
+                      isError: _isAlertError,
+                      autoDismiss: !_isAlertError,
+                      onDismiss: () => setState(() => _alertMessage = null),
+                    ),
+
+                  // Form
                   CustomTextField(
-                    label: 'New Password',
+                    label: 'New Password *',
                     placeholder: '••••••••••••',
                     icon: LucideIcons.lock,
-                    isPassword: true,
                     controller: _passwordController,
+                    isPassword: true,
+                    showPassword: _showPassword,
+                    onTogglePassword: () => setState(() => _showPassword = !_showPassword),
+                    validator: Validators.validatePassword,
+                    validateOnChange: true,
                   ).animate().fadeIn(delay: 700.ms).moveY(begin: 20, end: 0),
 
                   const SizedBox(height: 20),
 
                   CustomTextField(
-                    label: 'Confirm Password',
+                    label: 'Confirm Password *',
                     placeholder: '••••••••••••',
                     icon: LucideIcons.lock,
-                    isPassword: true,
                     controller: _confirmPasswordController,
-                  ).animate().fadeIn(delay: 700.ms).moveY(begin: 20, end: 0),
+                    isPassword: true,
+                    showPassword: _showConfirmPassword,
+                    onTogglePassword: () => setState(() => _showConfirmPassword = !_showConfirmPassword),
+                    validator: (value) => Validators.validateConfirmPassword(value, _passwordController.text),
+                  ).animate().fadeIn(delay: 800.ms).moveY(begin: 20, end: 0),
 
                   const SizedBox(height: 32),
 
                   CustomButton(
                     text: 'Reset Password',
-                    onPressed: _handleReset,
+                    loadingText: 'Resetting...',
+                    onPressed: _isFormValid() ? _handleReset : null,
                     isLoading: _isLoading,
-                  ).animate().fadeIn(delay: 800.ms).moveY(begin: 20, end: 0),
+                  ).animate().fadeIn(delay: 900.ms).moveY(begin: 20, end: 0),
                 ],
               ),
             ),

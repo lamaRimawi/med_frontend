@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:toastification/toastification.dart';
 import 'widgets/theme_toggle.dart';
 import 'screens/splash_screen.dart';
 import 'screens/onboarding_screen.dart';
@@ -45,57 +46,63 @@ class _MyAppState extends State<MyApp> {
     return ThemeProvider(
       themeMode: _themeMode,
       toggleTheme: _toggleTheme,
-      child: MaterialApp(
-        title: 'MediScan',
-        debugShowCheckedModeBanner: false,
-        themeMode: _themeMode,
-        
-        // Light Theme
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF39A4E6),
-            primary: const Color(0xFF39A4E6),
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-          fontFamily: 'Inter',
-          scaffoldBackgroundColor: Colors.white,
-          cardColor: Colors.white,
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFF39A4E6),
-            foregroundColor: Colors.white,
-          ),
+      child: ToastificationWrapper(
+        config: const ToastificationConfig(
+          alignment: Alignment.topRight,
+          animationDuration: Duration(milliseconds: 300),
         ),
-        
-        // Dark Theme
-        darkTheme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF39A4E6),
-            primary: const Color(0xFF39A4E6),
-            brightness: Brightness.dark,
+        child: MaterialApp(
+          title: 'MediScan',
+          debugShowCheckedModeBanner: false,
+          themeMode: _themeMode,
+          
+          // Light Theme
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF39A4E6),
+              primary: const Color(0xFF39A4E6),
+              brightness: Brightness.light,
+            ),
+            useMaterial3: true,
+            fontFamily: 'Inter',
+            scaffoldBackgroundColor: Colors.white,
+            cardColor: Colors.white,
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Color(0xFF39A4E6),
+              foregroundColor: Colors.white,
+            ),
           ),
-          useMaterial3: true,
-          fontFamily: 'Inter',
-          scaffoldBackgroundColor: const Color(0xFF121212),
-          cardColor: const Color(0xFF1E1E1E),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFF1E1E1E),
-            foregroundColor: Colors.white,
+          
+          // Dark Theme
+          darkTheme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF39A4E6),
+              primary: const Color(0xFF39A4E6),
+              brightness: Brightness.dark,
+            ),
+            useMaterial3: true,
+            fontFamily: 'Inter',
+            scaffoldBackgroundColor: const Color(0xFF121212),
+            cardColor: const Color(0xFF1E1E1E),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Color(0xFF1E1E1E),
+              foregroundColor: Colors.white,
+            ),
           ),
+          
+          initialRoute: '/',
+          routes: {
+            '/': (context) => const SplashScreen(),
+            '/onboarding': (context) => const OnboardingScreen(),
+            '/home': (context) => const HomeScreen(),
+            '/login': (context) => const LoginScreen(),
+            '/signup': (context) => const SignupScreen(),
+            '/forgot-password': (context) => const ForgotPasswordScreen(),
+            '/verification': (context) => const VerificationScreen(),
+            '/reset-password': (context) => const ResetPasswordScreen(),
+            '/reports': (context) => const ReportsScreen(),
+          },
         ),
-        
-        initialRoute: '/',
-        routes: {
-          '/': (context) => const SplashScreen(),
-          '/onboarding': (context) => const OnboardingScreen(),
-          '/home': (context) => const HomeScreen(),
-          '/login': (context) => const LoginScreen(),
-          '/signup': (context) => const SignupScreen(),
-          '/forgot-password': (context) => const ForgotPasswordScreen(),
-          '/verification': (context) => const VerificationScreen(),
-          '/reset-password': (context) => const ResetPasswordScreen(),
-          '/reports': (context) => const ReportsScreen(),
-        },
       ),
     );
   }

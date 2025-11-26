@@ -94,6 +94,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           const AnimatedBubbleBackground(),
@@ -151,27 +152,45 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
                   // Icon
                   Container(
-                    width: 100,
-                    height: 100,
+                    width: 120,
+                    height: 120,
                     decoration: BoxDecoration(
                       color: const Color(0xFF39A4E6).withValues(alpha: 0.1),
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF39A4E6).withValues(alpha: 0.2),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        ),
+                      ],
                     ),
                     child: const Icon(
                       LucideIcons.shield,
-                      size: 48,
+                      size: 60,
                       color: Color(0xFF39A4E6),
                     ),
-                  ).animate().scale(delay: 500.ms, duration: 500.ms, curve: Curves.elasticOut),
+                  )
+                  .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                  .scale(begin: const Offset(1, 1), end: const Offset(1.1, 1.1), duration: 2.seconds)
+                  .then()
+                  .animate()
+                  .fadeIn(delay: 200.ms)
+                  .scale(duration: 500.ms, curve: Curves.elasticOut),
 
                   const SizedBox(height: 32),
 
-                  Text(
-                    _isPasswordReset ? 'Enter Reset Code' : 'Verify Your Email',
-                    style: const TextStyle(
-                      color: Color(0xFF39A4E6),
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                  ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9), Color(0xFF39A4E6)],
+                    ).createShader(bounds),
+                    child: Text(
+                      _isPasswordReset ? 'Enter Reset Code' : 'Verify Your Email',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
 
@@ -181,7 +200,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     'We\'ve sent a 6-digit verification code to',
                     style: TextStyle(
                       color: Colors.grey[600],
-                      fontSize: 14,
+                      fontSize: 16,
                     ),
                   ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
                   
@@ -189,7 +208,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     _email,
                     style: const TextStyle(
                       color: Color(0xFF39A4E6),
-                      fontSize: 14,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
@@ -200,32 +219,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(6, (index) {
-                      return Container(
-                        width: 45,
-                        height: 56,
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE8F6FD),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: TextField(
-                          controller: _controllers[index],
-                          focusNode: _focusNodes[index],
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.center,
-                          maxLength: 1,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF374151),
-                          ),
-                          decoration: const InputDecoration(
-                            counterText: '',
-                            border: InputBorder.none,
-                          ),
-                          onChanged: (value) => _onCodeChanged(value, index),
-                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                        ),
+                      return _OTPField(
+                        controller: _controllers[index],
+                        focusNode: _focusNodes[index],
+                        onChanged: (value) => _onCodeChanged(value, index),
                       );
                     }),
                   ).animate().fadeIn(delay: 700.ms).moveY(begin: 20, end: 0),
@@ -266,5 +263,93 @@ class _VerificationScreenState extends State<VerificationScreen> {
         ],
       ),
     );
+  }
+}
+
+class _OTPField extends StatefulWidget {
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final ValueChanged<String> onChanged;
+
+  const _OTPField({
+    required this.controller,
+    required this.focusNode,
+    required this.onChanged,
+  });
+
+  @override
+  State<_OTPField> createState() => _OTPFieldState();
+}
+
+class _OTPFieldState extends State<_OTPField> {
+  bool _isFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.focusNode.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() {
+    widget.focusNode.removeListener(_onFocusChange);
+    super.dispose();
+  }
+
+  void _onFocusChange() {
+    setState(() {
+      _isFocused = widget.focusNode.hasFocus;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: 200.ms,
+      width: 45,
+      height: 56,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        color: _isFocused ? Colors.white : const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _isFocused ? const Color(0xFF39A4E6) : const Color(0xFFE5E7EB),
+          width: _isFocused ? 2 : 1.5,
+        ),
+        boxShadow: _isFocused
+            ? [
+                BoxShadow(
+                  color: const Color(0xFF39A4E6).withValues(alpha: 0.25),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+      ),
+      child: TextField(
+        controller: widget.controller,
+        focusNode: widget.focusNode,
+        keyboardType: TextInputType.number,
+        textAlign: TextAlign.center,
+        maxLength: 1,
+        style: const TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF39A4E6),
+        ),
+        decoration: const InputDecoration(
+          counterText: '',
+          border: InputBorder.none,
+        ),
+        onChanged: widget.onChanged,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      ),
+    ).animate(target: _isFocused ? 1 : 0).scale(begin: const Offset(1, 1), end: const Offset(1.05, 1.05), duration: 200.ms);
   }
 }

@@ -1,172 +1,139 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'dart:ui';
+import 'dart:math' as math;
 
 class AnimatedBubbleBackground extends StatelessWidget {
-  const AnimatedBubbleBackground({super.key});
+  final bool isDark;
+  
+  const AnimatedBubbleBackground({super.key, this.isDark = false});
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Small floating bubbles
-        ...List.generate(20, (i) {
-          final size = 12.0 + (i % 6) * 6;
-          final left = (i * 5) % 100;
-          final top = (i * 13) % 100;
-          final delay = i * 0.12;
-          final duration = 5 + (i % 4) * 1.5;
+        // Base gradient - Clean medical theme
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark 
+                ? [const Color(0xFF0F172A), const Color(0xFF1E293B)]
+                : [const Color(0xFFF8FAFC), const Color(0xFFFFFFFF)],
+            ),
+          ),
+        ),
 
+        // Soft circular gradients - Medical blue/teal theme
+        Positioned(
+          top: -80,
+          right: -80,
+          child: Container(
+            width: 180,
+            height: 180,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF0EA5E9).withOpacity(0.08),
+                  const Color(0xFF0EA5E9).withOpacity(0.02),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+           .scale(duration: 40.seconds, begin: const Offset(1, 1), end: const Offset(1.1, 1.1), curve: Curves.easeInOutSine),
+        ),
+
+        Positioned(
+          bottom: -60,
+          left: -60,
+          child: Container(
+            width: 150,
+            height: 150,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF06B6D4).withOpacity(0.06),
+                  const Color(0xFF06B6D4).withOpacity(0.02),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+           .scale(duration: 45.seconds, begin: const Offset(1, 1), end: const Offset(1.12, 1.12), curve: Curves.easeInOutSine),
+        ),
+
+        Positioned(
+          top: 180,
+          left: -40,
+          child: Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF14B8A6).withOpacity(0.05),
+                  const Color(0xFF14B8A6).withOpacity(0.01),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+           .scale(duration: 38.seconds, begin: const Offset(1, 1), end: const Offset(1.08, 1.08), curve: Curves.easeInOutSine),
+        ),
+
+        // Subtle accent shape
+        Positioned(
+          bottom: 120,
+          right: 40,
+          child: Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF3B82F6).withOpacity(0.04),
+                  const Color(0xFF3B82F6).withOpacity(0.01),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+           .scale(duration: 42.seconds, begin: const Offset(1, 1), end: const Offset(1.1, 1.1), curve: Curves.easeInOutSine)
+           .moveY(duration: 35.seconds, begin: 0, end: -10, curve: Curves.easeInOutSine),
+        ),
+
+        // Minimal shimmer particles
+        ...List.generate(6, (index) {
           return Positioned(
-            left: MediaQuery.of(context).size.width * (left / 100),
-            top: MediaQuery.of(context).size.height * (top / 100),
+            left: (index * 70.0 + 30) % MediaQuery.of(context).size.width,
+            top: (index * 100.0 + 50) % MediaQuery.of(context).size.height,
             child: Container(
-              width: size,
-              height: size,
+              width: 2,
+              height: 2,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: const Color(0xFF39A4E6).withValues(alpha: 0.25),
-                  width: 2,
-                ),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    const Color(0xFF39A4E6).withValues(alpha: 0.1),
-                    const Color(0xFF39A4E6).withValues(alpha: 0.05),
-                  ],
-                ),
+                color: isDark 
+                  ? Colors.white.withOpacity(0.25)
+                  : const Color(0xFF0EA5E9).withOpacity(0.4),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF39A4E6).withValues(alpha: 0.1),
-                    blurRadius: 10,
+                    color: isDark 
+                      ? Colors.white.withOpacity(0.15)
+                      : const Color(0xFF0EA5E9).withOpacity(0.25),
+                    blurRadius: 6,
+                    spreadRadius: 1,
                   ),
                 ],
               ),
-            )
-                .animate(onPlay: (controller) => controller.repeat())
-                .moveY(
-                  begin: 0,
-                  end: -120 - (i % 4) * 60,
-                  duration: duration.seconds,
-                  curve: Curves.easeInOut,
-                  delay: delay.seconds,
-                )
-                .moveX(
-                  begin: 0,
-                  end: (i % 2 == 0 ? 20 : -20) + (i % 3) * 10,
-                  duration: duration.seconds,
-                  curve: Curves.easeInOut,
-                )
-                .fadeIn(duration: (duration * 0.2).seconds)
-                .fadeOut(
-                  delay: (duration * 0.8).seconds,
-                  duration: (duration * 0.2).seconds,
-                )
-                .scale(
-                  begin: const Offset(0.7, 0.7),
-                  end: const Offset(1.2, 1.2),
-                  duration: duration.seconds,
-                ),
-          );
-        }),
-
-        // Tiny sparkle bubbles
-        ...List.generate(15, (i) {
-          final left = (i * 10 + 3) % 97;
-          final top = (i * 17) % 100;
-          final delay = i * 0.18;
-          final duration = 4 + (i % 3);
-
-          return Positioned(
-            left: MediaQuery.of(context).size.width * (left / 100),
-            top: MediaQuery.of(context).size.height * (top / 100),
-            child: Container(
-              width: 5,
-              height: 5,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF39A4E6).withValues(alpha: 0.4),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF39A4E6).withValues(alpha: 0.4),
-                    blurRadius: 8,
-                  ),
-                ],
-              ),
-            )
-                .animate(onPlay: (controller) => controller.repeat())
-                .moveY(
-                  begin: 0,
-                  end: -180 - (i % 5) * 40,
-                  duration: duration.seconds,
-                  curve: Curves.easeOut,
-                  delay: delay.seconds,
-                )
-                .moveX(
-                  begin: 0,
-                  end: (i % 2 == 0 ? 15.0 : -15.0),
-                  duration: duration.seconds,
-                )
-                .fadeIn(duration: (duration * 0.2).seconds)
-                .fadeOut(
-                  delay: (duration * 0.8).seconds,
-                  duration: (duration * 0.2).seconds,
-                )
-                .scale(
-                  begin: Offset.zero,
-                  end: const Offset(1.2, 1.2),
-                  duration: (duration * 0.5).seconds,
-                ),
-          );
-        }),
-
-        // Ambient bubbles
-        ...List.generate(10, (i) {
-          final size = 8.0 + (i % 4) * 5;
-          final left = (i * 11) % 100;
-          final top = (i * 19) % 100;
-          final delay = i * 0.25;
-          final duration = 7 + (i % 3) * 2;
-
-          return Positioned(
-            left: MediaQuery.of(context).size.width * (left / 100),
-            top: MediaQuery.of(context).size.height * (top / 100),
-            child: Container(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: const Color(0xFF39A4E6).withValues(alpha: 0.15),
-                ),
-                color: const Color(0xFF39A4E6).withValues(alpha: 0.05),
-              ),
-            )
-                .animate(onPlay: (controller) => controller.repeat(reverse: true))
-                .moveY(
-                  begin: 0,
-                  end: (i % 2 == 0 ? -80 : 80),
-                  duration: duration.seconds,
-                  curve: Curves.easeInOut,
-                  delay: delay.seconds,
-                )
-                .moveX(
-                  begin: 0,
-                  end: (i % 3 == 0 ? 60 : -60),
-                  duration: duration.seconds,
-                  curve: Curves.easeInOut,
-                )
-                .fade(
-                  begin: 0.2,
-                  end: 0.5,
-                  duration: duration.seconds,
-                )
-                .scale(
-                  begin: const Offset(0.8, 0.8),
-                  end: const Offset(1.1, 1.1),
-                  duration: duration.seconds,
-                ),
+            ).animate(onPlay: (controller) => controller.repeat())
+             .fadeIn(duration: 3.seconds, delay: (index * 0.5).seconds)
+             .fadeOut(duration: 3.seconds, delay: (3 + index * 0.5).seconds),
           );
         }),
       ],

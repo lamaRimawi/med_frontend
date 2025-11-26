@@ -38,6 +38,13 @@ dependencies:
   lucide_icons: ^0.257.0
   smooth_page_indicator: ^1.1.0
   google_fonts: ^6.1.0
+  toastification: ^3.0.3
+  flutter_toast_notification: ^1.1.1
+  image_picker: ^1.2.1
+  camera: ^0.10.5+5
+  permission_handler: ^11.0.1
+  path_provider: ^2.1.1
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
