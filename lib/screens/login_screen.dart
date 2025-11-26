@@ -6,6 +6,7 @@ import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/alert_banner.dart';
 import '../utils/validators.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool isReturningUser;
@@ -82,10 +83,80 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  void _handleSocialLogin(String provider) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$provider login would be integrated here')),
-    );
+  void _handleSocialLogin(String provider) async {
+    setState(() => _isLoading = true);
+    
+    try {
+      if (provider == 'Google') {
+        final result = await AuthService.signInWithGoogle();
+        if (result != null && mounted) {
+          setState(() {
+            _alertMessage = 'Signed in with Google: ${result['email'] ?? 'User'}';
+            _isAlertError = false;
+            _isLoading = false;
+          });
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) Navigator.pushReplacementNamed(context, '/home');
+          });
+        } else {
+          if (mounted) {
+            setState(() {
+              _alertMessage = 'Google Sign-In requires Firebase configuration';
+              _isAlertError = true;
+              _isLoading = false;
+            });
+          }
+        }
+      } else if (provider == 'Facebook') {
+        final userData = await AuthService.signInWithFacebook();
+        if (userData != null && mounted) {
+          setState(() {
+            _alertMessage = 'Signed in with Facebook: ${userData['email'] ?? userData['name']}';
+            _isAlertError = false;
+            _isLoading = false;
+          });
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) Navigator.pushReplacementNamed(context, '/home');
+          });
+        } else {
+          if (mounted) {
+            setState(() {
+              _alertMessage = 'Facebook Login cancelled or failed';
+              _isAlertError = true;
+              _isLoading = false;
+            });
+          }
+        }
+      } else if (provider == 'Fingerprint') {
+        final authenticated = await AuthService.authenticateWithBiometrics();
+        if (authenticated && mounted) {
+          setState(() {
+            _alertMessage = 'Biometric authentication successful!';
+            _isAlertError = false;
+            _isLoading = false;
+          });
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) Navigator.pushReplacementNamed(context, '/home');
+          });
+        } else {
+          if (mounted) {
+            setState(() {
+              _alertMessage = 'Biometric authentication failed';
+              _isAlertError = true;
+              _isLoading = false;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _alertMessage = 'Authentication error: $e';
+          _isAlertError = true;
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -204,6 +275,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     validator: Validators.validateEmail,
+                    validateOnChange: true,
                   ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
                   
                   const SizedBox(height: 24),
@@ -216,12 +288,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     isPassword: true,
                     showPassword: _showPassword,
                     onTogglePassword: () => setState(() => _showPassword = !_showPassword),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Password is required';
-                      }
-                      return null;
-                    },
+                    validateOnChange: true,
+                    validator: Validators.validatePassword,
                   ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
                       Align(
                         alignment: Alignment.centerRight,

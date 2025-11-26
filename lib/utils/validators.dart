@@ -52,8 +52,8 @@ class Validators {
       return 'Password is required';
     }
     
-    if (value.length < 8) {
-      return 'Password must be at least 8 characters';
+    if (value.length < 10) {
+      return 'Password must be at least 10 characters';
     }
     
     if (value.length > 128) {
@@ -62,22 +62,32 @@ class Validators {
     
     // Check for uppercase
     if (!value.contains(RegExp(r'[A-Z]'))) {
-      return 'Password must contain at least one uppercase letter';
+      return 'Password must contain at least one uppercase letter (A-Z)';
     }
     
     // Check for lowercase
     if (!value.contains(RegExp(r'[a-z]'))) {
-      return 'Password must contain at least one lowercase letter';
+      return 'Password must contain at least one lowercase letter (a-z)';
     }
     
     // Check for number
     if (!value.contains(RegExp(r'[0-9]'))) {
-      return 'Password must contain at least one number';
+      return 'Password must contain at least one number (0-9)';
     }
     
-    // Check for special character
-    if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
-      return 'Password must contain at least one special character';
+    // Check for special character (expanded set)
+    if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>_+=\-\[\]\\\/~`]'))) {
+      return 'Password must contain at least one special character (!@#\$%^&*...)';
+    }
+    
+    // Check for common weak patterns
+    if (RegExp(r'(012|123|234|345|456|567|678|789|890|abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)', caseSensitive: false).hasMatch(value)) {
+      return 'Password contains common sequential patterns. Please use a stronger password';
+    }
+    
+    // Check for repeated characters (3 or more)
+    if (RegExp(r'(.)\1{2,}').hasMatch(value)) {
+      return 'Password should not contain repeated characters (e.g., aaa, 111)';
     }
     
     return null;
@@ -140,24 +150,30 @@ class Validators {
     return null;
   }
 
-  // Password strength calculation (0-4)
+  // Password strength calculation (0-5)
   static int calculatePasswordStrength(String password) {
     if (password.isEmpty) return 0;
     
     int strength = 0;
     
     // Length check
-    if (password.length >= 8) strength++;
-    if (password.length >= 12) strength++;
+    if (password.length >= 10) strength++;
+    if (password.length >= 14) strength++;
     
     // Character variety
     if (password.contains(RegExp(r'[A-Z]'))) strength++;
     if (password.contains(RegExp(r'[a-z]'))) strength++;
     if (password.contains(RegExp(r'[0-9]'))) strength++;
-    if (password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) strength++;
+    if (password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>_+=\-\[\]\\\/~`]'))) strength++;
     
-    // Cap at 4
-    return strength > 4 ? 4 : strength;
+    // Deduct for weak patterns
+    if (RegExp(r'(.)\1{2,}').hasMatch(password)) strength = (strength - 1).clamp(0, 5);
+    if (RegExp(r'(012|123|234|345|456|567|678|789|890|abc|bcd|cde|def)', caseSensitive: false).hasMatch(password)) {
+      strength = (strength - 1).clamp(0, 5);
+    }
+    
+    // Cap at 5
+    return strength > 5 ? 5 : strength;
   }
 
   // Get password strength label
@@ -165,15 +181,17 @@ class Validators {
     switch (strength) {
       case 0:
       case 1:
-        return 'Weak';
+        return 'Very Weak';
       case 2:
-        return 'Fair';
+        return 'Weak';
       case 3:
-        return 'Good';
+        return 'Fair';
       case 4:
+        return 'Good';
+      case 5:
         return 'Strong';
       default:
-        return 'Weak';
+        return 'Very Weak';
     }
   }
 
@@ -186,8 +204,10 @@ class Validators {
       case 2:
         return 0xFFF59E0B; // Orange
       case 3:
-        return 0xFF10B981; // Green
+        return 0xFFFBBF24; // Yellow
       case 4:
+        return 0xFF10B981; // Green
+      case 5:
         return 0xFF059669; // Dark Green
       default:
         return 0xFFEF4444;

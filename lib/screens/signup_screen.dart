@@ -6,6 +6,7 @@ import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/alert_banner.dart';
 import '../utils/validators.dart';
+import '../services/auth_service.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -119,6 +120,62 @@ class _SignupScreenState extends State<SignupScreen> {
         });
       }
     });
+  }
+
+  void _handleSocialLogin(String provider) async {
+    setState(() => _isLoading = true);
+    
+    try {
+      if (provider == 'Google') {
+        final result = await AuthService.signInWithGoogle();
+        if (result != null && mounted) {
+          setState(() {
+            _alertMessage = 'Signed up with Google: ${result['email'] ?? 'User'}';
+            _isAlertError = false;
+            _isLoading = false;
+          });
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) Navigator.pushReplacementNamed(context, '/login');
+          });
+        } else {
+          if (mounted) {
+            setState(() {
+              _alertMessage = 'Google Sign-In requires Firebase configuration';
+              _isAlertError = true;
+              _isLoading = false;
+            });
+          }
+        }
+      } else if (provider == 'Facebook') {
+        final userData = await AuthService.signInWithFacebook();
+        if (userData != null && mounted) {
+          setState(() {
+            _alertMessage = 'Signed up with Facebook: ${userData["email"] ?? userData["name"]}';
+            _isAlertError = false;
+            _isLoading = false;
+          });
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) Navigator.pushReplacementNamed(context, '/login');
+          });
+        } else {
+          if (mounted) {
+            setState(() {
+              _alertMessage = 'Facebook Login cancelled or failed';
+              _isAlertError = true;
+              _isLoading = false;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _alertMessage = 'Authentication error: $e';
+          _isAlertError = true;
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -336,6 +393,40 @@ class _SignupScreenState extends State<SignupScreen> {
 
                   const SizedBox(height: 32),
 
+                  // Divider
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: Colors.grey[200])),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.grey[200]!),
+                          ),
+                          child: Text(
+                            'or sign up with',
+                            style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                          ),
+                        ),
+                      ),
+                      Expanded(child: Divider(color: Colors.grey[200])),
+                    ],
+                  ).animate().fadeIn(delay: 1100.ms),
+
+                  const SizedBox(height: 24),
+
+                  // Social Login
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildSocialButton(LucideIcons.chrome, 'Google'),
+                      const SizedBox(width: 20),
+                      _buildSocialButton(LucideIcons.facebook, 'Facebook'),
+                    ],
+                  ).animate().fadeIn(delay: 1200.ms).moveY(begin: 20, end: 0),
                   
                   const SizedBox(height: 24),
 
@@ -370,6 +461,33 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSocialButton(IconData icon, String provider) {
+    return InkWell(
+      onTap: () => _handleSocialLogin(provider),
+      borderRadius: BorderRadius.circular(50),
+      child: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          color: const Color(0xFF39A4E6),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF39A4E6).withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Icon(icon, color: Colors.white, size: 24),
+      ),
+    ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(
+      begin: const Offset(1, 1),
+      end: const Offset(1.05, 1.05),
+      duration: 2.seconds,
     );
   }
 }

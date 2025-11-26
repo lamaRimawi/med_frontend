@@ -37,6 +37,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
   bool _hasError = false;
   bool _isValid = false;
   bool _hasBeenFocused = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -49,6 +50,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         if (!_isFocused && _hasBeenFocused && widget.validator != null) {
           final error = widget.validator!(widget.controller?.text);
           _hasError = error != null;
+          _errorMessage = error;
           _isValid = error == null && (widget.controller?.text.isNotEmpty ?? false);
         }
         
@@ -64,6 +66,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         setState(() {
           final error = widget.validator?.call(widget.controller?.text);
           _hasError = error != null;
+          _errorMessage = error;
           _isValid = error == null && (widget.controller?.text.isNotEmpty ?? false);
         });
       }
@@ -191,6 +194,34 @@ class _CustomTextFieldState extends State<CustomTextField> {
               end: const Offset(1.01, 1.01),
               duration: 200.ms,
             ),
+        // Error Message
+        if (_hasError && _errorMessage != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 4),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  size: 14,
+                  color: Color(0xFFEF4444),
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    _errorMessage!,
+                    style: const TextStyle(
+                      color: Color(0xFFEF4444),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+              .animate()
+              .fadeIn(duration: 200.ms)
+              .moveY(begin: -5, end: 0, duration: 200.ms),
       ],
     );
   }
