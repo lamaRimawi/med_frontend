@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'profile_screen.dart';
 import 'camera_upload_screen.dart';
+import '../widgets/animated_bubble_background.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -108,27 +109,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       backgroundColor: bgColor,
       body: Stack(
         children: [
-          // Animated Background
-          Positioned.fill(
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-
-
-
-                  // Floating Particles
-                  ...List.generate(15, (index) => _buildParticle(index)),
-
-                  // Medical Crosses
-                  ...List.generate(5, (index) => _buildFloatingCross(index)),
-
-                  // Small Medical Shapes
-                  ...List.generate(8, (index) => _buildFloatingShape(index)),
-              ],
-            ),
-          ),
-
-          // Main Content
+          const AnimatedBubbleBackground(),
           SafeArea(
             bottom: false,
             child: Column(
