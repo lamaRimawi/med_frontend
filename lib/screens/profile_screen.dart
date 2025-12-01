@@ -290,8 +290,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                       // Settings Options
                       Column(
                         children: [
-                          _buildSettingItem(LucideIcons.fileText, 'My Medical Reports', () => setState(() => _currentScreen = 'reports')),
-                          const SizedBox(height: 12),
+_buildSettingItem(LucideIcons.fileText, 'My Medical Reports', () => Navigator.pushNamed(context, '/reports')),                          const SizedBox(height: 12),
                           _buildSettingItem(LucideIcons.users, 'Shared with Doctors', () => setState(() => _currentScreen = 'doctors')),
                           const SizedBox(height: 12),
                           _buildSettingItem(LucideIcons.activity, 'Health Timeline', () => setState(() => _currentScreen = 'timeline')),
