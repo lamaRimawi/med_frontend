@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../widgets/quick_actions_widget.dart';
+import '../widgets/theme_toggle.dart';
 import '../widgets/animated_bubble_background.dart';
 import 'medical_record_screen.dart';
 import 'camera_upload_screen.dart';
@@ -19,7 +20,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  bool _isDarkMode = false;
+  
+  bool get _isDarkMode {
+    final themeProvider = ThemeProvider.of(context);
+    return themeProvider?.themeMode == ThemeMode.dark;
+  }
+
   String _searchQuery = '';
   bool _isSearchFocused = false;
   bool _showNotifications = false;
@@ -88,9 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   void _toggleTheme() {
-    setState(() {
-      _isDarkMode = !_isDarkMode;
-    });
+    ThemeProvider.of(context)?.toggleTheme();
   }
 
   void _handleQuickAction(String label) {
@@ -171,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         children: [
           // Animated Background
-          const Positioned.fill(child: AnimatedBubbleBackground()),
+          Positioned.fill(child: AnimatedBubbleBackground(isDark: _isDarkMode)),
 
           // Main Content
           SafeArea(
