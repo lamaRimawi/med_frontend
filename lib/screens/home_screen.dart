@@ -360,21 +360,29 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       Positioned(
-                        top: 8,
-                        right: 8,
+                        top: 5,
+                        right: 5,
                         child: Container(
                           width: 16,
                           height: 16,
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFF4B4B),
                             shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 1.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 2,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
                           ),
                           child: const Center(
                             child: Text(
                               '3',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 10,
+                                fontSize: 9,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
