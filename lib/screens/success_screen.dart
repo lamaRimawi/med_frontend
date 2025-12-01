@@ -329,13 +329,13 @@ class _SuccessScreenState extends State<SuccessScreen> {
               label: const Text('View Extracted Report'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: const Color(0xFF7C3AED),
+                backgroundColor: const Color(0xFF39A4E6),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
                 elevation: 6,
-                shadowColor: const Color(0xFF7C3AED).withOpacity(0.4),
+                shadowColor: const Color(0xFF39A4E6).withOpacity(0.4),
               ),
             ),
           ).animate().fadeIn(delay: 250.ms),
