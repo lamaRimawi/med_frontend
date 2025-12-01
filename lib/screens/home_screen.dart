@@ -117,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_showProfile) {
       return ProfileScreen(
         onLogout: () {
-          debugPrint('Logout pressed');
+          Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
         },
         onNavigate: (route) {
           setState(() {
