@@ -6,6 +6,7 @@ import 'medical_record_screen.dart';
 import 'camera_upload_screen.dart';
 import 'profile_screen.dart';
 import 'timeline_screen.dart';
+import 'reports_screen.dart';
 import '../widgets/report_type_badge.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -26,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _activeTab = 'home';
   bool _showProfile = false;
   bool _showRecords = false;
+  bool _showReports = false;
   bool _showTimeline = false;
   bool _showVaccinations = false;
   bool _showCameraUpload = false;
@@ -106,6 +108,15 @@ class _HomeScreenState extends State<HomeScreen> {
             _activeTab = 'home';
           });
         },
+      );
+    }
+
+    if (_showReports) {
+      return ReportsScreen(
+        onBack: () => setState(() {
+          _showReports = false;
+          _activeTab = 'home';
+        }),
       );
     }
 
@@ -726,7 +737,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () => setState(() => _showRecords = true),
+                  onTap: () => setState(() => _showReports = true),
                   child: Text(
                     'See all',
                     style: TextStyle(
@@ -1065,13 +1076,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       Future.delayed(const Duration(milliseconds: 500), () {
                         setState(() => _selectedReportType = null);
 
-                        // Navigate to full Records screen
+                        // Navigate to full Records screen (legacy flow)
                         if (type['navigateTo'] == 'records') {
                           setState(() => _showRecords = true);
                           return;
                         }
-
-                        // Open quick view modal for filtered cards
                         if (type['quickView'] != null) {
                           setState(() {
                             _showQuickView = {
@@ -1225,6 +1234,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildBottomNavigation() {
     return Container(
+      // allow intrinsic height; removing fixed height to avoid overflow
       decoration: BoxDecoration(
         color: _isDarkMode ? const Color(0xFF1F2937) : Colors.white,
         border: Border(
@@ -1245,12 +1255,12 @@ class _HomeScreenState extends State<HomeScreen> {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildNavItem(LucideIcons.home, 'Home', 0),
-              _buildNavItem(LucideIcons.fileText, 'Records', 1),
+              _buildNavItem(LucideIcons.fileText, 'Reports', 1),
               _buildCameraButton(),
               _buildNavItem(LucideIcons.calendar, 'Timeline', 3),
               _buildNavItem(LucideIcons.user, 'Profile', 4),
@@ -1269,7 +1279,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _selectedIndex = index;
           _activeTab = label.toLowerCase();
           if (index == 1) {
-            _showRecords = true;
+            _showReports = true;
           } else if (index == 3) {
             _showTimeline = true;
           } else if (index == 4) {
@@ -1281,7 +1291,7 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: isActive
                   ? const Color(0xFF39A4E6).withOpacity(0.1)
@@ -1291,14 +1301,14 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Icon(
               icon,
               color: isActive ? const Color(0xFF39A4E6) : Colors.grey[400],
-              size: 24,
+              size: 20,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               color: isActive ? const Color(0xFF39A4E6) : Colors.grey[400],
             ),
           ),
@@ -1311,13 +1321,13 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: () => setState(() => _showCameraUpload = true),
       child: Container(
-        width: 64,
-        height: 64,
+        width: 56,
+        height: 56,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
           ),
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF39A4E6).withOpacity(0.3),
@@ -1326,7 +1336,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        child: const Icon(LucideIcons.camera, color: Colors.white, size: 32),
+        child: const Icon(LucideIcons.camera, color: Colors.white, size: 28),
       ),
     );
   }
@@ -2235,7 +2245,7 @@ class _HomeScreenState extends State<HomeScreen> {
         'label': 'All Records',
         'color': const Color(0xFF39A4E6),
         'count': 24,
-        'navigateTo': 'records',
+        'navigateTo': 'reports',
         'description': 'View all medical records',
       },
       {
@@ -2462,7 +2472,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             () => _selectedReportType = null,
                                           );
 
-                                          // Navigate to full Records screen
+                                          // Navigate to full Records screen (legacy flow)
                                           if (type['navigateTo'] == 'records') {
                                             setState(() => _showRecords = true);
                                             return;
