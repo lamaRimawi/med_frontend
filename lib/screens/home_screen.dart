@@ -473,9 +473,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
   Widget _buildRecentReports() {
-    final filtered = _reports
-        .where((r) => int.tryParse(r['day'] ?? '') == _selectedDate)
-        .toList();
+    final isSearching = _searchQuery.isNotEmpty;
+    
+    final filtered = isSearching
+        ? _reports.where((r) {
+            final query = _searchQuery.toLowerCase();
+            final title = (r['title'] ?? '').toLowerCase();
+            final doctor = (r['doctor'] ?? '').toLowerCase();
+            final type = (r['type'] ?? '').toLowerCase();
+            return title.contains(query) || 
+                   doctor.contains(query) || 
+                   type.contains(query);
+          }).toList()
+        : _reports
+            .where((r) => int.tryParse(r['day'] ?? '') == _selectedDate)
+            .toList();
 
     Color textOnBlue = Colors.white;
     return Padding(
@@ -503,128 +515,133 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Recent Reports',
-                  style: TextStyle(
+                Text(
+                  isSearching ? 'Search Results' : 'Recent Reports',
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Text(
-                  'Month',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
-                    fontSize: 14,
+                if (!isSearching)
+                  Text(
+                    'Month',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 14,
+                    ),
                   ),
-                ),
               ],
             ),
             const SizedBox(height: 16),
-            // Date selector
-            SizedBox(
-              height: 72,
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      setState(() {
-                        final idx = _dates.indexWhere(
-                          (d) => d['day'] == _selectedDate,
-                        );
-                        if (idx > 0)
-                          _selectedDate = _dates[idx - 1]['day'] as int;
-                      });
-                    },
-                    icon: const Icon(
-                      LucideIcons.chevronLeft,
-                      color: Colors.white70,
-                      size: 20,
-                    ),
-                  ),
-                  Expanded(
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemBuilder: (context, i) {
-                        final d = _dates[i];
-                        final isSel = d['day'] == _selectedDate;
-                        return GestureDetector(
-                          onTap: () =>
-                              setState(() => _selectedDate = d['day'] as int),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 18,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSel
-                                  ? Colors.white
-                                  : Colors.white.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: isSel
-                                  ? [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.15),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            constraints: const BoxConstraints(minHeight: 56),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  '${d['day']}',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: isSel
-                                        ? const Color(0xFF39A4E6)
-                                        : Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '${d['label']}',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: isSel
-                                        ? const Color(0xFF39A4E6)
-                                        : Colors.white.withOpacity(0.8),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
+            
+            // Date selector (Only show if not searching)
+            if (!isSearching) ...[
+              SizedBox(
+                height: 72,
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          final idx = _dates.indexWhere(
+                            (d) => d['day'] == _selectedDate,
+                          );
+                          if (idx > 0)
+                            _selectedDate = _dates[idx - 1]['day'] as int;
+                        });
                       },
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
-                      itemCount: _dates.length,
+                      icon: const Icon(
+                        LucideIcons.chevronLeft,
+                        color: Colors.white70,
+                        size: 20,
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      setState(() {
-                        final idx = _dates.indexWhere(
-                          (d) => d['day'] == _selectedDate,
-                        );
-                        if (idx < _dates.length - 1)
-                          _selectedDate = _dates[idx + 1]['day'] as int;
-                      });
-                    },
-                    icon: const Icon(
-                      LucideIcons.chevronRight,
-                      color: Colors.white70,
-                      size: 20,
+                    Expanded(
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (context, i) {
+                          final d = _dates[i];
+                          final isSel = d['day'] == _selectedDate;
+                          return GestureDetector(
+                            onTap: () =>
+                                setState(() => _selectedDate = d['day'] as int),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isSel
+                                    ? Colors.white
+                                    : Colors.white.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: isSel
+                                    ? [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.15),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              constraints: const BoxConstraints(minHeight: 56),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    '${d['day']}',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: isSel
+                                          ? const Color(0xFF39A4E6)
+                                          : Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${d['label']}',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: isSel
+                                          ? const Color(0xFF39A4E6)
+                                          : Colors.white.withOpacity(0.8),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        separatorBuilder: (_, __) => const SizedBox(width: 8),
+                        itemCount: _dates.length,
+                      ),
                     ),
-                  ),
-                ],
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          final idx = _dates.indexWhere(
+                            (d) => d['day'] == _selectedDate,
+                          );
+                          if (idx < _dates.length - 1)
+                            _selectedDate = _dates[idx + 1]['day'] as int;
+                        });
+                      },
+                      icon: const Icon(
+                        LucideIcons.chevronRight,
+                        color: Colors.white70,
+                        size: 20,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(height: 16),
+            ],
             const SizedBox(height: 16),
             // Header for reports count and "See all"
             Row(
@@ -661,14 +678,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'No reports for this date',
+                    isSearching ? 'No matching reports found' : 'No reports for this date',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.7),
                       fontSize: 13,
                     ),
                   ),
                   Text(
-                    'Select another day to view reports',
+                    isSearching ? 'Try a different search term' : 'Select another day to view reports',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.5),
                       fontSize: 11,
