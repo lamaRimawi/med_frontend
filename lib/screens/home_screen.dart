@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../widgets/quick_actions_widget.dart';
 import '../widgets/animated_bubble_background.dart';
 import 'medical_record_screen.dart';
 import 'camera_upload_screen.dart';
@@ -92,6 +93,20 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _handleQuickAction(String label) {
+    if (label == 'Upload') {
+      setState(() => _showCameraUpload = true);
+    } else if (label == 'Timeline') {
+      setState(() => _showTimeline = true);
+    } else if (label == 'Favorite') {
+      setState(() => _showFavorites = true);
+    } else if (label == 'Analytics') {
+      setState(() => _showAnalytics = true);
+    } else if (label == 'Share') {
+      setState(() => _showShareModal = true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Show different screens based on active tab
@@ -171,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         _buildHeader(),
                         _buildSearchBar(),
-                        _buildQuickActions(),
+                        QuickActionsWidget(onActionTap: _handleQuickAction),
                         _buildRecentReports(),
                         _buildReportTypes(),
                       ],
@@ -451,125 +466,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickActions() {
-    final categories = [
-      {
-        'icon': LucideIcons.heart,
-        'label': 'Favorite',
-        'color': const Color(0xFFFF6B9D),
-      },
-      {
-        'icon': LucideIcons.upload,
-        'label': 'Upload',
-        'color': const Color(0xFF39A4E6),
-      },
-      {
-        'icon': LucideIcons.clock,
-        'label': 'Timeline',
-        'color': const Color(0xFFFFA726),
-      },
-      {
-        'icon': LucideIcons.barChart3,
-        'label': 'Analytics',
-        'color': const Color(0xFF66BB6A),
-      },
-      {
-        'icon': LucideIcons.share2,
-        'label': 'Share',
-        'color': const Color(0xFFAB47BC),
-      },
-    ];
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Quick Actions',
-                style: TextStyle(
-                  color: const Color(0xFF39A4E6),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Text(
-                'See all',
-                style: TextStyle(color: const Color(0xFF39A4E6), fontSize: 14),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: categories.map((category) {
-              return GestureDetector(
-                onTap: () {
-                  setState(() => _selectedAction = category['label'] as String);
-                  Future.delayed(const Duration(milliseconds: 500), () {
-                    setState(() => _selectedAction = null);
-                    // Handle action
-                    final label = category['label'] as String;
-                    if (label == 'Upload') {
-                      setState(() => _showCameraUpload = true);
-                    } else if (label == 'Timeline') {
-                      setState(() => _showTimeline = true);
-                    } else if (label == 'Favorite') {
-                      setState(() => _showFavorites = true);
-                    } else if (label == 'Analytics') {
-                      setState(() => _showAnalytics = true);
-                    } else if (label == 'Share') {
-                      setState(() => _showShareModal = true);
-                    }
-                  });
-                },
-                child: Column(
-                  children: [
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: (category['color'] as Color).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: _selectedAction == category['label']
-                            ? [
-                                BoxShadow(
-                                  color: (category['color'] as Color)
-                                      .withOpacity(0.3),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ]
-                            : [],
-                      ),
-                      child: Icon(
-                        category['icon'] as IconData,
-                        color: category['color'] as Color,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      category['label'] as String,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: _isDarkMode
-                            ? Colors.grey[300]
-                            : Colors.grey[700],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildRecentReports() {
     final filtered = _reports
