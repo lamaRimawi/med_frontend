@@ -6,19 +6,16 @@ import 'dart:ui';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../widgets/animated_bubble_background.dart';
+import '../widgets/theme_toggle.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Function(String) onNavigate;
   final VoidCallback onLogout;
-  final bool isDarkMode;
-  final VoidCallback onToggleDarkMode;
 
   const ProfileScreen({
     super.key,
     required this.onNavigate,
     required this.onLogout,
-    required this.isDarkMode,
-    required this.onToggleDarkMode,
   });
 
   @override
@@ -33,6 +30,9 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
   
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
+
+  // Theme getter using ThemeProvider
+  bool get _isDarkMode => ThemeProvider.of(context)?.themeMode == ThemeMode.dark ?? false;
 
   Future<void> _pickImage() async {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -101,7 +101,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    final isDark = widget.isDarkMode;
+    final isDark = _isDarkMode;
     final bgColor = isDark ? const Color(0xFF030712) : Colors.white;
 
     return Scaffold(
@@ -149,7 +149,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
 
   // --- Main Profile Screen ---
   Widget _buildMainProfileScreen() {
-    final isDark = widget.isDarkMode;
+    final isDark = _isDarkMode;
     
     return Stack(
       children: [
@@ -305,7 +305,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                           _buildSettingItem(
                             isDark ? LucideIcons.sun : LucideIcons.moon,
                             isDark ? 'Light Mode' : 'Dark Mode',
-                            widget.onToggleDarkMode,
+                            () => ThemeProvider.of(context)?.toggleTheme(),
                           ),
                         ],
                       ),
@@ -357,7 +357,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
   }
 
   Widget _buildSettingItem(IconData icon, String title, VoidCallback onTap) {
-    final isDark = widget.isDarkMode;
+    final isDark = _isDarkMode;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -396,7 +396,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
   }
 
   Widget _buildBottomNav() {
-    final isDark = widget.isDarkMode;
+    final isDark = _isDarkMode;
     return ClipRRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -423,7 +423,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
   }
 
   Widget _buildNavItem(IconData icon, String label, VoidCallback onTap, bool isActive) {
-    final isDark = widget.isDarkMode;
+    final isDark = _isDarkMode;
     final color = isActive ? const Color(0xFF39A4E6) : (isDark ? Colors.grey[600] : Colors.grey[400]);
     
     return GestureDetector(
@@ -481,7 +481,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
             'Capture',
             style: TextStyle(
               fontSize: 12,
-              color: widget.isDarkMode ? Colors.grey[600] : Colors.grey[400],
+              color: _isDarkMode ? Colors.grey[600] : Colors.grey[400],
             ),
           ),
         ],
@@ -491,7 +491,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
 
   // --- Personal Info Screen ---
   Widget _buildPersonalInfoScreen() {
-    final isDark = widget.isDarkMode;
+    final isDark = _isDarkMode;
     final bgColor = isDark ? const Color(0xFF030712) : const Color(0xFFF9FAFB);
 
     return Container(
@@ -648,7 +648,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.bold,
-          color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+          color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
           letterSpacing: 0.5,
         ),
       ),
@@ -656,7 +656,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
   }
 
   Widget _buildTextField(IconData icon, String value, Function(String) onChanged) {
-    final isDark = widget.isDarkMode;
+    final isDark = _isDarkMode;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
@@ -682,7 +682,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
 
   // --- Calendar Dropdown ---
   Widget _buildCalendarDropdown() {
-    final isDark = widget.isDarkMode;
+    final isDark = _isDarkMode;
     final months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     final weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -922,7 +922,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
 
   // --- Location Screen ---
   Widget _buildLocationScreen() {
-    final isDark = widget.isDarkMode;
+    final isDark = _isDarkMode;
     final bgColor = isDark ? const Color(0xFF030712) : const Color(0xFFF9FAFB);
     
     final filteredLocations = _locations.where((loc) => 
@@ -1073,7 +1073,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
 
   // --- Reports Screen ---
   Widget _buildReportsScreen() {
-    final isDark = widget.isDarkMode;
+    final isDark = _isDarkMode;
     final bgColor = isDark ? const Color(0xFF030712) : const Color(0xFFF9FAFB);
 
     return Container(
@@ -1224,7 +1224,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
 
   // --- Doctors Screen ---
   Widget _buildDoctorsScreen() {
-    final isDark = widget.isDarkMode;
+    final isDark = _isDarkMode;
     final bgColor = isDark ? const Color(0xFF030712) : const Color(0xFFF9FAFB);
 
     return Container(
@@ -1343,7 +1343,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
 
   // --- Placeholder Screen ---
   Widget _buildPlaceholderScreen(String title, IconData icon, String message) {
-    final isDark = widget.isDarkMode;
+    final isDark = _isDarkMode;
     final bgColor = isDark ? const Color(0xFF030712) : const Color(0xFFF9FAFB);
 
     return Container(
@@ -1377,7 +1377,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
   }
 
   Widget _buildScreenHeader(String title) {
-    final isDark = widget.isDarkMode;
+    final isDark = _isDarkMode;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Row(
@@ -1413,7 +1413,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
 
   // --- Country Bottom Sheet ---
   Widget _buildCountryBottomSheet() {
-    final isDark = widget.isDarkMode;
+    final isDark = _isDarkMode;
     return Stack(
       children: [
         GestureDetector(

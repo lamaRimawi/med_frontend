@@ -116,8 +116,6 @@ class _HomeScreenState extends State<HomeScreen> {
     // Show different screens based on active tab
     if (_showProfile) {
       return ProfileScreen(
-        isDarkMode: _isDarkMode,
-        onToggleDarkMode: _toggleTheme,
         onLogout: () {
           debugPrint('Logout pressed');
         },
