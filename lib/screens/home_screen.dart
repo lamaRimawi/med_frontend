@@ -6,6 +6,7 @@ import 'medical_record_screen.dart';
 import 'camera_upload_screen.dart';
 import 'profile_screen.dart';
 import 'timeline_screen.dart';
+import '../widgets/report_type_badge.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -34,6 +35,54 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showShareModal = false;
   bool _showAllReportTypes = false;
   int _selectedDate = 11;
+
+  // Recent reports data (mirrors React structure)
+  final List<Map<String, dynamic>> _dates = [
+    {'day': 9, 'label': 'Mon'},
+    {'day': 10, 'label': 'Tue'},
+    {'day': 11, 'label': 'Today'},
+    {'day': 12, 'label': 'Thu'},
+    {'day': 13, 'label': 'Fri'},
+  ];
+
+  final List<Map<String, String>> _reports = [
+    {
+      'day': '11',
+      'date': '11 Dec - Wednesday - Today',
+      'time': '09:30',
+      'title': 'Blood Test Report',
+      'doctor': 'Dr. Olivia Turner',
+      'status': 'Normal',
+      'type': 'Lab Results',
+    },
+    {
+      'day': '11',
+      'date': '11 Dec - Wednesday - Today',
+      'time': '13:10',
+      'title': 'Vitamin D Level Test',
+      'doctor': 'Dr. Amanda Stevens',
+      'status': 'Low',
+      'type': 'Lab Results',
+    },
+    {
+      'day': '10',
+      'date': '10 Dec - Tuesday',
+      'time': '16:20',
+      'title': 'Chest X-ray',
+      'doctor': 'Dr. Mark Jensen',
+      'status': 'Clear',
+      'type': 'Imaging',
+    },
+    {
+      'day': '9',
+      'date': '9 Dec - Monday',
+      'time': '08:45',
+      'title': 'Prescription Renewal',
+      'doctor': 'Dr. Sara Connor',
+      'status': 'Scheduled',
+      'type': 'Prescriptions',
+    },
+  ];
 
   void _toggleTheme() {
     setState(() {
@@ -512,12 +561,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildRecentReports() {
+    final filtered = _reports
+        .where((r) => int.tryParse(r['day'] ?? '') == _selectedDate)
+        .toList();
+
+    Color textOnBlue = Colors.white;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
             colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
           ),
           borderRadius: BorderRadius.circular(24),
@@ -532,10 +588,10 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'Recent Reports',
                   style: TextStyle(
                     color: Colors.white,
@@ -545,27 +601,278 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 Text(
                   'Month',
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 14,
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            // Date selector would go here
             const SizedBox(height: 16),
-            // Reports list
-            _buildReportItem(
-              'Blood Test Report',
-              'Dr. Olivia Turner',
-              '11 Dec - Wednesday - Today',
-              'Normal',
+            // Date selector
+            SizedBox(
+              height: 72,
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      setState(() {
+                        final idx = _dates.indexWhere(
+                          (d) => d['day'] == _selectedDate,
+                        );
+                        if (idx > 0)
+                          _selectedDate = _dates[idx - 1]['day'] as int;
+                      });
+                    },
+                    icon: const Icon(
+                      LucideIcons.chevronLeft,
+                      color: Colors.white70,
+                      size: 20,
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemBuilder: (context, i) {
+                        final d = _dates[i];
+                        final isSel = d['day'] == _selectedDate;
+                        return GestureDetector(
+                          onTap: () =>
+                              setState(() => _selectedDate = d['day'] as int),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSel
+                                  ? Colors.white
+                                  : Colors.white.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: isSel
+                                  ? [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.15),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            constraints: const BoxConstraints(minHeight: 56),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  '${d['day']}',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: isSel
+                                        ? const Color(0xFF39A4E6)
+                                        : Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${d['label']}',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: isSel
+                                        ? const Color(0xFF39A4E6)
+                                        : Colors.white.withOpacity(0.8),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      itemCount: _dates.length,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      setState(() {
+                        final idx = _dates.indexWhere(
+                          (d) => d['day'] == _selectedDate,
+                        );
+                        if (idx < _dates.length - 1)
+                          _selectedDate = _dates[idx + 1]['day'] as int;
+                      });
+                    },
+                    icon: const Icon(
+                      LucideIcons.chevronRight,
+                      color: Colors.white70,
+                      size: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Header for reports count and "See all"
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${filtered.length} ${filtered.length == 1 ? 'report' : 'reports'}',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.7),
+                    fontSize: 13,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => setState(() => _showRecords = true),
+                  child: Text(
+                    'See all',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 14,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
-            _buildReportItem(
-              'Vitamin D Level Test',
-              'Dr. Amanda Stevens',
-              '11 Dec - Wednesday - Today',
-              'Low',
-            ),
+            if (filtered.isEmpty)
+              Column(
+                children: [
+                  const Icon(
+                    LucideIcons.fileText,
+                    size: 40,
+                    color: Colors.white30,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'No reports for this date',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 13,
+                    ),
+                  ),
+                  Text(
+                    'Select another day to view reports',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.5),
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              )
+            else
+              Column(
+                children: [
+                  for (int i = 0; i < filtered.length; i++)
+                    GestureDetector(
+                      onTap: () {
+                        final typeKey = (filtered[i]['type'] ?? '')
+                            .toLowerCase()
+                            .replaceAll(' ', '');
+                        setState(() {
+                          _showQuickView = {
+                            'type': typeKey,
+                            'title': filtered[i]['type'] ?? '',
+                          };
+                        });
+                      },
+                      child: Container(
+                        margin: EdgeInsets.only(
+                          bottom: i == filtered.length - 1 ? 0 : 12,
+                        ),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              margin: const EdgeInsets.only(top: 6, right: 8),
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        filtered[i]['date'] ?? '',
+                                        style: TextStyle(
+                                          color: textOnBlue.withOpacity(0.8),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      _buildStatusBadge(
+                                        filtered[i]['status'] ?? 'Pending',
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        filtered[i]['time'] ?? '',
+                                        style: TextStyle(
+                                          color: textOnBlue.withOpacity(0.8),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          filtered[i]['title'] ?? '',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 15,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        filtered[i]['doctor'] ?? '',
+                                        style: TextStyle(
+                                          color: textOnBlue.withOpacity(0.6),
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      ReportTypeBadge(
+                                        type: filtered[i]['type'] ?? 'General',
+                                        variant: ReportBadgeVariant.compact,
+                                        size: BadgeSize.sm,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
           ],
         ),
       ),
@@ -632,6 +939,29 @@ class _HomeScreenState extends State<HomeScreen> {
             style: const TextStyle(color: Colors.white70, fontSize: 14),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(String status) {
+    final isGood = status.contains('Normal') || status.contains('Clear');
+    final isScheduled = status.contains('Scheduled');
+    final Color bg = isGood
+        ? const Color(0x3334D399)
+        : (isScheduled ? const Color(0x332B8FD9) : const Color(0x33F59E0B));
+    final Color fg = isGood
+        ? const Color(0xFFDCFCE7)
+        : (isScheduled ? const Color(0xFFDBEAFE) : const Color(0xFFFDE68A));
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.w600),
       ),
     );
   }

@@ -89,8 +89,18 @@ class _TimelineScreenState extends State<TimelineScreen> {
       values: [
         RecordValue(label: 'WBC', value: '7.5', unit: 'K/μL', status: 'normal'),
         RecordValue(label: 'RBC', value: '4.8', unit: 'M/μL', status: 'normal'),
-        RecordValue(label: 'Hemoglobin', value: '14.2', unit: 'g/dL', status: 'normal'),
-        RecordValue(label: 'Platelets', value: '250', unit: 'K/μL', status: 'normal'),
+        RecordValue(
+          label: 'Hemoglobin',
+          value: '14.2',
+          unit: 'g/dL',
+          status: 'normal',
+        ),
+        RecordValue(
+          label: 'Platelets',
+          value: '250',
+          unit: 'K/μL',
+          status: 'normal',
+        ),
       ],
     ),
     MedicalRecord(
@@ -105,7 +115,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
       doctor: 'Dr. Michael Chen',
       status: 'Clear',
       timestamp: DateTime(2025, 11, 26, 14, 15),
-      notes: 'No abnormalities detected. Lung fields are clear with no signs of infection or masses.',
+      notes:
+          'No abnormalities detected. Lung fields are clear with no signs of infection or masses.',
     ),
     MedicalRecord(
       id: 3,
@@ -119,7 +130,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
       doctor: 'Dr. Emily Rodriguez',
       status: 'Active',
       timestamp: DateTime(2025, 11, 25, 9, 0),
-      notes: 'Take once daily in the morning for blood pressure management. 30 day supply with 2 refills.',
+      notes:
+          'Take once daily in the morning for blood pressure management. 30 day supply with 2 refills.',
     ),
     MedicalRecord(
       id: 4,
@@ -133,12 +145,23 @@ class _TimelineScreenState extends State<TimelineScreen> {
       doctor: 'Dr. Sarah Johnson',
       status: 'Review Required',
       timestamp: DateTime(2025, 11, 24, 8, 30),
-      notes: 'Total cholesterol slightly elevated. Recommend dietary changes and follow-up in 3 months.',
+      notes:
+          'Total cholesterol slightly elevated. Recommend dietary changes and follow-up in 3 months.',
       values: [
-        RecordValue(label: 'Total Cholesterol', value: '210', unit: 'mg/dL', status: 'high'),
+        RecordValue(
+          label: 'Total Cholesterol',
+          value: '210',
+          unit: 'mg/dL',
+          status: 'high',
+        ),
         RecordValue(label: 'LDL', value: '135', unit: 'mg/dL', status: 'high'),
         RecordValue(label: 'HDL', value: '55', unit: 'mg/dL', status: 'normal'),
-        RecordValue(label: 'Triglycerides', value: '140', unit: 'mg/dL', status: 'normal'),
+        RecordValue(
+          label: 'Triglycerides',
+          value: '140',
+          unit: 'mg/dL',
+          status: 'normal',
+        ),
       ],
     ),
     MedicalRecord(
@@ -153,7 +176,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
       doctor: 'Dr. Michael Chen',
       status: 'Normal',
       timestamp: DateTime(2025, 11, 20, 15, 0),
-      notes: 'All brain structures appear normal. No evidence of lesions, masses, or abnormal enhancement.',
+      notes:
+          'All brain structures appear normal. No evidence of lesions, masses, or abnormal enhancement.',
     ),
     MedicalRecord(
       id: 6,
@@ -167,7 +191,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
       doctor: 'Dr. James Wilson',
       status: 'Benign',
       timestamp: DateTime(2025, 11, 18, 11, 0),
-      notes: 'Microscopic examination shows benign tissue. No malignant cells detected. No further action required.',
+      notes:
+          'Microscopic examination shows benign tissue. No malignant cells detected. No further action required.',
     ),
     MedicalRecord(
       id: 7,
@@ -181,9 +206,15 @@ class _TimelineScreenState extends State<TimelineScreen> {
       doctor: 'Dr. Sarah Johnson',
       status: 'Normal',
       timestamp: DateTime(2025, 11, 15, 7, 30),
-      notes: 'Fasting glucose within normal range. Continue current management plan.',
+      notes:
+          'Fasting glucose within normal range. Continue current management plan.',
       values: [
-        RecordValue(label: 'Glucose (Fasting)', value: '95', unit: 'mg/dL', status: 'normal'),
+        RecordValue(
+          label: 'Glucose (Fasting)',
+          value: '95',
+          unit: 'mg/dL',
+          status: 'normal',
+        ),
         RecordValue(label: 'HbA1c', value: '5.4', unit: '%', status: 'normal'),
       ],
     ),
@@ -199,7 +230,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
       doctor: 'Dr. Emily Rodriguez',
       status: 'Active',
       timestamp: DateTime(2025, 11, 12, 10, 0),
-      notes: 'Take twice daily with meals for blood sugar management. 90 day supply with 3 refills available.',
+      notes:
+          'Take twice daily with meals for blood sugar management. 90 day supply with 3 refills available.',
     ),
     MedicalRecord(
       id: 9,
@@ -213,10 +245,21 @@ class _TimelineScreenState extends State<TimelineScreen> {
       doctor: 'Dr. Sarah Johnson',
       status: 'Normal',
       timestamp: DateTime(2025, 11, 8, 13, 45),
-      notes: 'TSH and T4 levels are within normal range. No thyroid dysfunction detected.',
+      notes:
+          'TSH and T4 levels are within normal range. No thyroid dysfunction detected.',
       values: [
-        RecordValue(label: 'TSH', value: '2.1', unit: 'mIU/L', status: 'normal'),
-        RecordValue(label: 'Free T4', value: '1.3', unit: 'ng/dL', status: 'normal'),
+        RecordValue(
+          label: 'TSH',
+          value: '2.1',
+          unit: 'mIU/L',
+          status: 'normal',
+        ),
+        RecordValue(
+          label: 'Free T4',
+          value: '1.3',
+          unit: 'ng/dL',
+          status: 'normal',
+        ),
       ],
     ),
     MedicalRecord(
@@ -231,35 +274,43 @@ class _TimelineScreenState extends State<TimelineScreen> {
       doctor: 'Dr. Michael Chen',
       status: 'Normal',
       timestamp: DateTime(2025, 11, 5, 11, 30),
-      notes: 'Abdominal organs appear normal in size and structure. No masses or abnormalities detected.',
+      notes:
+          'Abdominal organs appear normal in size and structure. No masses or abnormalities detected.',
     ),
   ];
 
   List<MedicalRecord> get _filteredRecords {
     final now = DateTime(2025, 11, 30); // Mock current date as per React code
-    
+
     // Filter by time period
     var records = _allRecords.where((r) {
       final daysDiff = now.difference(r.timestamp).inDays;
       switch (_selectedView) {
-        case 'week': return daysDiff <= 7;
-        case 'month': return daysDiff <= 30;
-        case 'year': return daysDiff <= 365;
-        default: return true;
+        case 'week':
+          return daysDiff <= 7;
+        case 'month':
+          return daysDiff <= 30;
+        case 'year':
+          return daysDiff <= 365;
+        default:
+          return true;
       }
     }).toList();
 
     // Filter by search query
     if (_searchQuery.trim().isNotEmpty) {
       final query = _searchQuery.toLowerCase();
-      records = records.where((r) =>
-        r.title.toLowerCase().contains(query) ||
-        r.type.toLowerCase().contains(query) ||
-        r.facility.toLowerCase().contains(query) ||
-        r.doctor.toLowerCase().contains(query) ||
-        r.notes.toLowerCase().contains(query) ||
-        r.status.toLowerCase().contains(query)
-      ).toList();
+      records = records
+          .where(
+            (r) =>
+                r.title.toLowerCase().contains(query) ||
+                r.type.toLowerCase().contains(query) ||
+                r.facility.toLowerCase().contains(query) ||
+                r.doctor.toLowerCase().contains(query) ||
+                r.notes.toLowerCase().contains(query) ||
+                r.status.toLowerCase().contains(query),
+          )
+          .toList();
     }
 
     // Filter by category
@@ -274,22 +325,26 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
   Map<String, int> get _categoryCounts {
     final searchFiltered = _allRecords.where((r) {
-       if (_searchQuery.trim().isEmpty) return true;
-       final query = _searchQuery.toLowerCase();
-       return r.title.toLowerCase().contains(query) ||
-        r.type.toLowerCase().contains(query) ||
-        r.facility.toLowerCase().contains(query) ||
-        r.doctor.toLowerCase().contains(query) ||
-        r.notes.toLowerCase().contains(query) ||
-        r.status.toLowerCase().contains(query);
+      if (_searchQuery.trim().isEmpty) return true;
+      final query = _searchQuery.toLowerCase();
+      return r.title.toLowerCase().contains(query) ||
+          r.type.toLowerCase().contains(query) ||
+          r.facility.toLowerCase().contains(query) ||
+          r.doctor.toLowerCase().contains(query) ||
+          r.notes.toLowerCase().contains(query) ||
+          r.status.toLowerCase().contains(query);
     }).toList();
 
     return {
       'all': searchFiltered.length,
       'lab': searchFiltered.where((r) => r.category == 'lab').length,
-      'prescription': searchFiltered.where((r) => r.category == 'prescription').length,
+      'prescription': searchFiltered
+          .where((r) => r.category == 'prescription')
+          .length,
       'imaging': searchFiltered.where((r) => r.category == 'imaging').length,
-      'pathology': searchFiltered.where((r) => r.category == 'pathology').length,
+      'pathology': searchFiltered
+          .where((r) => r.category == 'pathology')
+          .length,
     };
   }
 
@@ -315,21 +370,26 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 ),
               ),
             ),
-          
+
           Column(
             children: [
               // Header
               _buildHeader(isDark, textColor, subTextColor, borderColor),
-              
+
               // Search Bar
               _buildSearchBar(isDark, borderColor),
-              
+
               // Category Pills
               _buildCategoryPills(isDark, borderColor),
-              
+
               // Timeline Content
               Expanded(
-                child: _buildTimelineContent(isDark, textColor, subTextColor, borderColor),
+                child: _buildTimelineContent(
+                  isDark,
+                  textColor,
+                  subTextColor,
+                  borderColor,
+                ),
               ),
             ],
           ),
@@ -358,7 +418,12 @@ class _TimelineScreenState extends State<TimelineScreen> {
     );
   }
 
-  Widget _buildHeader(bool isDark, Color textColor, Color? subTextColor, Color borderColor) {
+  Widget _buildHeader(
+    bool isDark,
+    Color textColor,
+    Color? subTextColor,
+    Color borderColor,
+  ) {
     return Container(
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top + 16,
@@ -367,7 +432,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
         bottom: 16,
       ),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1D26).withOpacity(0.95) : Colors.white.withOpacity(0.8),
+        color: isDark
+            ? const Color(0xFF1A1D26).withOpacity(0.95)
+            : Colors.white.withOpacity(0.8),
         border: Border(bottom: BorderSide(color: borderColor)),
       ),
       child: ClipRRect(
@@ -376,56 +443,79 @@ class _TimelineScreenState extends State<TimelineScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: widget.onBack,
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.grey[800]!.withOpacity(0.8) : Colors.grey[100],
-                        borderRadius: BorderRadius.circular(12),
+              Expanded(
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: widget.onBack,
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.grey[800]!.withOpacity(0.8)
+                              : Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          LucideIcons.chevronLeft,
+                          color: textColor,
+                          size: 20,
+                        ),
                       ),
-                      child: Icon(LucideIcons.chevronLeft, color: textColor, size: 20),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(LucideIcons.activity, color: Color(0xFF39A4E6), size: 20),
-                          const SizedBox(width: 8),
+                          Row(
+                            children: [
+                              const Icon(
+                                LucideIcons.activity,
+                                color: Color(0xFF39A4E6),
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  'Medical Timeline',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: textColor,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                           Text(
-                            'Medical Timeline',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: textColor,
-                            ),
+                            '${_filteredRecords.length} ${_filteredRecords.length == 1 ? 'record' : 'records'} • ${_selectedView[0].toUpperCase()}${_selectedView.substring(1)}',
+                            style: TextStyle(fontSize: 12, color: subTextColor),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
-                      Text(
-                        '${_filteredRecords.length} ${_filteredRecords.length == 1 ? 'record' : 'records'} • ${_selectedView[0].toUpperCase()}${_selectedView.substring(1)}',
-                        style: TextStyle(fontSize: 12, color: subTextColor),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   // View Selector (Desktop style but adapted for mobile)
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.grey[800]!.withOpacity(0.8) : Colors.grey[100],
+                      color: isDark
+                          ? Colors.grey[800]!.withOpacity(0.8)
+                          : Colors.grey[100],
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: ['week', 'month', 'year'].map((view) {
                         final isSelected = _selectedView == view;
                         return GestureDetector(
@@ -434,15 +524,33 @@ class _TimelineScreenState extends State<TimelineScreen> {
                             _expandedCard = null;
                           }),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
-                              color: isSelected ? const Color(0xFF39A4E6) : Colors.transparent,
+                              color: isSelected
+                                  ? const Color(0xFF39A4E6)
+                                  : Colors.transparent,
                               borderRadius: BorderRadius.circular(8),
                               gradient: isSelected
-                                  ? const LinearGradient(colors: [Color(0xFF39A4E6), Color(0xFF2B8DD4)])
+                                  ? const LinearGradient(
+                                      colors: [
+                                        Color(0xFF39A4E6),
+                                        Color(0xFF2B8DD4),
+                                      ],
+                                    )
                                   : null,
                               boxShadow: isSelected
-                                  ? [BoxShadow(color: const Color(0xFF39A4E6).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))]
+                                  ? [
+                                      BoxShadow(
+                                        color: const Color(
+                                          0xFF39A4E6,
+                                        ).withOpacity(0.3),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ]
                                   : null,
                             ),
                             child: Text(
@@ -450,7 +558,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isSelected ? Colors.white : subTextColor,
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
                               ),
                             ),
                           ),
@@ -460,15 +570,22 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
-                    onTap: () => setState(() => _showExportMenu = !_showExportMenu),
+                    onTap: () =>
+                        setState(() => _showExportMenu = !_showExportMenu),
                     child: Container(
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.grey[800]!.withOpacity(0.8) : Colors.grey[100],
+                        color: isDark
+                            ? Colors.grey[800]!.withOpacity(0.8)
+                            : Colors.grey[100],
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(LucideIcons.download, color: textColor, size: 20),
+                      child: Icon(
+                        LucideIcons.download,
+                        color: textColor,
+                        size: 20,
+                      ),
                     ),
                   ),
                 ],
@@ -484,7 +601,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1D26).withOpacity(0.5) : Colors.white.withOpacity(0.5),
+        color: isDark
+            ? const Color(0xFF1A1D26).withOpacity(0.5)
+            : Colors.white.withOpacity(0.5),
         border: Border(bottom: BorderSide(color: borderColor)),
       ),
       child: ClipRRect(
@@ -493,13 +612,24 @@ class _TimelineScreenState extends State<TimelineScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: isDark ? Colors.grey[800]!.withOpacity(0.5) : Colors.grey[100],
+              color: isDark
+                  ? Colors.grey[800]!.withOpacity(0.5)
+                  : Colors.grey[100],
               borderRadius: BorderRadius.circular(12),
-              border: _searchQuery.isNotEmpty ? Border.all(color: const Color(0xFF39A4E6).withOpacity(0.3), width: 2) : null,
+              border: _searchQuery.isNotEmpty
+                  ? Border.all(
+                      color: const Color(0xFF39A4E6).withOpacity(0.3),
+                      width: 2,
+                    )
+                  : null,
             ),
             child: Row(
               children: [
-                Icon(LucideIcons.search, size: 16, color: isDark ? Colors.grey[500] : Colors.grey[400]),
+                Icon(
+                  LucideIcons.search,
+                  size: 16,
+                  color: isDark ? Colors.grey[500] : Colors.grey[400],
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
@@ -507,10 +637,16 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       _searchQuery = value;
                       _expandedCard = null;
                     }),
-                    style: TextStyle(fontSize: 14, color: isDark ? Colors.white : Colors.black),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Search records, doctors, facilities...',
-                      hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.grey[500] : Colors.grey[500]),
+                      hintStyle: TextStyle(
+                        fontSize: 14,
+                        color: isDark ? Colors.grey[500] : Colors.grey[500],
+                      ),
                       border: InputBorder.none,
                       isDense: true,
                       contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -529,7 +665,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         color: isDark ? Colors.grey[700] : Colors.grey[200],
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(LucideIcons.x, size: 12, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                      child: Icon(
+                        LucideIcons.x,
+                        size: 12,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
                     ),
                   ),
               ],
@@ -552,7 +692,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1D26).withOpacity(0.5) : Colors.white.withOpacity(0.5),
+        color: isDark
+            ? const Color(0xFF1A1D26).withOpacity(0.5)
+            : Colors.white.withOpacity(0.5),
         border: Border(bottom: BorderSide(color: borderColor)),
       ),
       child: SingleChildScrollView(
@@ -574,44 +716,80 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   _expandedCard = null;
                 }),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  constraints: const BoxConstraints(minHeight: 32),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: isActive
                         ? const Color(0xFF39A4E6)
-                        : isDark ? Colors.grey[800]!.withOpacity(0.5) : Colors.white,
+                        : isDark
+                        ? Colors.grey[800]!.withOpacity(0.5)
+                        : Colors.white,
                     borderRadius: BorderRadius.circular(24),
                     border: isActive ? null : Border.all(color: borderColor),
                     gradient: isActive
-                        ? const LinearGradient(colors: [Color(0xFF39A4E6), Color(0xFF2B8DD4)])
+                        ? const LinearGradient(
+                            colors: [Color(0xFF39A4E6), Color(0xFF2B8DD4)],
+                          )
                         : null,
                     boxShadow: isActive
-                        ? [BoxShadow(color: const Color(0xFF39A4E6).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))]
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFF39A4E6).withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
                         : null,
                   ),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(icon, size: 14, color: isActive ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600])),
+                      Icon(
+                        icon,
+                        size: 14,
+                        color: isActive
+                            ? Colors.white
+                            : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         label,
                         style: TextStyle(
                           fontSize: 13,
-                          color: isActive ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                          fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                          color: isActive
+                              ? Colors.white
+                              : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                          fontWeight: isActive
+                              ? FontWeight.w600
+                              : FontWeight.normal,
                         ),
                       ),
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        constraints: const BoxConstraints(minWidth: 20, minHeight: 16),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: isActive ? Colors.white.withOpacity(0.2) : (isDark ? Colors.grey[700] : Colors.grey[100]),
+                          color: isActive
+                              ? Colors.white.withOpacity(0.2)
+                              : (isDark ? Colors.grey[700] : Colors.grey[100]),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           count.toString(),
+                          textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 10,
-                            color: isActive ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                            color: isActive
+                                ? Colors.white
+                                : (isDark
+                                      ? Colors.grey[400]
+                                      : Colors.grey[600]),
                           ),
                         ),
                       ),
@@ -626,7 +804,12 @@ class _TimelineScreenState extends State<TimelineScreen> {
     );
   }
 
-  Widget _buildTimelineContent(bool isDark, Color textColor, Color? subTextColor, Color borderColor) {
+  Widget _buildTimelineContent(
+    bool isDark,
+    Color textColor,
+    Color? subTextColor,
+    Color borderColor,
+  ) {
     final records = _filteredRecords;
 
     if (records.isEmpty) {
@@ -642,7 +825,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                _searchQuery.isNotEmpty ? LucideIcons.search : LucideIcons.calendar,
+                _searchQuery.isNotEmpty
+                    ? LucideIcons.search
+                    : LucideIcons.calendar,
                 size: 40,
                 color: isDark ? Colors.grey[600] : Colors.grey[400],
               ),
@@ -650,7 +835,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
             const SizedBox(height: 16),
             Text(
               'No records found',
-              style: TextStyle(fontSize: 18, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+              style: TextStyle(
+                fontSize: 18,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -665,15 +853,30 @@ class _TimelineScreenState extends State<TimelineScreen> {
               GestureDetector(
                 onTap: () => setState(() => _searchQuery = ''),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [Color(0xFF39A4E6), Color(0xFF2B8DD4)]),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF39A4E6), Color(0xFF2B8DD4)],
+                    ),
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: [BoxShadow(color: const Color(0xFF39A4E6).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))],
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF39A4E6).withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: const Text(
                     'Clear Search',
-                    style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -703,7 +906,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
             ),
           ),
         ),
-        
+
         ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           itemCount: records.length,
@@ -722,37 +925,51 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   SizedBox(
                     width: 48,
                     child: Center(
-                      child: Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: config['gradient'] as List<Color>,
-                          ),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: (config['color'] as Color).withOpacity(0.4),
-                              blurRadius: 20,
-                              offset: const Offset(0, 0),
+                      child:
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: config['gradient'] as List<Color>,
+                              ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (config['color'] as Color).withOpacity(
+                                    0.4,
+                                  ),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 0),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: Icon(config['icon'] as IconData, color: Colors.white, size: 24),
-                      ).animate().scale(duration: 300.ms, delay: (index * 50).ms),
+                            child: Icon(
+                              config['icon'] as IconData,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ).animate().scale(
+                            duration: 300.ms,
+                            delay: (index * 50).ms,
+                          ),
                     ),
                   ),
                   const SizedBox(width: 16),
-                  
+
                   // Card
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => setState(() => _expandedCard = isExpanded ? null : record.id),
+                      onTap: () => setState(
+                        () => _expandedCard = isExpanded ? null : record.id,
+                      ),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1A1D26) : Colors.white,
+                          color: isDark
+                              ? const Color(0xFF1A1D26)
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(color: borderColor),
                           boxShadow: [
@@ -774,24 +991,36 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                 children: [
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Row(
                                           children: [
                                             Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 4,
+                                                  ),
                                               decoration: BoxDecoration(
-                                                color: (statusInfo['bg'] as Color).withOpacity(0.1),
-                                                borderRadius: BorderRadius.circular(12),
+                                                color:
+                                                    (statusInfo['bg'] as Color)
+                                                        .withOpacity(0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
                                               ),
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   Text(
-                                                    statusInfo['icon'] as String,
+                                                    statusInfo['icon']
+                                                        as String,
                                                     style: TextStyle(
-                                                      color: statusInfo['text'] as Color,
-                                                      fontWeight: FontWeight.bold,
+                                                      color:
+                                                          statusInfo['text']
+                                                              as Color,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                       fontSize: 12,
                                                     ),
                                                   ),
@@ -799,20 +1028,30 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                                   Text(
                                                     record.status,
                                                     style: TextStyle(
-                                                      color: statusInfo['text'] as Color,
+                                                      color:
+                                                          statusInfo['text']
+                                                              as Color,
                                                       fontSize: 11,
-                                                      fontWeight: FontWeight.w600,
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                     ),
                                                   ),
                                                 ],
                                               ),
                                             ),
                                             const SizedBox(width: 8),
-                                            Icon(LucideIcons.clock, size: 12, color: subTextColor),
+                                            Icon(
+                                              LucideIcons.clock,
+                                              size: 12,
+                                              color: subTextColor,
+                                            ),
                                             const SizedBox(width: 4),
                                             Text(
                                               record.time,
-                                              style: TextStyle(fontSize: 11, color: subTextColor),
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: subTextColor,
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -828,24 +1067,50 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                         const SizedBox(height: 4),
                                         Row(
                                           children: [
-                                            Icon(LucideIcons.calendar, size: 12, color: subTextColor),
-                                            const SizedBox(width: 4),
-                                            Text(record.date, style: TextStyle(fontSize: 12, color: subTextColor)),
-                                            Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 6),
-                                              child: Text('•', style: TextStyle(color: subTextColor)),
+                                            Icon(
+                                              LucideIcons.calendar,
+                                              size: 12,
+                                              color: subTextColor,
                                             ),
-                                            Text(record.type, style: TextStyle(fontSize: 12, color: subTextColor)),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              record.date,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: subTextColor,
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                  ),
+                                              child: Text(
+                                                '•',
+                                                style: TextStyle(
+                                                  color: subTextColor,
+                                                ),
+                                              ),
+                                            ),
+                                            Text(
+                                              record.type,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: subTextColor,
+                                              ),
+                                            ),
                                           ],
                                         ),
                                       ],
                                     ),
                                   ),
                                   Icon(
-                                    LucideIcons.chevronDown,
-                                    color: subTextColor,
-                                    size: 20,
-                                  ).animate(target: isExpanded ? 1 : 0).rotate(begin: 0, end: 0.5),
+                                        LucideIcons.chevronDown,
+                                        color: subTextColor,
+                                        size: 20,
+                                      )
+                                      .animate(target: isExpanded ? 1 : 0)
+                                      .rotate(begin: 0, end: 0.5),
                                 ],
                               ),
 
@@ -854,7 +1119,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: isDark ? Colors.grey[800]!.withOpacity(0.3) : Colors.grey[50],
+                                  color: isDark
+                                      ? Colors.grey[800]!.withOpacity(0.3)
+                                      : Colors.grey[50],
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
@@ -862,18 +1129,34 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                     Expanded(
                                       child: Row(
                                         children: [
-                                          Icon(LucideIcons.mapPin, size: 14, color: subTextColor),
+                                          Icon(
+                                            LucideIcons.mapPin,
+                                            size: 14,
+                                            color: subTextColor,
+                                          ),
                                           const SizedBox(width: 8),
                                           Expanded(
                                             child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
-                                                Text('Facility', style: TextStyle(fontSize: 10, color: subTextColor)),
+                                                Text(
+                                                  'Facility',
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    color: subTextColor,
+                                                  ),
+                                                ),
                                                 Text(
                                                   record.facility,
-                                                  style: TextStyle(fontSize: 12, color: textColor, fontWeight: FontWeight.w500),
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: textColor,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
                                                   maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ],
                                             ),
@@ -885,18 +1168,34 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                     Expanded(
                                       child: Row(
                                         children: [
-                                          Icon(LucideIcons.activity, size: 14, color: subTextColor),
+                                          Icon(
+                                            LucideIcons.activity,
+                                            size: 14,
+                                            color: subTextColor,
+                                          ),
                                           const SizedBox(width: 8),
                                           Expanded(
                                             child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
-                                                Text('Doctor', style: TextStyle(fontSize: 10, color: subTextColor)),
+                                                Text(
+                                                  'Doctor',
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    color: subTextColor,
+                                                  ),
+                                                ),
                                                 Text(
                                                   record.doctor,
-                                                  style: TextStyle(fontSize: 12, color: textColor, fontWeight: FontWeight.w500),
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: textColor,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
                                                   maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ],
                                             ),
@@ -913,65 +1212,143 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                 duration: const Duration(milliseconds: 300),
                                 child: isExpanded
                                     ? Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           const SizedBox(height: 16),
-                                          
+
                                           // Test Results
-                                          if (record.values != null && record.values!.isNotEmpty) ...[
+                                          if (record.values != null &&
+                                              record.values!.isNotEmpty) ...[
                                             Container(
                                               padding: const EdgeInsets.all(16),
                                               decoration: BoxDecoration(
-                                                color: isDark ? Colors.grey[800]!.withOpacity(0.3) : const Color(0xFFEFF6FF).withOpacity(0.5),
-                                                borderRadius: BorderRadius.circular(16),
+                                                color: isDark
+                                                    ? Colors.grey[800]!
+                                                          .withOpacity(0.3)
+                                                    : const Color(
+                                                        0xFFEFF6FF,
+                                                      ).withOpacity(0.5),
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
                                               ),
                                               child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
                                                     'Test Results',
-                                                    style: TextStyle(fontSize: 13, color: subTextColor, fontWeight: FontWeight.w600),
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                      color: subTextColor,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
                                                   ),
                                                   const SizedBox(height: 12),
                                                   GridView.count(
                                                     shrinkWrap: true,
-                                                    physics: const NeverScrollableScrollPhysics(),
+                                                    physics:
+                                                        const NeverScrollableScrollPhysics(),
                                                     crossAxisCount: 2,
                                                     mainAxisSpacing: 8,
                                                     crossAxisSpacing: 8,
                                                     childAspectRatio: 2.5,
-                                                    children: record.values!.map((val) {
+                                                    children: record.values!.map((
+                                                      val,
+                                                    ) {
                                                       return Container(
-                                                        padding: const EdgeInsets.all(8),
-                                                        decoration: BoxDecoration(
-                                                          color: isDark ? Colors.grey[800]!.withOpacity(0.5) : Colors.white,
-                                                          borderRadius: BorderRadius.circular(8),
-                                                        ),
-                                                        child: Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          mainAxisAlignment: MainAxisAlignment.center,
-                                                          children: [
-                                                            Text(val.label, style: TextStyle(fontSize: 10, color: subTextColor)),
-                                                            Row(
-                                                              children: [
-                                                                Text(
-                                                                  val.value,
-                                                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: textColor),
-                                                                ),
-                                                                const SizedBox(width: 2),
-                                                                Text(val.unit, style: TextStyle(fontSize: 10, color: subTextColor)),
-                                                              ],
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              8,
                                                             ),
-                                                            if (val.status != null)
+                                                        decoration: BoxDecoration(
+                                                          color: isDark
+                                                              ? Colors
+                                                                    .grey[800]!
+                                                                    .withOpacity(
+                                                                      0.5,
+                                                                    )
+                                                              : Colors.white,
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                8,
+                                                              ),
+                                                        ),
+                                                        child: FittedBox(
+                                                          fit: BoxFit.scaleDown,
+                                                          alignment: Alignment.centerLeft,
+                                                          child: Column(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            mainAxisSize: MainAxisSize.min,
+                                                            children: [
                                                               Text(
-                                                                val.status == 'normal' ? '✓ Normal' : (val.status == 'high' ? '↑ High' : '↓ Low'),
+                                                                val.label,
                                                                 style: TextStyle(
-                                                                  fontSize: 10,
-                                                                  color: val.status == 'normal' ? Colors.green : (val.status == 'high' ? Colors.orange : Colors.red),
-                                                                  fontWeight: FontWeight.w600,
+                                                                  fontSize: 9,
+                                                                  color:
+                                                                      subTextColor,
                                                                 ),
                                                               ),
-                                                          ],
+                                                              Row(
+                                                                mainAxisSize: MainAxisSize.min,
+                                                                children: [
+                                                                  Text(
+                                                                    val.value,
+                                                                    style: TextStyle(
+                                                                      fontSize:
+                                                                          12,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      color:
+                                                                          textColor,
+                                                                    ),
+                                                                  ),
+                                                                  const SizedBox(
+                                                                    width: 2,
+                                                                  ),
+                                                                  Text(
+                                                                    val.unit,
+                                                                    style: TextStyle(
+                                                                      fontSize:
+                                                                          9,
+                                                                      color:
+                                                                          subTextColor,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              if (val.status !=
+                                                                  null)
+                                                                Text(
+                                                                  val.status ==
+                                                                          'normal'
+                                                                      ? '✓ Normal'
+                                                                      : (val.status ==
+                                                                                'high'
+                                                                            ? '↑ High'
+                                                                            : '↓ Low'),
+                                                                  style: TextStyle(
+                                                                    fontSize: 9,
+                                                                    color:
+                                                                        val.status ==
+                                                                            'normal'
+                                                                        ? Colors
+                                                                              .green
+                                                                        : (val.status ==
+                                                                                  'high'
+                                                                              ? Colors.orange
+                                                                              : Colors.red),
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600,
+                                                                  ),
+                                                                ),
+                                                            ],
+                                                          ),
                                                         ),
                                                       );
                                                     }).toList(),
@@ -986,27 +1363,42 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                           Container(
                                             padding: const EdgeInsets.all(16),
                                             decoration: BoxDecoration(
-                                              color: isDark ? Colors.grey[800]!.withOpacity(0.3) : Colors.grey[50],
-                                              borderRadius: BorderRadius.circular(16),
+                                              color: isDark
+                                                  ? Colors.grey[800]!
+                                                        .withOpacity(0.3)
+                                                  : Colors.grey[50],
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
                                             ),
                                             child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Text(
                                                   'Clinical Notes',
-                                                  style: TextStyle(fontSize: 13, color: subTextColor, fontWeight: FontWeight.w600),
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                    color: subTextColor,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
                                                 ),
                                                 const SizedBox(height: 8),
                                                 Text(
                                                   record.notes,
-                                                  style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[300] : Colors.grey[700], height: 1.5),
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                    color: isDark
+                                                        ? Colors.grey[300]
+                                                        : Colors.grey[700],
+                                                    height: 1.5,
+                                                  ),
                                                 ),
                                               ],
                                             ),
                                           ),
-                                          
+
                                           const SizedBox(height: 16),
-                                          
+
                                           // Actions
                                           Row(
                                             children: [
@@ -1014,18 +1406,55 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                                 child: GestureDetector(
                                                   onTap: () {}, // Placeholder
                                                   child: Container(
-                                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          vertical: 12,
+                                                        ),
                                                     decoration: BoxDecoration(
-                                                      gradient: const LinearGradient(colors: [Color(0xFF39A4E6), Color(0xFF2B8DD4)]),
-                                                      borderRadius: BorderRadius.circular(12),
-                                                      boxShadow: [BoxShadow(color: const Color(0xFF39A4E6).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))],
+                                                      gradient:
+                                                          const LinearGradient(
+                                                            colors: [
+                                                              Color(0xFF39A4E6),
+                                                              Color(0xFF2B8DD4),
+                                                            ],
+                                                          ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            12,
+                                                          ),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: const Color(
+                                                            0xFF39A4E6,
+                                                          ).withOpacity(0.3),
+                                                          blurRadius: 8,
+                                                          offset: const Offset(
+                                                            0,
+                                                            4,
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
                                                     child: const Row(
-                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
                                                       children: [
-                                                        Icon(LucideIcons.eye, color: Colors.white, size: 16),
+                                                        Icon(
+                                                          LucideIcons.eye,
+                                                          color: Colors.white,
+                                                          size: 16,
+                                                        ),
                                                         SizedBox(width: 8),
-                                                        Text('View Full Report', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                                                        Text(
+                                                          'View Full Report',
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 13,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                        ),
                                                       ],
                                                     ),
                                                   ),
@@ -1035,12 +1464,23 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                               GestureDetector(
                                                 onTap: () {}, // Placeholder
                                                 child: Container(
-                                                  padding: const EdgeInsets.all(12),
-                                                  decoration: BoxDecoration(
-                                                    color: isDark ? Colors.grey[800] : Colors.grey[100],
-                                                    borderRadius: BorderRadius.circular(12),
+                                                  padding: const EdgeInsets.all(
+                                                    12,
                                                   ),
-                                                  child: Icon(LucideIcons.share2, size: 16, color: textColor),
+                                                  decoration: BoxDecoration(
+                                                    color: isDark
+                                                        ? Colors.grey[800]
+                                                        : Colors.grey[100],
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                  ),
+                                                  child: Icon(
+                                                    LucideIcons.share2,
+                                                    size: 16,
+                                                    color: textColor,
+                                                  ),
                                                 ),
                                               ),
                                             ],
@@ -1087,19 +1527,46 @@ class _TimelineScreenState extends State<TimelineScreen> {
             padding: const EdgeInsets.all(12),
             child: Text(
               'Export ${_filteredRecords.length} ${_filteredRecords.length == 1 ? 'record' : 'records'}',
-              style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[500] : Colors.grey[500]),
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? Colors.grey[500] : Colors.grey[500],
+              ),
             ),
           ),
-          _buildExportItem(isDark, 'PDF Document', 'Printable format', LucideIcons.fileText, Colors.red),
-          _buildExportItem(isDark, 'CSV Spreadsheet', 'Excel compatible', LucideIcons.fileText, Colors.green),
-          _buildExportItem(isDark, 'JSON Data', 'Complete data export', LucideIcons.fileText, Colors.blue),
+          _buildExportItem(
+            isDark,
+            'PDF Document',
+            'Printable format',
+            LucideIcons.fileText,
+            Colors.red,
+          ),
+          _buildExportItem(
+            isDark,
+            'CSV Spreadsheet',
+            'Excel compatible',
+            LucideIcons.fileText,
+            Colors.green,
+          ),
+          _buildExportItem(
+            isDark,
+            'JSON Data',
+            'Complete data export',
+            LucideIcons.fileText,
+            Colors.blue,
+          ),
           const SizedBox(height: 8),
         ],
       ),
     ).animate().scale(duration: 200.ms, alignment: Alignment.topRight);
   }
 
-  Widget _buildExportItem(bool isDark, String title, String subtitle, IconData icon, Color color) {
+  Widget _buildExportItem(
+    bool isDark,
+    String title,
+    String subtitle,
+    IconData icon,
+    Color color,
+  ) {
     return InkWell(
       onTap: () => setState(() => _showExportMenu = false),
       child: Padding(
@@ -1144,15 +1611,35 @@ class _TimelineScreenState extends State<TimelineScreen> {
   Map<String, dynamic> _getCategoryConfig(String category) {
     switch (category) {
       case 'lab':
-        return {'icon': LucideIcons.droplet, 'color': const Color(0xFF39A4E6), 'gradient': [Colors.blue, Colors.cyan]};
+        return {
+          'icon': LucideIcons.droplet,
+          'color': const Color(0xFF39A4E6),
+          'gradient': [Colors.blue, Colors.cyan],
+        };
       case 'prescription':
-        return {'icon': LucideIcons.pill, 'color': const Color(0xFF8B5CF6), 'gradient': [Colors.purple, Colors.pink]};
+        return {
+          'icon': LucideIcons.pill,
+          'color': const Color(0xFF8B5CF6),
+          'gradient': [Colors.purple, Colors.pink],
+        };
       case 'imaging':
-        return {'icon': LucideIcons.scan, 'color': const Color(0xFFF59E0B), 'gradient': [Colors.orange, Colors.amber]};
+        return {
+          'icon': LucideIcons.scan,
+          'color': const Color(0xFFF59E0B),
+          'gradient': [Colors.orange, Colors.amber],
+        };
       case 'pathology':
-        return {'icon': LucideIcons.microscope, 'color': const Color(0xFF10B981), 'gradient': [Colors.green, Colors.teal]};
+        return {
+          'icon': LucideIcons.microscope,
+          'color': const Color(0xFF10B981),
+          'gradient': [Colors.green, Colors.teal],
+        };
       default:
-        return {'icon': LucideIcons.fileText, 'color': Colors.grey, 'gradient': [Colors.grey, Colors.blueGrey]};
+        return {
+          'icon': LucideIcons.fileText,
+          'color': Colors.grey,
+          'gradient': [Colors.grey, Colors.blueGrey],
+        };
     }
   }
 
