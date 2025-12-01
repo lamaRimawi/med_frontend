@@ -17,6 +17,8 @@ import 'extracted_report_screen.dart';
 import 'package:health_track/models/extracted_report_data.dart';
 
 import 'package:health_track/models/uploaded_file.dart';
+import 'package:health_track/config/api_config.dart';
+import 'package:health_track/services/vlm_service.dart';
 
 enum ViewMode { camera, review, viewer, processing, success }
 
@@ -345,7 +347,32 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
 
     int currentStatusIndex = 0;
 
-    // Simulate processing
+    bool backendCompleted = false;
+    // Kick off backend extraction using a sample image URL for now.
+    // TODO: Replace ApiConfig.sampleImageUrl with an uploaded image URL accessible by the backend.
+    VlmService.extractFromImageUrl(ApiConfig.sampleImageUrl)
+        .then((result) {
+          backendCompleted = true;
+          if (!mounted) return;
+          setState(() {
+            extractedData = result;
+            // If progress is already near completion, finish now
+            if (processingProgress >= 98) {
+              processingProgress = 100;
+            }
+          });
+        })
+        .catchError((e) {
+          backendCompleted = true;
+          if (!mounted) return;
+          // Fallback to mock data on error
+          setState(() {
+            extractedData = _buildMockExtractedData();
+          });
+          debugPrint('Backend extraction failed: $e');
+        });
+
+    // Simulate processing/progress bar while backend runs
     Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (!mounted) {
         timer.cancel();
@@ -353,7 +380,14 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
       }
 
       setState(() {
-        processingProgress += 2;
+        // If backend not completed, cap at 98%
+        if (!backendCompleted) {
+          if (processingProgress < 98) {
+            processingProgress += 2;
+          }
+        } else {
+          processingProgress += 2;
+        }
 
         final statusIndex = (processingProgress / 100 * statuses.length)
             .floor();
@@ -363,12 +397,14 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           processingStatus = statuses[statusIndex];
         }
 
-        if (processingProgress >= 100) {
+        if (processingProgress >= 100 ||
+            (backendCompleted && processingProgress >= 98)) {
           timer.cancel();
           Future.delayed(const Duration(milliseconds: 500), () {
             if (mounted) {
               setState(() {
-                extractedData = _buildMockExtractedData();
+                // Ensure we have data; if backend failed earlier, fallback was set
+                extractedData ??= _buildMockExtractedData();
                 viewMode = ViewMode.success;
               });
             }

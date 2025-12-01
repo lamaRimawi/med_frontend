@@ -7,6 +7,7 @@ import '../widgets/custom_button.dart';
 import '../widgets/alert_banner.dart';
 import '../utils/validators.dart';
 import '../services/auth_service.dart';
+import '../services/auth_api.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool isReturningUser;
@@ -47,13 +48,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isFormValid() {
     final emailError = Validators.validateEmail(_emailController.text);
-    final passwordError = _passwordController.text.isEmpty ? 'Password is required' : null;
+    final passwordError = _passwordController.text.isEmpty
+        ? 'Password is required'
+        : null;
     return emailError == null && passwordError == null;
   }
 
-  void _handleLogin() {
+  void _handleLogin() async {
     final emailError = Validators.validateEmail(_emailController.text);
-    final passwordError = _passwordController.text.isEmpty ? 'Password is required' : null;
+    final passwordError = _passwordController.text.isEmpty
+        ? 'Password is required'
+        : null;
 
     if (emailError != null || passwordError != null) {
       setState(() {
@@ -64,34 +69,53 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     setState(() => _isLoading = true);
-    
-    // Simulate login
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
+
+    try {
+      // Call backend login
+      final result = await AuthApi.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (!mounted) return;
+
+      if (result.$1) {
         setState(() {
-          _isLoading = false;
           _alertMessage = 'Login successful!';
           _isAlertError = false;
+          _isLoading = false;
         });
-        
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) {
-            Navigator.pushReplacementNamed(context, '/home');
-          }
+
+        Future.delayed(const Duration(milliseconds: 800), () {
+          if (mounted) Navigator.pushReplacementNamed(context, '/home');
+        });
+      } else {
+        setState(() {
+          _alertMessage = result.$2 ?? 'Login failed';
+          _isAlertError = true;
+          _isLoading = false;
         });
       }
-    });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _alertMessage = 'Login error: $e';
+        _isAlertError = true;
+        _isLoading = false;
+      });
+    }
   }
 
   void _handleSocialLogin(String provider) async {
     setState(() => _isLoading = true);
-    
+
     try {
       if (provider == 'Google') {
         final result = await AuthService.signInWithGoogle();
         if (result != null && mounted) {
           setState(() {
-            _alertMessage = 'Signed in with Google: ${result['email'] ?? 'User'}';
+            _alertMessage =
+                'Signed in with Google: ${result['email'] ?? 'User'}';
             _isAlertError = false;
             _isLoading = false;
           });
@@ -111,7 +135,8 @@ class _LoginScreenState extends State<LoginScreen> {
         final userData = await AuthService.signInWithFacebook();
         if (userData != null && mounted) {
           setState(() {
-            _alertMessage = 'Signed in with Facebook: ${userData['email'] ?? userData['name']}';
+            _alertMessage =
+                'Signed in with Facebook: ${userData['email'] ?? userData['name']}';
             _isAlertError = false;
             _isLoading = false;
           });
@@ -166,7 +191,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Stack(
         children: [
           const AnimatedBubbleBackground(),
-          
+
           // Header
           Positioned(
             top: 0,
@@ -188,7 +213,10 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
+                    icon: const Icon(
+                      LucideIcons.arrowLeft,
+                      color: Colors.white,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ).animate().fadeIn(delay: 200.ms).moveX(begin: -20, end: 0),
                   const Expanded(
@@ -217,11 +245,15 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 children: [
                   const SizedBox(height: 30),
-                  
+
                   // Welcome Section
                   ShaderMask(
                     shaderCallback: (bounds) => const LinearGradient(
-                      colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9), Color(0xFF39A4E6)],
+                      colors: [
+                        Color(0xFF39A4E6),
+                        Color(0xFF2B8FD9),
+                        Color(0xFF39A4E6),
+                      ],
                     ).createShader(bounds),
                     child: Text(
                       'Welcome Back',
@@ -232,16 +264,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ).animate().fadeIn(delay: 300.ms).moveY(begin: 30, end: 0),
-                  
+
                   const SizedBox(height: 12),
-                  
+
                   RichText(
                     textAlign: TextAlign.center,
                     text: TextSpan(
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 18,
-                      ),
+                      style: TextStyle(color: Colors.grey[500], fontSize: 18),
                       children: [
                         const TextSpan(text: 'Sign in to '),
                         TextSpan(
@@ -277,9 +306,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     validator: Validators.validateEmail,
                     validateOnChange: true,
                   ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   CustomTextField(
                     label: 'Password',
                     placeholder: 'Enter your password',
@@ -287,26 +316,28 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _passwordController,
                     isPassword: true,
                     showPassword: _showPassword,
-                    onTogglePassword: () => setState(() => _showPassword = !_showPassword),
+                    onTogglePassword: () =>
+                        setState(() => _showPassword = !_showPassword),
                     validateOnChange: true,
                     validator: Validators.validatePassword,
                   ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () => Navigator.pushNamed(context, '/forgot-password'),
-                          child: const Text(
-                            'Forgot Password?',
-                            style: TextStyle(
-                              color: Color(0xFF39A4E6),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () =>
+                          Navigator.pushNamed(context, '/forgot-password'),
+                      child: const Text(
+                        'Forgot Password?',
+                        style: TextStyle(
+                          color: Color(0xFF39A4E6),
+                          fontWeight: FontWeight.w600,
                         ),
-                      ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
-                  
+                      ),
+                    ),
+                  ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
+
                   const SizedBox(height: 20),
-                  
+
                   // Recaptcha placeholder
                   Container(
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -332,13 +363,26 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               Checkbox(value: false, onChanged: (v) {}),
                               const SizedBox(width: 8),
-                              const Text('I\'m not a robot', style: TextStyle(color: Colors.black87)),
+                              const Text(
+                                'I\'m not a robot',
+                                style: TextStyle(color: Colors.black87),
+                              ),
                               const SizedBox(width: 24),
                               const Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.security, color: Colors.blue, size: 24),
-                                  Text('reCAPTCHA', style: TextStyle(fontSize: 8, color: Colors.grey)),
+                                  Icon(
+                                    Icons.security,
+                                    color: Colors.blue,
+                                    size: 24,
+                                  ),
+                                  Text(
+                                    'reCAPTCHA',
+                                    style: TextStyle(
+                                      fontSize: 8,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ],
@@ -366,7 +410,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(20),
@@ -374,7 +421,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           child: Text(
                             'or sign in with',
-                            style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                            style: TextStyle(
+                              color: Colors.grey[400],
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ),
@@ -392,10 +442,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(width: 20),
                       _buildSocialButton(LucideIcons.facebook, 'Facebook'),
                       const SizedBox(width: 20),
-                      _buildSocialButton(LucideIcons.fingerprint, 'Fingerprint'),
+                      _buildSocialButton(
+                        LucideIcons.fingerprint,
+                        'Fingerprint',
+                      ),
                     ],
                   ).animate().fadeIn(delay: 1000.ms).moveY(begin: 20, end: 0),
-                  
+
                   const SizedBox(height: 40),
 
                   // Sign Up Link
@@ -405,7 +458,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         Text(
                           "Don't have an account? ",
-                          style: TextStyle(color: Colors.grey[600], fontSize: 15),
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 15,
+                          ),
                         ),
                         GestureDetector(
                           onTap: () => Navigator.pushNamed(context, '/signup'),
@@ -421,7 +477,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                   ).animate().fadeIn(delay: 1100.ms),
-                  
+
                   const SizedBox(height: 20),
                 ],
               ),
@@ -434,28 +490,30 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildSocialButton(IconData icon, String provider) {
     return InkWell(
-      onTap: () => _handleSocialLogin(provider),
-      borderRadius: BorderRadius.circular(50),
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: const Color(0xFF39A4E6),
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF39A4E6).withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+          onTap: () => _handleSocialLogin(provider),
+          borderRadius: BorderRadius.circular(50),
+          child: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: const Color(0xFF39A4E6),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF39A4E6).withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Icon(icon, color: Colors.white, size: 24),
-      ),
-    ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(
-      begin: const Offset(1, 1),
-      end: const Offset(1.05, 1.05),
-      duration: 2.seconds,
-    );
+            child: Icon(icon, color: Colors.white, size: 24),
+          ),
+        )
+        .animate(onPlay: (c) => c.repeat(reverse: true))
+        .scale(
+          begin: const Offset(1, 1),
+          end: const Offset(1.05, 1.05),
+          duration: 2.seconds,
+        );
   }
 }
