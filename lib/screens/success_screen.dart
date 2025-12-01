@@ -3,7 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
-import 'camera_upload_screen.dart'; // For UploadedFile model
+import 'package:health_track/models/uploaded_file.dart';
 
 class SuccessScreen extends StatefulWidget {
   final bool isDarkMode;

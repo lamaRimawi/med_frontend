@@ -3,7 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:math' as math;
 import 'dart:io';
-import 'camera_upload_screen.dart'; // For UploadedFile model
+import 'package:health_track/models/uploaded_file.dart';
 
 class ProcessingScreen extends StatelessWidget {
   final bool isDarkMode;
