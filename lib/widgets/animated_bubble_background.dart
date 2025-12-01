@@ -36,11 +36,10 @@ class AnimatedBubbleBackground extends StatelessWidget {
   Widget _buildFloatingBubble(BuildContext context, int i) {
     final size = 10.0 + (i % 5) * 5;
     final left = (i * 100 / 15) + ((i % 3) * 2); 
-    // Fix: Start at random vertical positions across the screen, not just at the bottom
     final top = (i * 123) % 100.0; 
 
     final duration = (15 + (i % 5) * 2).seconds;
-    final delay = (i * 0.2).seconds; // Reduced delay for faster initial appearance
+    final delay = (i * 0.2).seconds;
 
     return Positioned(
       left: MediaQuery.of(context).size.width * (left / 100),
@@ -51,14 +50,14 @@ class AnimatedBubbleBackground extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-            color: const Color(0xFF39A4E6).withOpacity(0.3), // Increased opacity
+            color: const Color(0xFF39A4E6).withOpacity(0.3),
             width: 1,
           ),
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF39A4E6).withOpacity(0.1), // Increased opacity
+              const Color(0xFF39A4E6).withOpacity(0.1),
               const Color(0xFF39A4E6).withOpacity(0.02),
             ],
           ),
@@ -67,14 +66,15 @@ class AnimatedBubbleBackground extends StatelessWidget {
       .animate(onPlay: (c) => c.repeat())
       .moveY(
         begin: 0, 
-        end: -200, // Move up a reasonable amount then reset
+        end: -200, 
         duration: duration, 
         delay: delay, 
         curve: Curves.easeInOutSine,
       )
+      // More complex, organic sway
       .moveX(
         begin: 0, 
-        end: (i % 2 == 0 ? 30.0 : -30.0), 
+        end: (i % 2 == 0 ? 40.0 : -40.0), 
         duration: duration * 0.5, 
         delay: delay, 
         curve: Curves.easeInOutSine,
@@ -82,20 +82,19 @@ class AnimatedBubbleBackground extends StatelessWidget {
       .then()
       .moveX(
         begin: 0, 
-        end: (i % 2 == 0 ? -30.0 : 30.0), 
+        end: (i % 2 == 0 ? -40.0 : 40.0), 
         duration: duration * 0.5, 
         curve: Curves.easeInOutSine,
       )
-      // Fade in/out to mask the reset
       .fadeIn(duration: 2.seconds, delay: delay)
       .fadeOut(duration: 2.seconds, delay: delay + duration - 2.seconds),
     );
   }
 
   Widget _buildSparkleBubble(BuildContext context, int i) {
-    const size = 4.0; // Slightly larger
+    const size = 4.0;
     final left = (i * 100 / 10) + ((i % 4) * 5);
-    final top = (i * 97) % 100.0; // Random vertical
+    final top = (i * 97) % 100.0;
 
     final duration = (4 + (i % 3)).seconds;
     final delay = (i * 0.3).seconds;
@@ -108,7 +107,7 @@ class AnimatedBubbleBackground extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: const Color(0xFF39A4E6).withOpacity(0.4), // Higher opacity for visibility
+          color: const Color(0xFF39A4E6).withOpacity(0.4),
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF39A4E6).withOpacity(0.4),
@@ -138,7 +137,7 @@ class AnimatedBubbleBackground extends StatelessWidget {
   Widget _buildAmbientBubble(BuildContext context, int i) {
     final size = 40.0 + (i % 3) * 20;
     final left = (i * 100 / 8);
-    final top = (i * 67) % 100.0; // Random vertical
+    final top = (i * 67) % 100.0;
 
     final duration = (12 + (i % 3) * 5).seconds;
     final delay = (i * 0.5).seconds;
@@ -151,7 +150,7 @@ class AnimatedBubbleBackground extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: const Color(0xFF39A4E6).withOpacity(0.03), // Subtle but visible
+          color: const Color(0xFF39A4E6).withOpacity(0.03),
         ),
       )
       .animate(onPlay: (c) => c.repeat(reverse: true))
@@ -182,10 +181,9 @@ class AnimatedBubbleBackground extends StatelessWidget {
     ];
 
     final icon = icons[i % icons.length];
-    final size = 18.0 + (i % 3) * 6; // 18, 24, 30
+    final size = 18.0 + (i % 3) * 6; 
     
     final left = (i * 100 / 12) + ((i * 7) % 10); 
-    // Fix: Start distributed across screen
     final top = (i * 43) % 90.0 + 10; 
 
     final duration = (15 + (i % 5) * 3).seconds;
@@ -197,12 +195,12 @@ class AnimatedBubbleBackground extends StatelessWidget {
       child: Icon(
         icon,
         size: size,
-        color: const Color(0xFF39A4E6).withOpacity(0.15), // Increased opacity for visibility
+        color: const Color(0xFF39A4E6).withOpacity(0.15),
       )
       .animate(onPlay: (c) => c.repeat())
       .moveY(
         begin: 0, 
-        end: -100, // Gentle float up
+        end: -100, 
         duration: duration, 
         delay: delay, 
         curve: Curves.easeInOutSine,
@@ -211,6 +209,20 @@ class AnimatedBubbleBackground extends StatelessWidget {
         begin: 0, 
         end: (i % 2 == 0 ? 0.15 : -0.15), 
         duration: duration, 
+        curve: Curves.easeInOutSine,
+      )
+      // Added breathing effect
+      .scale(
+        begin: const Offset(0.95, 0.95),
+        end: const Offset(1.05, 1.05),
+        duration: 3.seconds,
+        curve: Curves.easeInOutSine,
+      )
+      .then()
+      .scale(
+        begin: const Offset(1.05, 1.05),
+        end: const Offset(0.95, 0.95),
+        duration: 3.seconds,
         curve: Curves.easeInOutSine,
       )
       .fade(
