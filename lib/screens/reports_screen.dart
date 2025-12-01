@@ -27,7 +27,9 @@ class Report {
 }
 
 class ReportsScreen extends StatefulWidget {
-  const ReportsScreen({super.key});
+  final VoidCallback? onBack;
+  
+  const ReportsScreen({super.key, this.onBack});
 
   @override
   State<ReportsScreen> createState() => _ReportsScreenState();
@@ -279,7 +281,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(LucideIcons.chevronLeft, color: Colors.grey),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
                   ),
                   const SizedBox(width: 8),
                   const Expanded(

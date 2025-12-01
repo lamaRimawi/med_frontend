@@ -35,8 +35,9 @@ enum ViewMode { camera, review, viewer, processing, success }
 
 class CameraUploadScreen extends StatefulWidget {
   final bool isDarkMode;
+  final VoidCallback? onClose;
 
-  const CameraUploadScreen({super.key, required this.isDarkMode});
+  const CameraUploadScreen({super.key, required this.isDarkMode, this.onClose});
 
   @override
   State<CameraUploadScreen> createState() => _CameraUploadScreenState();
@@ -482,7 +483,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
         return SuccessScreen(
           isDarkMode: widget.isDarkMode,
           capturedItems: capturedItems,
-          onClose: () => Navigator.pop(context),
+          onClose: widget.onClose ?? () => Navigator.of(context).maybePop(),
           setViewMode: (mode) {
             if (mode == 'review') {
               setState(() => viewMode = ViewMode.review);
@@ -685,7 +686,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             GestureDetector(
-              onTap: () => Navigator.pop(context),
+              onTap: widget.onClose ?? () => Navigator.of(context).maybePop(),
               child: Container(
                 width: 44,
                 height: 44,
