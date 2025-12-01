@@ -12,10 +12,14 @@ import 'dart:async';
 import 'dart:ui'; // For ImageFilter
 import 'processing_screen.dart';
 import 'success_screen.dart';
+import 'extracted_report_screen.dart';
+
+import 'package:health_track/models/extracted_report_data.dart';
 
 import 'package:health_track/models/uploaded_file.dart';
 
 enum ViewMode { camera, review, viewer, processing, success }
+
 enum ImageQuality { low, medium, high }
 
 class CameraUploadScreen extends StatefulWidget {
@@ -28,7 +32,8 @@ class CameraUploadScreen extends StatefulWidget {
   State<CameraUploadScreen> createState() => _CameraUploadScreenState();
 }
 
-class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProviderStateMixin {
+class _CameraUploadScreenState extends State<CameraUploadScreen>
+    with TickerProviderStateMixin {
   List<UploadedFile> capturedItems = [];
   ViewMode viewMode = ViewMode.camera;
   bool showCamera = false;
@@ -38,7 +43,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
   bool flashEnabled = false;
   bool isCapturing = false;
   int viewerItemIndex = 0;
-  
+
   // New State Variables
   bool showSettings = false;
   bool gridEnabled = false;
@@ -49,30 +54,35 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
   CameraController? cameraController;
   List<CameraDescription>? cameras;
   final ImagePicker _picker = ImagePicker();
-  
+
   // Processing state
   double processingProgress = 0;
   String processingStatus = '';
+  ExtractedReportData? extractedData;
 
   final List<Map<String, String>> tutorialSteps = [
     {
       'title': 'Capture Documents',
-      'description': 'Tap the capture button to scan your medical reports. You can capture multiple pages.',
+      'description':
+          'Tap the capture button to scan your medical reports. You can capture multiple pages.',
       'highlight': 'capture-button',
     },
     {
       'title': 'Upload from Gallery',
-      'description': 'Tap the gallery icon to select multiple images or PDF files from your device.',
+      'description':
+          'Tap the gallery icon to select multiple images or PDF files from your device.',
       'highlight': 'gallery-button',
     },
     {
       'title': 'Review & Process',
-      'description': 'Review your captured items, add more, or delete unwanted ones before processing.',
+      'description':
+          'Review your captured items, add more, or delete unwanted ones before processing.',
       'highlight': 'process-button',
     },
     {
       'title': 'Camera Settings',
-      'description': 'Access flash, grid lines, camera direction, and quality settings from the toolbar.',
+      'description':
+          'Access flash, grid lines, camera direction, and quality settings from the toolbar.',
       'highlight': 'settings',
     },
   ];
@@ -93,7 +103,8 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
 
   Future<void> _checkTutorial() async {
     final prefs = await SharedPreferences.getInstance();
-    final hasSeenTutorial = prefs.getBool('hasSeenCameraUploadTutorial') ?? false;
+    final hasSeenTutorial =
+        prefs.getBool('hasSeenCameraUploadTutorial') ?? false;
     if (!hasSeenTutorial) {
       await Future.delayed(const Duration(seconds: 2));
       if (mounted) {
@@ -107,7 +118,8 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
       final status = await Permission.camera.request();
       if (!status.isGranted) {
         setState(() {
-          cameraError = 'Camera permission denied. Please allow camera access in settings.';
+          cameraError =
+              'Camera permission denied. Please allow camera access in settings.';
           showCamera = false;
         });
         return;
@@ -135,7 +147,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
       );
 
       await cameraController!.initialize();
-      
+
       if (mounted) {
         setState(() {
           showCamera = true;
@@ -152,28 +164,32 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
 
   Future<void> _toggleCameraLens() async {
     if (cameras == null || cameras!.length < 2) return;
-    
+
     final lensDirection = cameraController?.description.lensDirection;
     CameraDescription newCamera;
-    
+
     if (lensDirection == CameraLensDirection.back) {
-      newCamera = cameras!.firstWhere((c) => c.lensDirection == CameraLensDirection.front);
+      newCamera = cameras!.firstWhere(
+        (c) => c.lensDirection == CameraLensDirection.front,
+      );
       _showToast('Switched to front camera');
     } else {
-      newCamera = cameras!.firstWhere((c) => c.lensDirection == CameraLensDirection.back);
+      newCamera = cameras!.firstWhere(
+        (c) => c.lensDirection == CameraLensDirection.back,
+      );
       _showToast('Switched to back camera');
     }
-    
+
     if (cameraController != null) {
       await cameraController!.dispose();
     }
-    
+
     cameraController = CameraController(
       newCamera,
       ResolutionPreset.high,
       enableAudio: false,
     );
-    
+
     try {
       await cameraController!.initialize();
       setState(() {});
@@ -184,7 +200,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
 
   Future<void> _toggleFlash() async {
     if (cameraController == null) return;
-    
+
     try {
       if (flashEnabled) {
         await cameraController!.setFlashMode(FlashMode.off);
@@ -208,7 +224,9 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
   }
 
   Future<void> _capturePhoto() async {
-    if (cameraController == null || !cameraController!.value.isInitialized || isCapturing) {
+    if (cameraController == null ||
+        !cameraController!.value.isInitialized ||
+        isCapturing) {
       return;
     }
 
@@ -217,10 +235,10 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
     try {
       final image = await cameraController!.takePicture();
       final file = File(image.path);
-      
+
       // Simulate quality adjustment (in real app, use flutter_image_compress)
       // For now, we just use the file as is
-      
+
       final newItem = UploadedFile(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: 'medical-scan-${DateTime.now().millisecondsSinceEpoch}.jpg',
@@ -249,12 +267,17 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
       for (var xfile in files) {
         final file = File(xfile.path);
         final isPdf = xfile.path.toLowerCase().endsWith('.pdf');
-        
+
         // Check PDF limit
-        if (isPdf && capturedItems.any((item) => item.type == 'application/pdf')) {
+        if (isPdf &&
+            capturedItems.any((item) => item.type == 'application/pdf')) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Only one PDF file is allowed. Please remove the existing PDF first.')),
+              const SnackBar(
+                content: Text(
+                  'Only one PDF file is allowed. Please remove the existing PDF first.',
+                ),
+              ),
             );
           }
           continue;
@@ -321,7 +344,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
     ];
 
     int currentStatusIndex = 0;
-    
+
     // Simulate processing
     Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (!mounted) {
@@ -331,9 +354,11 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
 
       setState(() {
         processingProgress += 2;
-        
-        final statusIndex = (processingProgress / 100 * statuses.length).floor();
-        if (statusIndex != currentStatusIndex && statusIndex < statuses.length) {
+
+        final statusIndex = (processingProgress / 100 * statuses.length)
+            .floor();
+        if (statusIndex != currentStatusIndex &&
+            statusIndex < statuses.length) {
           currentStatusIndex = statusIndex;
           processingStatus = statuses[statusIndex];
         }
@@ -342,12 +367,109 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
           timer.cancel();
           Future.delayed(const Duration(milliseconds: 500), () {
             if (mounted) {
-              setState(() => viewMode = ViewMode.success);
+              setState(() {
+                extractedData = _buildMockExtractedData();
+                viewMode = ViewMode.success;
+              });
             }
           });
         }
       });
     });
+  }
+
+  ExtractedReportData _buildMockExtractedData() {
+    // Mocked data to preview the extracted report screen
+    return ExtractedReportData(
+      reportType: 'Lab Results',
+      reportDate: DateTime.now().toLocal().toString().split(' ').first,
+      patientInfo: PatientInfo(
+        name: 'Alex Johnson',
+        age: 34,
+        gender: 'Male',
+        id: 'PT-84726',
+        phone: '+1 555 0102',
+      ),
+      doctorInfo: DoctorInfo(
+        name: 'Dr. Emily Carter',
+        specialty: 'Internal Medicine',
+        hospital: 'City Health Hospital',
+      ),
+      vitals: [
+        VitalSign(name: 'Heart Rate', value: '72', unit: 'bpm', icon: 'heart'),
+        VitalSign(
+          name: 'Temperature',
+          value: '37.1',
+          unit: '°C',
+          icon: 'thermometer',
+        ),
+        VitalSign(name: 'SpO₂', value: '98', unit: '%', icon: 'droplet'),
+        VitalSign(
+          name: 'Activity',
+          value: 'Normal',
+          unit: '',
+          icon: 'activity',
+        ),
+      ],
+      testResults: [
+        TestResult(
+          name: 'Hemoglobin',
+          value: '13.8',
+          unit: 'g/dL',
+          normalRange: '13.0 - 17.0',
+          status: 'normal',
+        ),
+        TestResult(
+          name: 'WBC',
+          value: '11.2',
+          unit: '×10⁹/L',
+          normalRange: '4.0 - 10.0',
+          status: 'high',
+        ),
+        TestResult(
+          name: 'Platelets',
+          value: '150',
+          unit: '×10⁹/L',
+          normalRange: '150 - 450',
+          status: 'normal',
+        ),
+        TestResult(
+          name: 'CRP',
+          value: '28',
+          unit: 'mg/L',
+          normalRange: '< 10',
+          status: 'critical',
+        ),
+      ],
+      medications: [
+        Medication(
+          name: 'Amoxicillin',
+          dosage: '500 mg',
+          frequency: '3x daily',
+          duration: '7 days',
+        ),
+        Medication(
+          name: 'Ibuprofen',
+          dosage: '200 mg',
+          frequency: 'as needed',
+          duration: '5 days',
+        ),
+      ],
+      diagnosis:
+          'Acute upper respiratory tract infection likely viral in origin. No signs of bacterial pneumonia.',
+      observations:
+          'Patient presents mild fever and sore throat. Lung auscultation clear. Hydration status adequate.',
+      recommendations: [
+        'Increase fluid intake to 2–3 liters per day.',
+        'Rest and avoid strenuous activity for 3–5 days.',
+        'If fever persists beyond 48 hours, schedule follow-up.',
+      ],
+      warnings: [
+        'If shortness of breath or chest pain occurs, seek emergency care.',
+        'Avoid operating heavy machinery after taking ibuprofen if dizziness occurs.',
+      ],
+      nextVisit: 'Follow-up in 1 week (Dec 8, ${DateTime.now().year})',
+    );
   }
 
   String _formatFileSize(int bytes) {
@@ -376,13 +498,28 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
               setState(() => viewMode = ViewMode.review);
             }
           },
+          onViewExtractedData: extractedData == null
+              ? null
+              : () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ExtractedReportScreen(
+                        isDarkMode: widget.isDarkMode,
+                        onClose:
+                            widget.onClose ??
+                            () => Navigator.of(context).maybePop(),
+                        onBack: () => Navigator.of(context).maybePop(),
+                        extractedData: extractedData!,
+                      ),
+                    ),
+                  );
+                },
         );
       case ViewMode.review:
         return _buildReviewScreen();
       case ViewMode.viewer:
         return _buildViewerScreen();
       case ViewMode.camera:
-      default:
         return _buildCameraScreen();
     }
   }
@@ -393,7 +530,9 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
       body: Stack(
         children: [
           // Camera Preview
-          if (showCamera && cameraController != null && cameraController!.value.isInitialized)
+          if (showCamera &&
+              cameraController != null &&
+              cameraController!.value.isInitialized)
             Positioned.fill(child: CameraPreview(cameraController!))
           else
             _buildCameraLoading(),
@@ -407,10 +546,9 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
           // Flash Effect
           if (isCapturing)
             Positioned.fill(
-              child: Container(color: Colors.white)
-                  .animate()
-                  .fadeIn(duration: 50.ms)
-                  .fadeOut(duration: 300.ms),
+              child: Container(
+                color: Colors.white,
+              ).animate().fadeIn(duration: 50.ms).fadeOut(duration: 300.ms),
             ),
 
           // Tutorial Overlay
@@ -455,11 +593,18 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(LucideIcons.checkCircle, color: Color(0xFF39A4E6), size: 20),
+              const Icon(
+                LucideIcons.checkCircle,
+                color: Color(0xFF39A4E6),
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Text(
                 settingsToast!,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -517,8 +662,12 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                     end: Alignment.bottomCenter,
                     colors: [Color(0xFF111827), Colors.black],
                   ),
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                  border: Border(top: BorderSide(color: Colors.white.withOpacity(0.1))),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(32),
+                  ),
+                  border: Border(
+                    top: BorderSide(color: Colors.white.withOpacity(0.1)),
+                  ),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -535,10 +684,13 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                         ),
                       ),
                     ),
-                    
+
                     // Header
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 8,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -563,21 +715,26 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                             ],
                           ),
                           IconButton(
-                            onPressed: () => setState(() => showSettings = false),
+                            onPressed: () =>
+                                setState(() => showSettings = false),
                             icon: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color: Colors.white.withOpacity(0.1),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(LucideIcons.x, color: Colors.white, size: 20),
+                              child: const Icon(
+                                LucideIcons.x,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
                     const Divider(color: Colors.white12),
-                    
+
                     // Settings Content
                     SizedBox(
                       height: 400,
@@ -586,8 +743,12 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                         children: [
                           // Flash
                           _buildSettingItem(
-                            icon: flashEnabled ? LucideIcons.zap : LucideIcons.zapOff,
-                            iconColor: flashEnabled ? Colors.yellow : Colors.grey,
+                            icon: flashEnabled
+                                ? LucideIcons.zap
+                                : LucideIcons.zapOff,
+                            iconColor: flashEnabled
+                                ? Colors.yellow
+                                : Colors.grey,
                             title: 'Flash',
                             subtitle: flashEnabled ? 'Enabled' : 'Disabled',
                             trailing: Switch(
@@ -598,50 +759,67 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                             ),
                           ),
                           const SizedBox(height: 16),
-                          
+
                           // Grid
                           _buildSettingItem(
                             icon: LucideIcons.grid,
-                            iconColor: gridEnabled ? const Color(0xFF39A4E6) : Colors.grey,
+                            iconColor: gridEnabled
+                                ? const Color(0xFF39A4E6)
+                                : Colors.grey,
                             title: 'Grid Lines',
                             subtitle: gridEnabled ? 'Showing' : 'Hidden',
                             trailing: Switch(
                               value: gridEnabled,
                               onChanged: (val) {
                                 setState(() => gridEnabled = val);
-                                _showToast(val ? 'Grid lines enabled' : 'Grid lines disabled');
+                                _showToast(
+                                  val
+                                      ? 'Grid lines enabled'
+                                      : 'Grid lines disabled',
+                                );
                               },
                               activeColor: const Color(0xFF39A4E6),
-                              activeTrackColor: const Color(0xFF39A4E6).withOpacity(0.3),
+                              activeTrackColor: const Color(
+                                0xFF39A4E6,
+                              ).withOpacity(0.3),
                             ),
                           ),
                           const SizedBox(height: 16),
-                          
+
                           // Camera Direction
                           _buildSettingItem(
                             icon: LucideIcons.switchCamera,
                             iconColor: const Color(0xFF39A4E6),
                             title: 'Camera',
-                            subtitle: cameraController?.description.lensDirection == CameraLensDirection.back
+                            subtitle:
+                                cameraController?.description.lensDirection ==
+                                    CameraLensDirection.back
                                 ? 'Back Camera'
                                 : 'Front Camera',
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                _buildDirectionButton('Back', CameraLensDirection.back),
+                                _buildDirectionButton(
+                                  'Back',
+                                  CameraLensDirection.back,
+                                ),
                                 const SizedBox(width: 8),
-                                _buildDirectionButton('Front', CameraLensDirection.front),
+                                _buildDirectionButton(
+                                  'Front',
+                                  CameraLensDirection.front,
+                                ),
                               ],
                             ),
                           ),
                           const SizedBox(height: 16),
-                          
+
                           // Quality
                           _buildSettingItem(
                             icon: LucideIcons.sparkles,
                             iconColor: Colors.purpleAccent,
                             title: 'Image Quality',
-                            subtitle: '${imageQuality.name[0].toUpperCase()}${imageQuality.name.substring(1)} quality',
+                            subtitle:
+                                '${imageQuality.name[0].toUpperCase()}${imageQuality.name.substring(1)} quality',
                             trailing: Container(), // Custom layout below
                           ),
                           const SizedBox(height: 12),
@@ -655,27 +833,42 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                                     _showToast('Quality set to ${q.name}');
                                   },
                                   child: Container(
-                                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 10,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: isSelected ? Colors.purpleAccent : Colors.white.withOpacity(0.05),
+                                      color: isSelected
+                                          ? Colors.purpleAccent
+                                          : Colors.white.withOpacity(0.05),
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
-                                        color: isSelected ? Colors.purpleAccent : Colors.white.withOpacity(0.1),
+                                        color: isSelected
+                                            ? Colors.purpleAccent
+                                            : Colors.white.withOpacity(0.1),
                                       ),
                                     ),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         if (isSelected)
                                           const Padding(
                                             padding: EdgeInsets.only(right: 4),
-                                            child: Icon(LucideIcons.check, size: 14, color: Colors.white),
+                                            child: Icon(
+                                              LucideIcons.check,
+                                              size: 14,
+                                              color: Colors.white,
+                                            ),
                                           ),
                                         Text(
                                           '${q.name[0].toUpperCase()}${q.name.substring(1)}',
                                           style: TextStyle(
-                                            color: isSelected ? Colors.white : Colors.grey,
+                                            color: isSelected
+                                                ? Colors.white
+                                                : Colors.grey,
                                             fontWeight: FontWeight.w600,
                                             fontSize: 13,
                                           ),
@@ -687,7 +880,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                               );
                             }).toList(),
                           ),
-                          
+
                           const SizedBox(height: 24),
                           // Tips
                           Container(
@@ -695,15 +888,22 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                             decoration: BoxDecoration(
                               color: const Color(0xFF39A4E6).withOpacity(0.1),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFF39A4E6).withOpacity(0.3)),
+                              border: Border.all(
+                                color: const Color(0xFF39A4E6).withOpacity(0.3),
+                              ),
                             ),
                             child: Row(
                               children: [
-                                const Icon(LucideIcons.info, color: Color(0xFF39A4E6), size: 20),
+                                const Icon(
+                                  LucideIcons.info,
+                                  color: Color(0xFF39A4E6),
+                                  size: 20,
+                                ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       const Text(
                                         'Tips for Best Results',
@@ -738,7 +938,12 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
           ),
         ),
       ),
-    ).animate().fadeIn().slideY(begin: 1, end: 0, curve: Curves.easeOutQuart, duration: 400.ms);
+    ).animate().fadeIn().slideY(
+      begin: 1,
+      end: 0,
+      curve: Curves.easeOutQuart,
+      duration: 400.ms,
+    );
   }
 
   Widget _buildDirectionButton(String label, CameraLensDirection dir) {
@@ -750,7 +955,9 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF39A4E6) : Colors.white.withOpacity(0.05),
+          color: isSelected
+              ? const Color(0xFF39A4E6)
+              : Colors.white.withOpacity(0.05),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Text(
@@ -805,10 +1012,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                 ),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    color: Colors.grey[400],
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
                 ),
               ],
             ),
@@ -825,14 +1029,14 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
       children: [
         // Dimmed Background
         Positioned.fill(
-          child: Container(color: Colors.black.withOpacity(0.8))
-              .animate()
-              .fadeIn(),
+          child: Container(
+            color: Colors.black.withOpacity(0.8),
+          ).animate().fadeIn(),
         ),
-        
+
         // Spotlight (Simplified implementation using positioned holes or just overlay logic)
         // For simplicity in Flutter, we'll just highlight the area with a border/glow
-        
+
         // Tutorial Card
         Center(
           child: Container(
@@ -869,7 +1073,11 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                       ),
                     ],
                   ),
-                  child: const Icon(LucideIcons.info, color: Colors.white, size: 32),
+                  child: const Icon(
+                    LucideIcons.info,
+                    color: Colors.white,
+                    size: 32,
+                  ),
                 ).animate(onPlay: (c) => c.repeat()).shake(delay: 2.seconds),
                 const SizedBox(height: 24),
                 Text(
@@ -885,7 +1093,9 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                 Text(
                   step['description']!,
                   style: TextStyle(
-                    color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                    color: widget.isDarkMode
+                        ? Colors.grey[400]
+                        : Colors.grey[600],
                     fontSize: 16,
                     height: 1.5,
                   ),
@@ -901,7 +1111,9 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                       width: index == tutorialStep ? 32 : 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: index == tutorialStep ? const Color(0xFF39A4E6) : Colors.grey[300],
+                        color: index == tutorialStep
+                            ? const Color(0xFF39A4E6)
+                            : Colors.grey[300],
                         borderRadius: BorderRadius.circular(4),
                       ),
                     );
@@ -915,13 +1127,19 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                         onPressed: _completeTutorial,
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: widget.isDarkMode ? Colors.white.withOpacity(0.05) : Colors.grey[100],
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          backgroundColor: widget.isDarkMode
+                              ? Colors.white.withOpacity(0.05)
+                              : Colors.grey[100],
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                         ),
                         child: Text(
                           'Skip',
                           style: TextStyle(
-                            color: widget.isDarkMode ? Colors.grey[300] : Colors.grey[700],
+                            color: widget.isDarkMode
+                                ? Colors.grey[300]
+                                : Colors.grey[700],
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -934,12 +1152,16 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           backgroundColor: const Color(0xFF39A4E6),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                           elevation: 4,
                           shadowColor: const Color(0xFF39A4E6).withOpacity(0.4),
                         ),
                         child: Text(
-                          tutorialStep < tutorialSteps.length - 1 ? 'Next' : 'Got It!',
+                          tutorialStep < tutorialSteps.length - 1
+                              ? 'Next'
+                              : 'Got It!',
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -968,14 +1190,25 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                   decoration: BoxDecoration(
                     color: Colors.red.withOpacity(0.2),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.red.withOpacity(0.5), width: 2),
+                    border: Border.all(
+                      color: Colors.red.withOpacity(0.5),
+                      width: 2,
+                    ),
                   ),
-                  child: const Icon(LucideIcons.alertCircle, size: 48, color: Colors.red),
+                  child: const Icon(
+                    LucideIcons.alertCircle,
+                    size: 48,
+                    color: Colors.red,
+                  ),
                 ).animate().scale(),
                 const SizedBox(height: 24),
                 const Text(
                   'Camera Error',
-                  style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -989,7 +1222,9 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                   onPressed: _initializeCamera,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF39A4E6),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                   child: const Text('Try Again'),
                 ),
@@ -1009,7 +1244,11 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                 const SizedBox(height: 24),
                 const Text(
                   'Starting Camera...',
-                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -1025,66 +1264,107 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
           left: 32,
           right: 32,
         ),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFF39A4E6), width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF39A4E6).withOpacity(0.4),
-                blurRadius: 40,
-                spreadRadius: 5,
-              ),
-            ],
-          ),
-          child: Stack(
-            children: [
-              // Corner Markers
-              ...List.generate(4, (index) {
-                final isTop = index < 2;
-                final isLeft = index % 2 == 0;
-                return Positioned(
-                  top: isTop ? -2 : null,
-                  bottom: !isTop ? -2 : null,
-                  left: isLeft ? -2 : null,
-                  right: !isLeft ? -2 : null,
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      border: Border(
-                        top: isTop ? const BorderSide(color: Color(0xFF39A4E6), width: 4) : BorderSide.none,
-                        bottom: !isTop ? const BorderSide(color: Color(0xFF39A4E6), width: 4) : BorderSide.none,
-                        left: isLeft ? const BorderSide(color: Color(0xFF39A4E6), width: 4) : BorderSide.none,
-                        right: !isLeft ? const BorderSide(color: Color(0xFF39A4E6), width: 4) : BorderSide.none,
-                      ),
-                      borderRadius: BorderRadius.only(
-                        topLeft: isTop && isLeft ? const Radius.circular(16) : Radius.zero,
-                        topRight: isTop && !isLeft ? const Radius.circular(16) : Radius.zero,
-                        bottomLeft: !isTop && isLeft ? const Radius.circular(16) : Radius.zero,
-                        bottomRight: !isTop && !isLeft ? const Radius.circular(16) : Radius.zero,
-                      ),
+        child:
+            Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: const Color(0xFF39A4E6),
+                      width: 2,
                     ),
-                  ).animate(onPlay: (c) => c.repeat(reverse: true))
-                   .scale(duration: 2.seconds, begin: const Offset(1, 1), end: const Offset(1.1, 1.1)),
-                );
-              }),
-            ],
-          ),
-        ).animate(onPlay: (c) => c.repeat(reverse: true))
-         .boxShadow(
-            duration: 2.seconds,
-            begin: BoxShadow(
-              color: const Color(0xFF39A4E6).withOpacity(0.4),
-              blurRadius: 40,
-              spreadRadius: 5,
-            ),
-            end: BoxShadow(
-              color: const Color(0xFF39A4E6).withOpacity(0.6),
-              blurRadius: 50,
-              spreadRadius: 8,
-            ),
-          ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF39A4E6).withOpacity(0.4),
+                        blurRadius: 40,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    children: [
+                      // Corner Markers
+                      ...List.generate(4, (index) {
+                        final isTop = index < 2;
+                        final isLeft = index % 2 == 0;
+                        return Positioned(
+                          top: isTop ? -2 : null,
+                          bottom: !isTop ? -2 : null,
+                          left: isLeft ? -2 : null,
+                          right: !isLeft ? -2 : null,
+                          child:
+                              Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        top: isTop
+                                            ? const BorderSide(
+                                                color: Color(0xFF39A4E6),
+                                                width: 4,
+                                              )
+                                            : BorderSide.none,
+                                        bottom: !isTop
+                                            ? const BorderSide(
+                                                color: Color(0xFF39A4E6),
+                                                width: 4,
+                                              )
+                                            : BorderSide.none,
+                                        left: isLeft
+                                            ? const BorderSide(
+                                                color: Color(0xFF39A4E6),
+                                                width: 4,
+                                              )
+                                            : BorderSide.none,
+                                        right: !isLeft
+                                            ? const BorderSide(
+                                                color: Color(0xFF39A4E6),
+                                                width: 4,
+                                              )
+                                            : BorderSide.none,
+                                      ),
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: isTop && isLeft
+                                            ? const Radius.circular(16)
+                                            : Radius.zero,
+                                        topRight: isTop && !isLeft
+                                            ? const Radius.circular(16)
+                                            : Radius.zero,
+                                        bottomLeft: !isTop && isLeft
+                                            ? const Radius.circular(16)
+                                            : Radius.zero,
+                                        bottomRight: !isTop && !isLeft
+                                            ? const Radius.circular(16)
+                                            : Radius.zero,
+                                      ),
+                                    ),
+                                  )
+                                  .animate(
+                                    onPlay: (c) => c.repeat(reverse: true),
+                                  )
+                                  .scale(
+                                    duration: 2.seconds,
+                                    begin: const Offset(1, 1),
+                                    end: const Offset(1.1, 1.1),
+                                  ),
+                        );
+                      }),
+                    ],
+                  ),
+                )
+                .animate(onPlay: (c) => c.repeat(reverse: true))
+                .boxShadow(
+                  duration: 2.seconds,
+                  begin: BoxShadow(
+                    color: const Color(0xFF39A4E6).withOpacity(0.4),
+                    blurRadius: 40,
+                    spreadRadius: 5,
+                  ),
+                  end: BoxShadow(
+                    color: const Color(0xFF39A4E6).withOpacity(0.6),
+                    blurRadius: 50,
+                    spreadRadius: 8,
+                  ),
+                ),
       ),
     );
   }
@@ -1095,7 +1375,12 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
       left: 0,
       right: 0,
       child: Container(
-        padding: const EdgeInsets.only(top: 48, bottom: 24, left: 24, right: 24),
+        padding: const EdgeInsets.only(
+          top: 48,
+          bottom: 24,
+          left: 24,
+          right: 24,
+        ),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -1128,10 +1413,14 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                     height: 44,
                     margin: const EdgeInsets.only(right: 12),
                     decoration: BoxDecoration(
-                      color: flashEnabled ? const Color(0xFFFBBF24).withOpacity(0.9) : Colors.black.withOpacity(0.4),
+                      color: flashEnabled
+                          ? const Color(0xFFFBBF24).withOpacity(0.9)
+                          : Colors.black.withOpacity(0.4),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: flashEnabled ? const Color(0xFFFBBF24).withOpacity(0.5) : Colors.white.withOpacity(0.1),
+                        color: flashEnabled
+                            ? const Color(0xFFFBBF24).withOpacity(0.5)
+                            : Colors.white.withOpacity(0.1),
                       ),
                     ),
                     child: Icon(
@@ -1152,7 +1441,11 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white.withOpacity(0.1)),
                     ),
-                    child: const Icon(LucideIcons.switchCamera, color: Colors.white, size: 20),
+                    child: const Icon(
+                      LucideIcons.switchCamera,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
                 ),
                 GestureDetector(
@@ -1161,23 +1454,35 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: showSettings ? const Color(0xFF39A4E6) : Colors.black.withOpacity(0.4),
+                      color: showSettings
+                          ? const Color(0xFF39A4E6)
+                          : Colors.black.withOpacity(0.4),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: showSettings ? const Color(0xFF39A4E6) : Colors.white.withOpacity(0.1),
+                        color: showSettings
+                            ? const Color(0xFF39A4E6)
+                            : Colors.white.withOpacity(0.1),
                       ),
-                      boxShadow: showSettings ? [
-                        BoxShadow(
-                          color: const Color(0xFF39A4E6).withOpacity(0.5),
-                          blurRadius: 10,
-                        )
-                      ] : [],
+                      boxShadow: showSettings
+                          ? [
+                              BoxShadow(
+                                color: const Color(0xFF39A4E6).withOpacity(0.5),
+                                blurRadius: 10,
+                              ),
+                            ]
+                          : [],
                     ),
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        const Icon(LucideIcons.settings, color: Colors.white, size: 20),
-                        if ((gridEnabled || imageQuality != ImageQuality.high) && !showSettings)
+                        const Icon(
+                          LucideIcons.settings,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        if ((gridEnabled ||
+                                imageQuality != ImageQuality.high) &&
+                            !showSettings)
                           Positioned(
                             top: 10,
                             right: 10,
@@ -1242,7 +1547,9 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                         margin: const EdgeInsets.only(right: 12),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white.withOpacity(0.2)),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                          ),
                           color: Colors.grey[900],
                         ),
                         child: Stack(
@@ -1250,8 +1557,18 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                             ClipRRect(
                               borderRadius: BorderRadius.circular(11),
                               child: item.type.startsWith('image/')
-                                  ? Image.file(File(item.path), fit: BoxFit.cover, width: 60, height: 80)
-                                  : const Center(child: Icon(LucideIcons.fileText, color: Color(0xFF39A4E6))),
+                                  ? Image.file(
+                                      File(item.path),
+                                      fit: BoxFit.cover,
+                                      width: 60,
+                                      height: 80,
+                                    )
+                                  : const Center(
+                                      child: Icon(
+                                        LucideIcons.fileText,
+                                        color: Color(0xFF39A4E6),
+                                      ),
+                                    ),
                             ),
                             Positioned(
                               top: -6,
@@ -1264,7 +1581,11 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                                     color: Colors.red,
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(LucideIcons.x, size: 10, color: Colors.white),
+                                  child: const Icon(
+                                    LucideIcons.x,
+                                    size: 10,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
@@ -1281,7 +1602,11 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                                 child: Center(
                                   child: Text(
                                     '${index + 1}',
-                                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -1297,13 +1622,18 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
             // Process Button
             if (capturedItems.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 child: ElevatedButton(
                   onPressed: () => setState(() => viewMode = ViewMode.review),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,
                     padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     elevation: 8,
                     shadowColor: const Color(0xFF39A4E6).withOpacity(0.5),
                   ),
@@ -1352,12 +1682,19 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white.withOpacity(0.2)),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                        ),
                       ),
-                      child: capturedItems.isNotEmpty && capturedItems.last.type.startsWith('image/')
+                      child:
+                          capturedItems.isNotEmpty &&
+                              capturedItems.last.type.startsWith('image/')
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(15),
-                              child: Image.file(File(capturedItems.last.path), fit: BoxFit.cover),
+                              child: Image.file(
+                                File(capturedItems.last.path),
+                                fit: BoxFit.cover,
+                              ),
                             )
                           : const Icon(LucideIcons.image, color: Colors.white),
                     ),
@@ -1388,7 +1725,10 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                             height: 72,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0xFF39A4E6), width: 4),
+                              border: Border.all(
+                                color: const Color(0xFF39A4E6),
+                                width: 4,
+                              ),
                             ),
                           ),
                           AnimatedContainer(
@@ -1414,9 +1754,14 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white.withOpacity(0.2)),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                        ),
                       ),
-                      child: const Icon(LucideIcons.upload, color: Colors.white),
+                      child: const Icon(
+                        LucideIcons.upload,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],
@@ -1430,17 +1775,25 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
 
   Widget _buildReviewScreen() {
     return Scaffold(
-      backgroundColor: widget.isDarkMode ? const Color(0xFF0F172A) : Colors.white,
+      backgroundColor: widget.isDarkMode
+          ? const Color(0xFF0F172A)
+          : Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(LucideIcons.chevronLeft, color: widget.isDarkMode ? Colors.white : Colors.black),
+          icon: Icon(
+            LucideIcons.chevronLeft,
+            color: widget.isDarkMode ? Colors.white : Colors.black,
+          ),
           onPressed: () => setState(() => viewMode = ViewMode.camera),
         ),
         title: Text(
           'Review Items',
-          style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: widget.isDarkMode ? Colors.white : Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         actions: [
           IconButton(
@@ -1470,12 +1823,19 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                       decoration: BoxDecoration(
                         color: const Color(0xFF39A4E6).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFF39A4E6).withOpacity(0.5), style: BorderStyle.solid),
+                        border: Border.all(
+                          color: const Color(0xFF39A4E6).withOpacity(0.5),
+                          style: BorderStyle.solid,
+                        ),
                       ),
                       child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(LucideIcons.plus, size: 32, color: Color(0xFF39A4E6)),
+                          Icon(
+                            LucideIcons.plus,
+                            size: 32,
+                            color: Color(0xFF39A4E6),
+                          ),
                           SizedBox(height: 8),
                           Text(
                             'Add More',
@@ -1492,83 +1852,115 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
 
                 final item = capturedItems[index];
                 return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      viewerItemIndex = index;
-                      viewMode = ViewMode.viewer;
-                    });
-                  },
-                  child: Stack(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: widget.isDarkMode ? Colors.white.withOpacity(0.1) : Colors.grey[200]!,
-                          ),
-                          color: widget.isDarkMode ? Colors.grey[900] : Colors.grey[100],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(15),
-                          child: item.type.startsWith('image/')
-                              ? Image.file(File(item.path), fit: BoxFit.cover, width: double.infinity, height: double.infinity)
-                              : Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(LucideIcons.fileText, size: 48, color: Color(0xFF39A4E6)),
-                                      const SizedBox(height: 8),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                                        child: Text(
-                                          item.name,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            color: widget.isDarkMode ? Colors.white : Colors.black,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                        ),
-                      ),
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: GestureDetector(
-                          onTap: () => _handleRemoveItem(item.id),
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
+                      onTap: () {
+                        setState(() {
+                          viewerItemIndex = index;
+                          viewMode = ViewMode.viewer;
+                        });
+                      },
+                      child: Stack(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: widget.isDarkMode
+                                    ? Colors.white.withOpacity(0.1)
+                                    : Colors.grey[200]!,
+                              ),
+                              color: widget.isDarkMode
+                                  ? Colors.grey[900]
+                                  : Colors.grey[100],
                             ),
-                            child: const Icon(LucideIcons.trash2, size: 14, color: Colors.white),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(15),
+                              child: item.type.startsWith('image/')
+                                  ? Image.file(
+                                      File(item.path),
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                    )
+                                  : Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            LucideIcons.fileText,
+                                            size: 48,
+                                            color: Color(0xFF39A4E6),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                            ),
+                                            child: Text(
+                                              item.name,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                color: widget.isDarkMode
+                                                    ? Colors.white
+                                                    : Colors.black,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                            ),
                           ),
-                        ),
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: GestureDetector(
+                              onTap: () => _handleRemoveItem(item.id),
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  LucideIcons.trash2,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 8,
+                            left: 8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.6),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '${index + 1}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      Positioned(
-                        top: 8,
-                        left: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.6),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '${index + 1}',
-                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ).animate().fadeIn(delay: (index * 50).ms).slideY(begin: 0.2, end: 0);
+                    )
+                    .animate()
+                    .fadeIn(delay: (index * 50).ms)
+                    .slideY(begin: 0.2, end: 0);
               },
             ),
           ),
@@ -1579,7 +1971,9 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
                 padding: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 elevation: 8,
                 shadowColor: const Color(0xFF39A4E6).withOpacity(0.5),
               ),
@@ -1630,7 +2024,10 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
         ),
         title: Column(
           children: [
-            const Text('View Item', style: TextStyle(color: Colors.white, fontSize: 16)),
+            const Text(
+              'View Item',
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
             Text(
               item.name,
               style: const TextStyle(color: Colors.grey, fontSize: 12),
@@ -1652,11 +2049,18 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(LucideIcons.fileText, size: 64, color: Color(0xFF39A4E6)),
+                      const Icon(
+                        LucideIcons.fileText,
+                        size: 64,
+                        color: Color(0xFF39A4E6),
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         item.name,
-                        style: const TextStyle(color: Colors.white, fontSize: 18),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                        ),
                       ),
                       Text(
                         _formatFileSize(item.size),
@@ -1694,7 +2098,9 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
                         : null,
                     icon: Icon(
                       LucideIcons.chevronRight,
-                      color: viewerItemIndex < capturedItems.length - 1 ? Colors.white : Colors.grey,
+                      color: viewerItemIndex < capturedItems.length - 1
+                          ? Colors.white
+                          : Colors.grey,
                     ),
                   ),
                 ],
@@ -1725,7 +2131,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
 
   Future<void> _saveAllFiles() async {
     if (capturedItems.isEmpty) return;
-    
+
     int successCount = 0;
     List<XFile> filesToShare = [];
 
@@ -1750,7 +2156,10 @@ class _CameraUploadScreenState extends State<CameraUploadScreen> with TickerProv
       }
 
       if (filesToShare.isNotEmpty) {
-        await Share.shareXFiles(filesToShare, text: 'Save ${filesToShare.length} files');
+        await Share.shareXFiles(
+          filesToShare,
+          text: 'Save ${filesToShare.length} files',
+        );
       }
 
       if (successCount > 0) {

@@ -10,6 +10,7 @@ class SuccessScreen extends StatefulWidget {
   final List<UploadedFile> capturedItems;
   final VoidCallback onClose;
   final Function(String) setViewMode;
+  final VoidCallback? onViewExtractedData;
 
   const SuccessScreen({
     super.key,
@@ -17,6 +18,7 @@ class SuccessScreen extends StatefulWidget {
     required this.capturedItems,
     required this.onClose,
     required this.setViewMode,
+    this.onViewExtractedData,
   });
 
   @override
@@ -26,7 +28,8 @@ class SuccessScreen extends StatefulWidget {
 class _SuccessScreenState extends State<SuccessScreen> {
   bool isShareModalOpen = false;
   bool isCopied = false;
-  final String shareLink = 'https://healthtrack.app/reports/${DateTime.now().millisecondsSinceEpoch}';
+  final String shareLink =
+      'https://healthtrack.app/reports/${DateTime.now().millisecondsSinceEpoch}';
 
   Future<void> _handleShare() async {
     await Share.share('View my medical reports: $shareLink');
@@ -50,8 +53,16 @@ class _SuccessScreenState extends State<SuccessScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: widget.isDarkMode
-                    ? [const Color(0xFF0F172A), const Color(0xFF111827), const Color(0xFF0F172A)]
-                    : [const Color(0xFFF8FAFC), Colors.white, const Color(0xFFF8FAFC)],
+                    ? [
+                        const Color(0xFF0F172A),
+                        const Color(0xFF111827),
+                        const Color(0xFF0F172A),
+                      ]
+                    : [
+                        const Color(0xFFF8FAFC),
+                        Colors.white,
+                        const Color(0xFFF8FAFC),
+                      ],
               ),
             ),
             child: Stack(
@@ -89,7 +100,9 @@ class _SuccessScreenState extends State<SuccessScreen> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 16,
-                              color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                              color: widget.isDarkMode
+                                  ? Colors.grey[400]
+                                  : Colors.grey[600],
                             ),
                           ).animate().fadeIn(delay: 200.ms),
 
@@ -124,17 +137,26 @@ class _SuccessScreenState extends State<SuccessScreen> {
         Positioned(
           top: -100,
           left: -100,
-          child: Container(
-            width: 600,
-            height: 600,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [const Color(0xFF39A4E6).withOpacity(0.15), Colors.transparent],
-              ),
-            ),
-          ).animate(onPlay: (c) => c.repeat(reverse: true))
-           .scale(duration: 15.seconds, begin: const Offset(1, 1), end: const Offset(1.1, 1.1)),
+          child:
+              Container(
+                    width: 600,
+                    height: 600,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          const Color(0xFF39A4E6).withOpacity(0.15),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  )
+                  .animate(onPlay: (c) => c.repeat(reverse: true))
+                  .scale(
+                    duration: 15.seconds,
+                    begin: const Offset(1, 1),
+                    end: const Offset(1.1, 1.1),
+                  ),
         ),
         // Floating Icons
         _buildFloatingIcon(top: 100, right: 50, icon: LucideIcons.checkCircle2),
@@ -144,18 +166,22 @@ class _SuccessScreenState extends State<SuccessScreen> {
     );
   }
 
-  Widget _buildFloatingIcon({double? top, double? bottom, double? left, double? right, required IconData icon}) {
+  Widget _buildFloatingIcon({
+    double? top,
+    double? bottom,
+    double? left,
+    double? right,
+    required IconData icon,
+  }) {
     return Positioned(
       top: top,
       bottom: bottom,
       left: left,
       right: right,
-      child: Icon(
-        icon,
-        size: 32,
-        color: const Color(0xFF39A4E6).withOpacity(0.1),
-      ).animate(onPlay: (c) => c.repeat(reverse: true))
-       .moveY(duration: 6.seconds, begin: 0, end: -20),
+      child:
+          Icon(icon, size: 32, color: const Color(0xFF39A4E6).withOpacity(0.1))
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .moveY(duration: 6.seconds, begin: 0, end: -20),
     );
   }
 
@@ -168,14 +194,19 @@ class _SuccessScreenState extends State<SuccessScreen> {
         children: [
           // Outer Rings
           Container(
-            width: 160,
-            height: 160,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFF39A4E6).withOpacity(0.1),
-            ),
-          ).animate(onPlay: (c) => c.repeat(reverse: true))
-           .scale(duration: 2.seconds, begin: const Offset(1, 1), end: const Offset(1.2, 1.2)),
+                width: 160,
+                height: 160,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF39A4E6).withOpacity(0.1),
+                ),
+              )
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .scale(
+                duration: 2.seconds,
+                begin: const Offset(1, 1),
+                end: const Offset(1.2, 1.2),
+              ),
 
           // Main Icon
           Container(
@@ -205,7 +236,11 @@ class _SuccessScreenState extends State<SuccessScreen> {
 
   Widget _buildStatsCards() {
     final stats = [
-      {'icon': LucideIcons.fileCheck, 'value': '${widget.capturedItems.length}', 'label': 'Files'},
+      {
+        'icon': LucideIcons.fileCheck,
+        'value': '${widget.capturedItems.length}',
+        'label': 'Files',
+      },
       {'icon': LucideIcons.zap, 'value': 'Fast', 'label': 'Speed'},
       {'icon': LucideIcons.checkCircle2, 'value': '100%', 'label': 'Success'},
     ];
@@ -215,52 +250,68 @@ class _SuccessScreenState extends State<SuccessScreen> {
         final index = entry.key;
         final stat = entry.value;
         return Expanded(
-          child: Container(
-            margin: EdgeInsets.only(right: index < 2 ? 12 : 0),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: widget.isDarkMode ? Colors.white.withOpacity(0.05) : Colors.white.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: widget.isDarkMode ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.2),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF39A4E6).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(stat['icon'] as IconData, color: const Color(0xFF39A4E6), size: 24),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  stat['value'] as String,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: widget.isDarkMode ? Colors.white : Colors.black,
-                  ),
-                ),
-                Text(
-                  stat['label'] as String,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ).animate().fadeIn(delay: (index * 100).ms).slideY(begin: 0.2, end: 0),
+          child:
+              Container(
+                    margin: EdgeInsets.only(right: index < 2 ? 12 : 0),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: widget.isDarkMode
+                          ? Colors.white.withOpacity(0.05)
+                          : Colors.white.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: widget.isDarkMode
+                            ? Colors.white.withOpacity(0.1)
+                            : Colors.grey.withOpacity(0.2),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF39A4E6).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            stat['icon'] as IconData,
+                            color: const Color(0xFF39A4E6),
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          stat['value'] as String,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: widget.isDarkMode
+                                ? Colors.white
+                                : Colors.black,
+                          ),
+                        ),
+                        Text(
+                          stat['label'] as String,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: widget.isDarkMode
+                                ? Colors.grey[400]
+                                : Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                  .animate()
+                  .fadeIn(delay: (index * 100).ms)
+                  .slideY(begin: 0.2, end: 0),
         );
       }).toList(),
     );
@@ -269,6 +320,26 @@ class _SuccessScreenState extends State<SuccessScreen> {
   Widget _buildActionButtons() {
     return Column(
       children: [
+        if (widget.onViewExtractedData != null)
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: widget.onViewExtractedData,
+              icon: const Icon(LucideIcons.sparkles),
+              label: const Text('View Extracted Report'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: const Color(0xFF7C3AED),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 6,
+                shadowColor: const Color(0xFF7C3AED).withOpacity(0.4),
+              ),
+            ),
+          ).animate().fadeIn(delay: 250.ms),
+        if (widget.onViewExtractedData != null) const SizedBox(height: 16),
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
@@ -279,7 +350,9 @@ class _SuccessScreenState extends State<SuccessScreen> {
               padding: const EdgeInsets.symmetric(vertical: 16),
               backgroundColor: const Color(0xFF39A4E6),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               elevation: 4,
               shadowColor: const Color(0xFF39A4E6).withOpacity(0.4),
             ),
@@ -295,11 +368,17 @@ class _SuccessScreenState extends State<SuccessScreen> {
                 label: const Text('View Files'),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  foregroundColor: widget.isDarkMode ? Colors.white : Colors.black,
+                  foregroundColor: widget.isDarkMode
+                      ? Colors.white
+                      : Colors.black,
                   side: BorderSide(
-                    color: widget.isDarkMode ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.3),
+                    color: widget.isDarkMode
+                        ? Colors.white.withOpacity(0.2)
+                        : Colors.grey.withOpacity(0.3),
                   ),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ),
             ),
@@ -311,11 +390,17 @@ class _SuccessScreenState extends State<SuccessScreen> {
                 label: const Text('Share'),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  foregroundColor: widget.isDarkMode ? Colors.white : Colors.black,
+                  foregroundColor: widget.isDarkMode
+                      ? Colors.white
+                      : Colors.black,
                   side: BorderSide(
-                    color: widget.isDarkMode ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.3),
+                    color: widget.isDarkMode
+                        ? Colors.white.withOpacity(0.2)
+                        : Colors.grey.withOpacity(0.3),
                   ),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ),
             ),
@@ -337,10 +422,14 @@ class _SuccessScreenState extends State<SuccessScreen> {
               margin: const EdgeInsets.all(24),
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: widget.isDarkMode ? const Color(0xFF1F2937) : Colors.white,
+                color: widget.isDarkMode
+                    ? const Color(0xFF1F2937)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: widget.isDarkMode ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.2),
+                  color: widget.isDarkMode
+                      ? Colors.white.withOpacity(0.1)
+                      : Colors.grey.withOpacity(0.2),
                 ),
               ),
               child: Column(
@@ -356,12 +445,19 @@ class _SuccessScreenState extends State<SuccessScreen> {
                           color: const Color(0xFF39A4E6).withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(LucideIcons.share2, color: Color(0xFF39A4E6), size: 32),
+                        child: const Icon(
+                          LucideIcons.share2,
+                          color: Color(0xFF39A4E6),
+                          size: 32,
+                        ),
                       ),
                       IconButton(
-                        onPressed: () => setState(() => isShareModalOpen = false),
+                        onPressed: () =>
+                            setState(() => isShareModalOpen = false),
                         icon: const Icon(LucideIcons.x),
-                        color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                        color: widget.isDarkMode
+                            ? Colors.grey[400]
+                            : Colors.grey[600],
                       ),
                     ],
                   ),
@@ -378,30 +474,45 @@ class _SuccessScreenState extends State<SuccessScreen> {
                   Text(
                     'Share your medical reports securely',
                     style: TextStyle(
-                      color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                      color: widget.isDarkMode
+                          ? Colors.grey[400]
+                          : Colors.grey[600],
                     ),
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Link Copy
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
-                      color: widget.isDarkMode ? Colors.black.withOpacity(0.2) : Colors.grey[100],
+                      color: widget.isDarkMode
+                          ? Colors.black.withOpacity(0.2)
+                          : Colors.grey[100],
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: widget.isDarkMode ? Colors.white.withOpacity(0.1) : Colors.grey[300]!,
+                        color: widget.isDarkMode
+                            ? Colors.white.withOpacity(0.1)
+                            : Colors.grey[300]!,
                       ),
                     ),
                     child: Row(
                       children: [
-                        const Icon(LucideIcons.link, size: 20, color: Color(0xFF39A4E6)),
+                        const Icon(
+                          LucideIcons.link,
+                          size: 20,
+                          color: Color(0xFF39A4E6),
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             shareLink,
                             style: TextStyle(
-                              color: widget.isDarkMode ? Colors.grey[300] : Colors.grey[700],
+                              color: widget.isDarkMode
+                                  ? Colors.grey[300]
+                                  : Colors.grey[700],
                               fontSize: 13,
                             ),
                             maxLines: 1,
@@ -412,7 +523,10 @@ class _SuccessScreenState extends State<SuccessScreen> {
                         GestureDetector(
                           onTap: _handleCopyLink,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFF39A4E6),
                               borderRadius: BorderRadius.circular(8),
@@ -420,7 +534,9 @@ class _SuccessScreenState extends State<SuccessScreen> {
                             child: Row(
                               children: [
                                 Icon(
-                                  isCopied ? LucideIcons.check : LucideIcons.copy,
+                                  isCopied
+                                      ? LucideIcons.check
+                                      : LucideIcons.copy,
                                   size: 14,
                                   color: Colors.white,
                                 ),
@@ -442,7 +558,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                   ),
 
                   const SizedBox(height: 24),
-                  
+
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -451,10 +567,16 @@ class _SuccessScreenState extends State<SuccessScreen> {
                       label: const Text('Share via...'),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: widget.isDarkMode ? Colors.grey[800] : Colors.grey[100],
-                        foregroundColor: widget.isDarkMode ? Colors.white : Colors.black,
+                        backgroundColor: widget.isDarkMode
+                            ? Colors.grey[800]
+                            : Colors.grey[100],
+                        foregroundColor: widget.isDarkMode
+                            ? Colors.white
+                            : Colors.black,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                     ),
                   ),
