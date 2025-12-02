@@ -158,7 +158,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
       body: Stack(
         children: [
           const AnimatedBubbleBackground(),
-
           // Header
           Positioned(
             top: 0,
@@ -203,7 +202,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
               ),
             ),
           ),
-
           // Main Content
           Positioned.fill(
             top: 100,
@@ -212,19 +210,16 @@ class _VerificationScreenState extends State<VerificationScreen> {
               child: Column(
                 children: [
                   const SizedBox(height: 40),
-
                   // Icon
                   Container(
                         width: 120,
                         height: 120,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF39A4E6).withValues(alpha: 0.1),
+                          color: const Color(0xFF39A4E6).withOpacity(0.1),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(
-                                0xFF39A4E6,
-                              ).withValues(alpha: 0.2),
+                              color: const Color(0xFF39A4E6).withOpacity(0.2),
                               blurRadius: 20,
                               spreadRadius: 5,
                             ),
@@ -249,9 +244,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                       .animate()
                       .fadeIn(delay: 200.ms)
                       .scale(duration: 500.ms, curve: Curves.elasticOut),
-
                   const SizedBox(height: 32),
-
                   ShaderMask(
                     shaderCallback: (bounds) => const LinearGradient(
                       colors: [
@@ -271,14 +264,11 @@ class _VerificationScreenState extends State<VerificationScreen> {
                       ),
                     ),
                   ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
-
                   const SizedBox(height: 12),
-
                   Text(
                     'We\'ve sent a 6-digit verification code to',
                     style: TextStyle(color: Colors.grey[600], fontSize: 16),
                   ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
-
                   Text(
                     _email,
                     style: const TextStyle(
@@ -287,9 +277,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
-
                   const SizedBox(height: 32),
-
                   // Alert Banner
                   if (_alertMessage != null)
                     AlertBanner(
@@ -298,9 +286,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                       autoDismiss: !_isAlertError,
                       onDismiss: () => setState(() => _alertMessage = null),
                     ).animate().fadeIn(duration: 300.ms),
-
                   if (_alertMessage != null) const SizedBox(height: 20),
-
                   // Code Input
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -312,21 +298,15 @@ class _VerificationScreenState extends State<VerificationScreen> {
                       );
                     }),
                   ).animate().fadeIn(delay: 700.ms).moveY(begin: 20, end: 0),
-
                   const SizedBox(height: 32),
-
                   const SizedBox(height: 32),
-
                   const SizedBox(height: 32),
-
                   CustomButton(
                     text: _isPasswordReset ? 'Reset Password' : 'Verify Code',
                     onPressed: _handleVerify,
                     isLoading: _isLoading,
                   ).animate().fadeIn(delay: 800.ms).moveY(begin: 20, end: 0),
-
                   const SizedBox(height: 32),
-
                   // Resend Code
                   Column(
                     children: [
@@ -353,6 +333,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
         ],
       ),
     );
+    // Removed duplicate closing brackets and misplaced parentheses
   }
 }
 

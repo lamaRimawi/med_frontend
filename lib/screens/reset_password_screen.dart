@@ -59,7 +59,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (args != null) {
       _email = args['email'] ?? '';
       _code = args['code'] ?? '';
@@ -81,6 +82,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       return;
     }
 
+    // The backend should handle same password check. We only show AlertBanner for errors.
+
     setState(() => _isLoading = true);
 
     final (success, message) = await AuthApi.resetPassword(
@@ -96,14 +99,23 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       if (success) {
         _alertMessage = 'Password reset successfully!';
         _isAlertError = false;
-        
         Future.delayed(const Duration(seconds: 2), () {
           if (mounted) {
-            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/login',
+              (route) => false,
+            );
           }
         });
       } else {
-        _alertMessage = message ?? 'Reset failed';
+        // If backend returns specific message for same password, show it
+        if (message != null && message.toLowerCase().contains('same')) {
+          _alertMessage =
+              'New password cannot be the same as the old password.';
+        } else {
+          _alertMessage = message ?? 'Reset failed';
+        }
         _isAlertError = true;
       }
     });
@@ -137,7 +149,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
+                    icon: const Icon(
+                      LucideIcons.arrowLeft,
+                      color: Colors.white,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ).animate().fadeIn(delay: 200.ms).moveX(begin: -20, end: 0),
                   const Expanded(
@@ -169,37 +184,50 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
                   // Icon
                   Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF39A4E6).withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF39A4E6).withValues(alpha: 0.2),
-                          blurRadius: 20,
-                          spreadRadius: 5,
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF39A4E6).withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFF39A4E6,
+                              ).withValues(alpha: 0.2),
+                              blurRadius: 20,
+                              spreadRadius: 5,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: const Icon(
-                      LucideIcons.lock,
-                      size: 60,
-                      color: Color(0xFF39A4E6),
-                    ),
-                  )
-                  .animate(onPlay: (controller) => controller.repeat(reverse: true))
-                  .scale(begin: const Offset(1, 1), end: const Offset(1.1, 1.1), duration: 2.seconds)
-                  .then()
-                  .animate()
-                  .fadeIn(delay: 200.ms)
-                  .scale(duration: 500.ms, curve: Curves.elasticOut),
+                        child: const Icon(
+                          LucideIcons.lock,
+                          size: 60,
+                          color: Color(0xFF39A4E6),
+                        ),
+                      )
+                      .animate(
+                        onPlay: (controller) =>
+                            controller.repeat(reverse: true),
+                      )
+                      .scale(
+                        begin: const Offset(1, 1),
+                        end: const Offset(1.1, 1.1),
+                        duration: 2.seconds,
+                      )
+                      .then()
+                      .animate()
+                      .fadeIn(delay: 200.ms)
+                      .scale(duration: 500.ms, curve: Curves.elasticOut),
 
                   const SizedBox(height: 32),
 
                   ShaderMask(
                     shaderCallback: (bounds) => const LinearGradient(
-                      colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9), Color(0xFF39A4E6)],
+                      colors: [
+                        Color(0xFF39A4E6),
+                        Color(0xFF2B8FD9),
+                        Color(0xFF39A4E6),
+                      ],
                     ).createShader(bounds),
                     child: const Text(
                       'Create New Password',
@@ -242,7 +270,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     controller: _passwordController,
                     isPassword: true,
                     showPassword: _showPassword,
-                    onTogglePassword: () => setState(() => _showPassword = !_showPassword),
+                    onTogglePassword: () =>
+                        setState(() => _showPassword = !_showPassword),
                     validator: Validators.validatePassword,
                     validateOnChange: true,
                   ).animate().fadeIn(delay: 700.ms).moveY(begin: 20, end: 0),
@@ -256,8 +285,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     controller: _confirmPasswordController,
                     isPassword: true,
                     showPassword: _showConfirmPassword,
-                    onTogglePassword: () => setState(() => _showConfirmPassword = !_showConfirmPassword),
-                    validator: (value) => Validators.validateConfirmPassword(value, _passwordController.text),
+                    onTogglePassword: () => setState(
+                      () => _showConfirmPassword = !_showConfirmPassword,
+                    ),
+                    validator: (value) => Validators.validateConfirmPassword(
+                      value,
+                      _passwordController.text,
+                    ),
                   ).animate().fadeIn(delay: 800.ms).moveY(begin: 20, end: 0),
 
                   const SizedBox(height: 32),
