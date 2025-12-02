@@ -19,9 +19,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   void _handleSubmit() async {
     if (_emailController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your email address')),
-      );
+      setState(() {
+        // Show error in a way consistent with your app, e.g. AlertBanner or inline error
+      });
       return;
     }
 
@@ -55,21 +55,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message ?? 'Reset code sent to your email')),
-        );
+        // Optionally show a message in AlertBanner or inline
         _navigateToVerification();
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message ?? 'Failed to send reset code')),
-      );
+      setState(() {
+        // Show error in a way consistent with your app, e.g. AlertBanner or inline error
+      });
     }
   }
 
   void _navigateToVerification() {
     Navigator.pushNamed(
-      context, 
+      context,
       '/verification',
       arguments: {'email': _emailController.text, 'isPasswordReset': true},
     );
@@ -103,7 +101,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
+                    icon: const Icon(
+                      LucideIcons.arrowLeft,
+                      color: Colors.white,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ).animate().fadeIn(delay: 200.ms).moveX(begin: -20, end: 0),
                   const Expanded(
@@ -146,7 +147,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       size: 48,
                       color: Color(0xFF39A4E6),
                     ),
-                  ).animate().scale(delay: 500.ms, duration: 500.ms, curve: Curves.elasticOut),
+                  ).animate().scale(
+                    delay: 500.ms,
+                    duration: 500.ms,
+                    curve: Curves.elasticOut,
+                  ),
 
                   const SizedBox(height: 32),
 
