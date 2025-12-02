@@ -287,7 +287,6 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
       ),
       child: Column(
         children: [

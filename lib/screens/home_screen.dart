@@ -1071,23 +1071,26 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           // Count Badge
                           Positioned(
-                            top: 8,
-                            right: 8,
+                            top: 10,
+                            right: 10,
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
+                                horizontal: 10,
+                                vertical: 5,
                               ),
                               decoration: BoxDecoration(
-                                color: type['color'] as Color,
-                                borderRadius: BorderRadius.circular(12),
+                                gradient: LinearGradient(
+                                  colors: [
+                                    type['color'] as Color,
+                                    (type['color'] as Color).withOpacity(0.8),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: (type['color'] as Color).withOpacity(
-                                      0.3,
-                                    ),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
+                                    color: (type['color'] as Color).withOpacity(0.4),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
                                   ),
                                 ],
                               ),
@@ -1095,8 +1098,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 '${type['count']}',
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.3,
                                 ),
                               ),
                             ),

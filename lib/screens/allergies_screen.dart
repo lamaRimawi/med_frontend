@@ -310,7 +310,6 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
       ),
       child: Column(
         children: [

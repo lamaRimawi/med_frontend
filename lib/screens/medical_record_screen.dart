@@ -203,22 +203,34 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.only(left: 24, right: 24, top: 12, bottom: 28),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
+      padding: const EdgeInsets.only(left: 24, right: 24, top: 12, bottom: 24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
           colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF39A4E6).withOpacity(0.25),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         children: [
           Row(
             children: [
-              IconButton(
-                onPressed: widget.onBack,
-                icon: const Icon(LucideIcons.chevronLeft, color: Colors.white),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: IconButton(
+                  onPressed: widget.onBack,
+                  icon: const Icon(LucideIcons.chevronLeft, color: Colors.white, size: 24),
+                ),
               ),
               const Expanded(
                 child: Text(
@@ -226,8 +238,9 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ),

@@ -202,7 +202,6 @@ class AnalysisDetailScreen extends StatelessWidget {
       padding: const EdgeInsets.only(left: 24, right: 24, top: 12, bottom: 24),
       decoration: const BoxDecoration(
         color: Color(0xFF39A4E6),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
       ),
       child: Column(
         children: [
