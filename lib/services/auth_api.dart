@@ -45,16 +45,28 @@ class AuthApi {
     required String name,
     required String email,
     required String phone,
+    required DateTime dateOfBirth,
     required String password,
   }) async {
     final client = ApiClient.instance;
+    
+    // Split name into first and last name
+    final nameParts = name.trim().split(' ');
+    final firstName = nameParts.first;
+    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+    
+    // Format date as YYYY-MM-DD
+    final dobString = '${dateOfBirth.year}-${dateOfBirth.month.toString().padLeft(2, '0')}-${dateOfBirth.day.toString().padLeft(2, '0')}';
+    
     final res = await client.post(
       ApiConfig.register,
       body: json.encode({
-        'name': name,
+        'first_name': firstName,
+        'last_name': lastName,
         'email': email,
-        'phone': phone,
+        'phone_number': phone,
         'password': password,
+        'date_of_birth': dobString,
       }),
     );
 
@@ -64,8 +76,14 @@ class AuthApi {
 
     try {
       final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-      return (false, data['message']?.toString() ?? 'Registration failed');
-    } catch (_) {
+      final msg = data['message']?.toString() ?? 
+                 data['detail']?.toString() ?? 
+                 data['error']?.toString() ?? 
+                 'Registration failed';
+      print('Registration error: $data'); // Debug log
+      return (false, msg);
+    } catch (e) {
+      print('Registration error (parse failed): ${res.body}'); // Debug log
       return (false, 'Registration failed (${res.statusCode})');
     }
   }

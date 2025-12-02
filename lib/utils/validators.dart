@@ -133,6 +133,32 @@ class Validators {
     return null;
   }
 
+  // Date of birth validation
+  static String? validateDateOfBirth(DateTime? value) {
+    if (value == null) {
+      return 'Date of birth is required';
+    }
+    
+    final now = DateTime.now();
+    final age = now.year - value.year - 
+        ((now.month > value.month || 
+         (now.month == value.month && now.day >= value.day)) ? 0 : 1);
+    
+    if (age < 13) {
+      return 'You must be at least 13 years old';
+    }
+    
+    if (age > 120) {
+      return 'Please enter a valid date of birth';
+    }
+    
+    if (value.isAfter(now)) {
+      return 'Date of birth cannot be in the future';
+    }
+    
+    return null;
+  }
+
   // Verification code validation
   static String? validateVerificationCode(String? value) {
     if (value == null || value.isEmpty) {

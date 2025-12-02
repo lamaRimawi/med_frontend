@@ -22,6 +22,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  DateTime? _dateOfBirth;
   bool _isLoading = false;
   bool _showPassword = false;
   bool _showConfirmPassword = false;
@@ -60,6 +61,7 @@ class _SignupScreenState extends State<SignupScreen> {
     final nameError = Validators.validateName(_nameController.text);
     final emailError = Validators.validateEmail(_emailController.text);
     final phoneError = Validators.validatePhone(_phoneController.text);
+    final dobError = Validators.validateDateOfBirth(_dateOfBirth);
     final passwordError = Validators.validatePassword(_passwordController.text);
     final confirmError = Validators.validateConfirmPassword(
       _confirmPasswordController.text,
@@ -69,6 +71,7 @@ class _SignupScreenState extends State<SignupScreen> {
     return nameError == null && 
            emailError == null && 
            phoneError == null && 
+           dobError == null &&
            passwordError == null && 
            confirmError == null &&
            _agreedToTerms;
@@ -79,13 +82,14 @@ class _SignupScreenState extends State<SignupScreen> {
     final nameError = Validators.validateName(_nameController.text);
     final emailError = Validators.validateEmail(_emailController.text);
     final phoneError = Validators.validatePhone(_phoneController.text);
+    final dobError = Validators.validateDateOfBirth(_dateOfBirth);
     final passwordError = Validators.validatePassword(_passwordController.text);
     final confirmError = Validators.validateConfirmPassword(
       _confirmPasswordController.text,
       _passwordController.text,
     );
 
-    if (nameError != null || emailError != null || phoneError != null || 
+    if (nameError != null || emailError != null || phoneError != null || dobError != null ||
         passwordError != null || confirmError != null) {
       setState(() {
         _alertMessage = 'Please fix all errors before continuing';
@@ -108,6 +112,7 @@ class _SignupScreenState extends State<SignupScreen> {
       name: _nameController.text,
       email: _emailController.text,
       phone: _phoneController.text,
+      dateOfBirth: _dateOfBirth!,
       password: _passwordController.text,
     );
 
@@ -321,6 +326,106 @@ class _SignupScreenState extends State<SignupScreen> {
                     keyboardType: TextInputType.phone,
                     validator: Validators.validatePhone,
                   ).animate().fadeIn(delay: 700.ms).moveY(begin: 20, end: 0),
+
+                  const SizedBox(height: 20),
+
+                  // Date of Birth Field
+                  GestureDetector(
+                    onTap: () async {
+                      final now = DateTime.now();
+                      final initialDate = _dateOfBirth ?? DateTime(now.year - 25, now.month, now.day);
+                      final firstDate = DateTime(now.year - 120);
+                      final lastDate = DateTime(now.year - 13);
+                      
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: initialDate.isBefore(firstDate) || initialDate.isAfter(lastDate) 
+                            ? lastDate 
+                            : initialDate,
+                        firstDate: firstDate,
+                        lastDate: lastDate,
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: const ColorScheme.light(
+                                primary: Color(0xFF39A4E6),
+                                onPrimary: Colors.white,
+                                surface: Colors.white,
+                                onSurface: Colors.black,
+                              ),
+                            ),
+                            child: child!,
+                          );
+                        },
+                      );
+                      if (picked != null) {
+                        setState(() {
+                          _dateOfBirth = picked;
+                          _alertMessage = null;
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Validators.validateDateOfBirth(_dateOfBirth) != null
+                              ? Colors.red.withOpacity(0.5)
+                              : const Color(0xFFE5E7EB),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            LucideIcons.calendar,
+                            color: Color(0xFF39A4E6),
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Date of Birth *',
+                                  style: TextStyle(
+                                    color: Colors.grey[700],
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _dateOfBirth == null
+                                      ? 'Select your date of birth'
+                                      : '${_dateOfBirth!.day.toString().padLeft(2, '0')}/${_dateOfBirth!.month.toString().padLeft(2, '0')}/${_dateOfBirth!.year}',
+                                  style: TextStyle(
+                                    color: _dateOfBirth == null ? Colors.grey[400] : Colors.black87,
+                                    fontSize: 16,
+                                    fontWeight: _dateOfBirth == null ? FontWeight.normal : FontWeight.w500,
+                                  ),
+                                ),
+                                if (Validators.validateDateOfBirth(_dateOfBirth) != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Text(
+                                      Validators.validateDateOfBirth(_dateOfBirth)!,
+                                      style: const TextStyle(
+                                        color: Colors.red,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ).animate().fadeIn(delay: 750.ms).moveY(begin: 20, end: 0),
 
                   const SizedBox(height: 20),
 
