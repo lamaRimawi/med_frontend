@@ -81,10 +81,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (result.$1) {
         // Fetch user profile after successful login
-        final (profileSuccess, user, profileMessage) = await AuthApi.getUserProfile();
-        
+        final (profileSuccess, user, profileMessage) =
+            await AuthApi.getUserProfile();
+
         if (!mounted) return;
-        
+
         if (profileSuccess) {
           setState(() {
             _alertMessage = 'Login successful!';
@@ -357,60 +358,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 20),
 
-                  // Recaptcha placeholder
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Center(
-                      child: Transform.scale(
-                        scale: 0.9,
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: Colors.grey[300]!),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 2,
-                                offset: const Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Checkbox(value: false, onChanged: (v) {}),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'I\'m not a robot',
-                                style: TextStyle(color: Colors.black87),
-                              ),
-                              const SizedBox(width: 24),
-                              const Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.security,
-                                    color: Colors.blue,
-                                    size: 24,
-                                  ),
-                                  Text(
-                                    'reCAPTCHA',
-                                    style: TextStyle(
-                                      fontSize: 8,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ).animate().fadeIn(delay: 700.ms),
-
+                  // ...existing code...
                   const SizedBox(height: 24),
 
                   CustomButton(
