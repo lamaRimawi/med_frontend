@@ -7,6 +7,7 @@ import '../widgets/custom_button.dart';
 import '../widgets/alert_banner.dart';
 import '../utils/validators.dart';
 import '../services/auth_service.dart';
+import '../services/auth_api.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -73,7 +74,7 @@ class _SignupScreenState extends State<SignupScreen> {
            _agreedToTerms;
   }
 
-  void _handleSignup() {
+  void _handleSignup() async {
     // Validate all fields
     final nameError = Validators.validateName(_nameController.text);
     final emailError = Validators.validateEmail(_emailController.text);
@@ -103,21 +104,37 @@ class _SignupScreenState extends State<SignupScreen> {
 
     setState(() => _isLoading = true);
 
-    // Simulate signup
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _alertMessage = 'Account created successfully!';
-          _isAlertError = false;
-        });
+    final (success, message) = await AuthApi.register(
+      name: _nameController.text,
+      email: _emailController.text,
+      phone: _phoneController.text,
+      password: _passwordController.text,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+      if (success) {
+        _alertMessage = 'Account created successfully!';
+        _isAlertError = false;
         
-        // Navigate after showing success
-        Future.delayed(const Duration(seconds: 2), () {
+        // Navigate to verification
+        Future.delayed(const Duration(seconds: 1), () {
           if (mounted) {
-            Navigator.pushReplacementNamed(context, '/login');
+            Navigator.pushReplacementNamed(
+              context, 
+              '/verification',
+              arguments: {
+                'email': _emailController.text,
+                'isPasswordReset': false,
+              },
+            );
           }
         });
+      } else {
+        _alertMessage = message ?? 'Registration failed';
+        _isAlertError = true;
       }
     });
   }

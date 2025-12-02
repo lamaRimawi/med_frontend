@@ -4,6 +4,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../widgets/animated_bubble_background.dart';
 import '../widgets/custom_button.dart';
+import '../widgets/alert_banner.dart';
+import '../widgets/custom_text_field.dart';
+import '../utils/validators.dart';
+import '../services/auth_api.dart';
 
 class VerificationScreen extends StatefulWidget {
   const VerificationScreen({super.key});
@@ -30,6 +34,11 @@ class _VerificationScreenState extends State<VerificationScreen> {
     }
   }
 
+  String? _alertMessage;
+  bool _isAlertError = true;
+
+
+
   @override
   void dispose() {
     for (var controller in _controllers) {
@@ -53,42 +62,81 @@ class _VerificationScreenState extends State<VerificationScreen> {
         _focusNodes[index - 1].requestFocus();
       }
     }
+    // Clear error when user types
+    if (_alertMessage != null) {
+      setState(() => _alertMessage = null);
+    }
   }
 
-  void _handleVerify() {
+  void _handleVerify() async {
     String code = _controllers.map((c) => c.text).join();
     if (code.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter all 6 digits')),
-      );
+      setState(() {
+        _alertMessage = 'Please enter all 6 digits';
+        _isAlertError = true;
+      });
       return;
     }
 
     setState(() => _isLoading = true);
 
-    // Simulate verification
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        if (_isPasswordReset) {
-          Navigator.pushNamed(context, '/reset-password');
-        } else {
-          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
-        }
+    // Verify the code first (even for password reset)
+    // We use verifyEmail for both, assuming the backend supports checking the code this way
+    final (success, message) = await AuthApi.verifyEmail(
+      email: _email,
+      code: code,
+    );
+
+    if (!mounted) return;
+
+    setState(() => _isLoading = false);
+
+    if (success) {
+      if (_isPasswordReset) {
+        Navigator.pushNamed(
+          context, 
+          '/reset-password',
+          arguments: {'email': _email, 'code': code},
+        );
+      } else {
+        setState(() {
+          _alertMessage = 'Email verified successfully!';
+          _isAlertError = false;
+        });
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+          }
+        });
       }
-    });
+    } else {
+      setState(() {
+        _alertMessage = message ?? 'Invalid verification code';
+        _isAlertError = true;
+      });
+    }
   }
 
-  void _handleResend() {
+  void _handleResend() async {
     setState(() => _isResending = true);
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() => _isResending = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Verification code sent! Check your email.')),
-        );
-      }
-    });
+    
+    final (success, message) = await AuthApi.resendVerification(email: _email);
+
+    if (!mounted) return;
+
+    setState(() => _isResending = false);
+
+    if (success) {
+      setState(() {
+        _alertMessage = 'Verification code sent! Check your email.';
+        _isAlertError = false;
+      });
+    } else {
+      setState(() {
+        _alertMessage = message ?? 'Failed to resend code';
+        _isAlertError = true;
+      });
+    }
   }
 
   @override
@@ -213,7 +261,18 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     ),
                   ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 32),
+
+                  // Alert Banner
+                  if (_alertMessage != null)
+                    AlertBanner(
+                      message: _alertMessage!,
+                      isError: _isAlertError,
+                      autoDismiss: !_isAlertError,
+                      onDismiss: () => setState(() => _alertMessage = null),
+                    ).animate().fadeIn(duration: 300.ms),
+
+                  if (_alertMessage != null) const SizedBox(height: 20),
 
                   // Code Input
                   Row(
@@ -229,8 +288,16 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
                   const SizedBox(height: 32),
 
+
+
+                  const SizedBox(height: 32),
+
+
+
+                  const SizedBox(height: 32),
+
                   CustomButton(
-                    text: 'Verify Code',
+                    text: _isPasswordReset ? 'Reset Password' : 'Verify Code',
                     onPressed: _handleVerify,
                     isLoading: _isLoading,
                   ).animate().fadeIn(delay: 800.ms).moveY(begin: 20, end: 0),

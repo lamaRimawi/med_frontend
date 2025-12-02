@@ -4,6 +4,11 @@ class ApiConfig {
 
   // Endpoints
   static const String login = '/auth/login';
+  static const String register = '/auth/register';
+  static const String forgotPassword = '/auth/forgot-password';
+  static const String verifyEmail = '/auth/verify-email';
+  static const String resendVerification = '/auth/resend-verification';
+  static const String resetPassword = '/auth/reset-password';
   static const String vlmChat = '/vlm/chat';
 
   // Temporary sample image URL for backend extraction testing

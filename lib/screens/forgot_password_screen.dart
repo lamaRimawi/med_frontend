@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../widgets/animated_bubble_background.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
+import '../services/auth_api.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -16,7 +17,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
   bool _isLoading = false;
 
-  void _handleSubmit() {
+  void _handleSubmit() async {
     if (_emailController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your email address')),
@@ -26,17 +27,52 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     setState(() => _isLoading = true);
 
-    // Simulate API call
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        Navigator.pushNamed(
-          context, 
-          '/verification',
-          arguments: {'email': _emailController.text, 'isPasswordReset': true},
+    final (success, message, code) = await AuthApi.forgotPassword(
+      email: _emailController.text,
+    );
+
+    if (!mounted) return;
+
+    setState(() => _isLoading = false);
+
+    if (success) {
+      if (code != null) {
+        // Show code for testing/dev
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Verification Code'),
+            content: Text('Your code is: $code'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _navigateToVerification();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
         );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message ?? 'Reset code sent to your email')),
+        );
+        _navigateToVerification();
       }
-    });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message ?? 'Failed to send reset code')),
+      );
+    }
+  }
+
+  void _navigateToVerification() {
+    Navigator.pushNamed(
+      context, 
+      '/verification',
+      arguments: {'email': _emailController.text, 'isPasswordReset': true},
+    );
   }
 
   @override

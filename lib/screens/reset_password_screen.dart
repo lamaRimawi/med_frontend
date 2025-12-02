@@ -6,6 +6,7 @@ import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/alert_banner.dart';
 import '../utils/validators.dart';
+import '../services/auth_api.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
@@ -52,7 +53,20 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     return passwordError == null && confirmError == null;
   }
 
-  void _handleReset() {
+  String _email = '';
+  String _code = '';
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (args != null) {
+      _email = args['email'] ?? '';
+      _code = args['code'] ?? '';
+    }
+  }
+
+  void _handleReset() async {
     final passwordError = Validators.validatePassword(_passwordController.text);
     final confirmError = Validators.validateConfirmPassword(
       _confirmPasswordController.text,
@@ -69,20 +83,28 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
     setState(() => _isLoading = true);
 
-    // Simulate API call
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _alertMessage = 'Password reset successfully!';
-          _isAlertError = false;
-        });
+    final (success, message) = await AuthApi.resetPassword(
+      email: _email,
+      code: _code,
+      newPassword: _passwordController.text,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+      if (success) {
+        _alertMessage = 'Password reset successfully!';
+        _isAlertError = false;
         
         Future.delayed(const Duration(seconds: 2), () {
           if (mounted) {
             Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
           }
         });
+      } else {
+        _alertMessage = message ?? 'Reset failed';
+        _isAlertError = true;
       }
     });
   }
