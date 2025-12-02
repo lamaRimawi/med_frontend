@@ -7,6 +7,33 @@ import '../models/user_model.dart';
 import 'api_client.dart';
 
 class AuthApi {
+  static Future<(bool success, String? message)> verifyResetCode({
+    required String email,
+    required String code,
+  }) async {
+    final client = ApiClient.instance;
+    final res = await client.post(
+      ApiConfig.verifyResetCode,
+      body: json.encode({'email': email, 'code': code}),
+    );
+
+    if (res.statusCode == 200) {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      if (data['code_valid'] == true) {
+        return (true, null);
+      } else {
+        return (false, data['message']?.toString() ?? 'Invalid reset code');
+      }
+    }
+
+    try {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      return (false, data['message']?.toString() ?? 'Invalid reset code');
+    } catch (_) {
+      return (false, 'Invalid reset code ({res.statusCode})');
+    }
+  }
+
   static Future<(bool success, String? message)> login({
     required String email,
     required String password,
@@ -50,15 +77,16 @@ class AuthApi {
     required String password,
   }) async {
     final client = ApiClient.instance;
-    
+
     // Split name into first and last name
     final nameParts = name.trim().split(' ');
     final firstName = nameParts.first;
     final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
-    
+
     // Format date as YYYY-MM-DD
-    final dobString = '${dateOfBirth.year}-${dateOfBirth.month.toString().padLeft(2, '0')}-${dateOfBirth.day.toString().padLeft(2, '0')}';
-    
+    final dobString =
+        '${dateOfBirth.year}-${dateOfBirth.month.toString().padLeft(2, '0')}-${dateOfBirth.day.toString().padLeft(2, '0')}';
+
     final res = await client.post(
       ApiConfig.register,
       body: json.encode({
@@ -77,10 +105,11 @@ class AuthApi {
 
     try {
       final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-      final msg = data['message']?.toString() ?? 
-                 data['detail']?.toString() ?? 
-                 data['error']?.toString() ?? 
-                 'Registration failed';
+      final msg =
+          data['message']?.toString() ??
+          data['detail']?.toString() ??
+          data['error']?.toString() ??
+          'Registration failed';
       print('Registration error: $data'); // Debug log
       return (false, msg);
     } catch (e) {
@@ -124,10 +153,7 @@ class AuthApi {
     final client = ApiClient.instance;
     final res = await client.post(
       ApiConfig.verifyEmail,
-      body: json.encode({
-        'email': email,
-        'code': code,
-      }),
+      body: json.encode({'email': email, 'code': code}),
     );
 
     if (res.statusCode == 200) {
@@ -190,7 +216,8 @@ class AuthApi {
     }
   }
 
-  static Future<(bool success, User? user, String? message)> getUserProfile() async {
+  static Future<(bool success, User? user, String? message)>
+  getUserProfile() async {
     final client = ApiClient.instance;
     final res = await client.get(ApiConfig.userProfile, auth: true);
 
@@ -208,13 +235,19 @@ class AuthApi {
 
     try {
       final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-      return (false, null, data['message']?.toString() ?? 'Failed to fetch profile');
+      return (
+        false,
+        null,
+        data['message']?.toString() ?? 'Failed to fetch profile',
+      );
     } catch (_) {
       return (false, null, 'Failed to fetch profile (${res.statusCode})');
     }
   }
 
-  static Future<(bool success, String? message)> updateUserProfile(User user) async {
+  static Future<(bool success, String? message)> updateUserProfile(
+    User user,
+  ) async {
     final client = ApiClient.instance;
     final res = await client.put(
       ApiConfig.userProfile,

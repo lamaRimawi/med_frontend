@@ -13,10 +13,10 @@ class AuthService {
       // For now, return a simulated response
       print('Google Sign-In initiated');
       print('Note: Requires Firebase configuration to work');
-      
+
       // Simulate a delay
       await Future.delayed(const Duration(seconds: 1));
-      
+
       // Return null to indicate not configured
       return null;
     } catch (error) {
@@ -42,13 +42,13 @@ class AuthService {
         print('Facebook Login successful');
         print('Access Token: ${result.accessToken?.tokenString}');
         print('User Data: $userData');
-        
+
         // TODO: Send token to your backend
         // final response = await http.post(
         //   Uri.parse('YOUR_BACKEND_URL/auth/facebook'),
         //   body: {'accessToken': result.accessToken?.tokenString},
         // );
-        
+
         return userData;
       } else {
         print('Facebook Login failed: ${result.status}');
@@ -95,7 +95,8 @@ class AuthService {
   static Future<bool> authenticateWithBiometrics() async {
     try {
       final bool canAuthenticateWithBiometrics = await canCheckBiometrics();
-      final bool canAuthenticate = canAuthenticateWithBiometrics || await isDeviceSupported();
+      final bool canAuthenticate =
+          canAuthenticateWithBiometrics || await isDeviceSupported();
 
       if (!canAuthenticate) {
         return false;
@@ -113,8 +114,9 @@ class AuthService {
   }
 
   static Future<String> getBiometricType() async {
-    final List<BiometricType> availableBiometrics = await getAvailableBiometrics();
-    
+    final List<BiometricType> availableBiometrics =
+        await getAvailableBiometrics();
+
     if (availableBiometrics.contains(BiometricType.face)) {
       return 'Face ID';
     } else if (availableBiometrics.contains(BiometricType.fingerprint)) {
