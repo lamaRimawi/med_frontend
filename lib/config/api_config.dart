@@ -10,6 +10,7 @@ class ApiConfig {
   static const String resendVerification = '/auth/resend-verification';
   static const String resetPassword = '/auth/reset-password';
   static const String vlmChat = '/vlm/chat';
+  static const String userProfile = '/users/profile';
 
   // Temporary sample image URL for backend extraction testing
   // Replace with a real, publicly accessible URL of the captured image.

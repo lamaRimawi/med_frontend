@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../widgets/quick_actions_widget.dart';
 import '../widgets/theme_toggle.dart';
 import '../widgets/animated_bubble_background.dart';
+import '../models/user_model.dart';
 import 'medical_record_screen.dart';
 import 'camera_upload_screen.dart';
 import 'profile_screen.dart';
@@ -44,6 +45,22 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showShareModal = false;
   bool _showAllReportTypes = false;
   int _selectedDate = 11;
+  User? _currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final user = await User.loadFromPrefs();
+    if (mounted) {
+      setState(() {
+        _currentUser = user;
+      });
+    }
+  }
 
   // Recent reports data (mirrors React structure)
   final List<Map<String, dynamic>> _dates = [
@@ -244,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Jane Doe',
+                      _currentUser?.fullName ?? 'User',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,

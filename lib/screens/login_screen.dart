@@ -80,15 +80,34 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       if (result.$1) {
-        setState(() {
-          _alertMessage = 'Login successful!';
-          _isAlertError = false;
-          _isLoading = false;
-        });
+        // Fetch user profile after successful login
+        final (profileSuccess, user, profileMessage) = await AuthApi.getUserProfile();
+        
+        if (!mounted) return;
+        
+        if (profileSuccess) {
+          setState(() {
+            _alertMessage = 'Login successful!';
+            _isAlertError = false;
+            _isLoading = false;
+          });
 
-        Future.delayed(const Duration(milliseconds: 800), () {
-          if (mounted) Navigator.pushReplacementNamed(context, '/home');
-        });
+          Future.delayed(const Duration(milliseconds: 800), () {
+            if (mounted) Navigator.pushReplacementNamed(context, '/home');
+          });
+        } else {
+          // Login succeeded but profile fetch failed - still navigate but warn
+          print('Warning: Profile fetch failed: $profileMessage');
+          setState(() {
+            _alertMessage = 'Login successful!';
+            _isAlertError = false;
+            _isLoading = false;
+          });
+
+          Future.delayed(const Duration(milliseconds: 800), () {
+            if (mounted) Navigator.pushReplacementNamed(context, '/home');
+          });
+        }
       } else {
         setState(() {
           _alertMessage = result.$2 ?? 'Login failed';

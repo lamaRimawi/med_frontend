@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/api_config.dart';
+import '../models/user_model.dart';
 import 'api_client.dart';
 
 class AuthApi {
@@ -186,6 +187,51 @@ class AuthApi {
       return (false, data['message']?.toString() ?? 'Reset failed');
     } catch (_) {
       return (false, 'Reset failed (${res.statusCode})');
+    }
+  }
+
+  static Future<(bool success, User? user, String? message)> getUserProfile() async {
+    final client = ApiClient.instance;
+    final res = await client.get(ApiConfig.userProfile, auth: true);
+
+    if (res.statusCode == 200) {
+      try {
+        final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+        final user = User.fromJson(data);
+        await User.saveToPrefs(user);
+        return (true, user, null);
+      } catch (e) {
+        print('Profile parse error: $e');
+        return (false, null, 'Failed to parse profile data');
+      }
+    }
+
+    try {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      return (false, null, data['message']?.toString() ?? 'Failed to fetch profile');
+    } catch (_) {
+      return (false, null, 'Failed to fetch profile (${res.statusCode})');
+    }
+  }
+
+  static Future<(bool success, String? message)> updateUserProfile(User user) async {
+    final client = ApiClient.instance;
+    final res = await client.put(
+      ApiConfig.userProfile,
+      body: json.encode(user.toJson()),
+      auth: true,
+    );
+
+    if (res.statusCode == 200) {
+      await User.saveToPrefs(user);
+      return (true, null);
+    }
+
+    try {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      return (false, data['message']?.toString() ?? 'Update failed');
+    } catch (_) {
+      return (false, 'Update failed (${res.statusCode})');
     }
   }
 }

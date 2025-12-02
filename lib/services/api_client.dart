@@ -58,6 +58,26 @@ class ApiClient {
     return http.get(_uri(path, query), headers: mergedHeaders);
   }
 
+  Future<http.Response> put(
+    String path, {
+    Map<String, String>? headers,
+    Object? body,
+    Map<String, String>? query,
+    bool auth = false,
+  }) async {
+    final mergedHeaders = <String, String>{
+      'Content-Type': 'application/json',
+      ...?headers,
+    };
+    if (auth) {
+      final token = await _getToken();
+      if (token != null && token.isNotEmpty) {
+        mergedHeaders['Authorization'] = 'Bearer $token';
+      }
+    }
+    return http.put(_uri(path, query), headers: mergedHeaders, body: body);
+  }
+
   static T decodeJson<T>(http.Response res) {
     return json.decode(utf8.decode(res.bodyBytes)) as T;
   }

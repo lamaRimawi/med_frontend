@@ -7,6 +7,8 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../widgets/animated_bubble_background.dart';
 import '../widgets/theme_toggle.dart';
+import '../models/user_model.dart';
+import '../services/auth_api.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Function(String) onNavigate;
@@ -45,13 +47,33 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
   
   // Profile Data
   Map<String, dynamic> _profileData = {
-    'name': 'Maria Barry',
-    'email': 'maria.barry@healthtrack.com',
-    'phone': '234 567 8900',
+    'name': '',
+    'email': '',
+    'phone': '',
     'phonePrefix': '+1',
     'dateOfBirth': '',
-    'avatar': 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maria', // Note: SVG might need flutter_svg, using placeholder for now or network image if supported
+    'avatar': '',
   };
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final user = await User.loadFromPrefs();
+    if (user != null && mounted) {
+      final nameParts = user.fullName.split(' ');
+      setState(() {
+        _profileData['name'] = user.fullName;
+        _profileData['email'] = user.email;
+        _profileData['phone'] = user.phoneNumber.replaceFirst(RegExp(r'^\+[0-9]+'), '').trim();
+        _profileData['dateOfBirth'] = user.dateOfBirth;
+        _profileData['avatar'] = 'https://api.dicebear.com/7.x/avataaars/svg?seed=${user.firstName}';
+      });
+    }
+  }
 
   int _selectedYear = DateTime.now().year;
   int _selectedMonth = DateTime.now().month - 1;
@@ -312,7 +334,11 @@ _buildSettingItem(LucideIcons.fileText, 'My Medical Reports', () => Navigator.pu
 
                       // Logout Button
                       GestureDetector(
-                        onTap: widget.onLogout,
+                        onTap: () async {
+                          await User.clearFromPrefs();
+                          await AuthApi.logout();
+                          widget.onLogout();
+                        },
                         child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 16),
