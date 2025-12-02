@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:ui';
-import 'dart:math' as math;
 
 class Report {
   final String id;
-  final String title;
   final String type;
   final String date;
   final String doctor;
@@ -16,7 +14,6 @@ class Report {
 
   Report({
     required this.id,
-    required this.title,
     required this.type,
     required this.date,
     required this.doctor,
@@ -28,7 +25,7 @@ class Report {
 
 class ReportsScreen extends StatefulWidget {
   final VoidCallback? onBack;
-  
+
   const ReportsScreen({super.key, this.onBack});
 
   @override
@@ -39,7 +36,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
   final List<Report> _reports = [
     Report(
       id: "1",
-      title: "Blood Test Report",
       type: "Laboratory",
       date: "18 Nov 2025",
       doctor: "Dr. Sarah Wilson",
@@ -48,7 +44,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     ),
     Report(
       id: "2",
-      title: "X-Ray Chest",
       type: "Radiology",
       date: "15 Nov 2025",
       doctor: "Dr. Michael Chen",
@@ -57,7 +52,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     ),
     Report(
       id: "3",
-      title: "ECG Report",
       type: "Cardiology",
       date: "10 Nov 2025",
       doctor: "Dr. James Brown",
@@ -66,7 +60,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     ),
     Report(
       id: "4",
-      title: "MRI Brain Scan",
       type: "Radiology",
       date: "05 Nov 2025",
       doctor: "Dr. Emily Davis",
@@ -80,14 +73,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
   String _filterType = "all";
   bool _showFilters = false;
 
-  final _titleController = TextEditingController();
-  final _typeController = TextEditingController(); // We'll use a dropdown but keep this for value
+  final _typeController =
+      TextEditingController(); // We'll use a dropdown but keep this for value
   final _dateController = TextEditingController();
   final _doctorController = TextEditingController();
   final _hospitalController = TextEditingController();
 
   Map<String, String> _validationErrors = {
-    'title': '',
     'type': '',
     'date': '',
     'doctor': '',
@@ -109,7 +101,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   @override
   void dispose() {
-    _titleController.dispose();
     _typeController.dispose();
     _dateController.dispose();
     _doctorController.dispose();
@@ -118,22 +109,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   bool _validateReport() {
-    final errors = {
-      'title': '',
-      'type': '',
-      'date': '',
-      'doctor': '',
-      'hospital': '',
-    };
+    final errors = {'type': '', 'date': '', 'doctor': '', 'hospital': ''};
     bool isValid = true;
-
-    if (_titleController.text.trim().isEmpty) {
-      errors['title'] = "Report title is required";
-      isValid = false;
-    } else if (_titleController.text.trim().length < 3) {
-      errors['title'] = "Title must be at least 3 characters";
-      isValid = false;
-    }
 
     if (_typeController.text.isEmpty) {
       errors['type'] = "Report type is required";
@@ -171,7 +148,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     if (_validateReport()) {
       final report = Report(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
-        title: _titleController.text.trim(),
         type: _typeController.text,
         date: _dateController.text, // In a real app, format this date
         doctor: _doctorController.text.trim(),
@@ -194,13 +170,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   void _resetForm() {
     setState(() {
-      _titleController.clear();
       _typeController.clear();
       _dateController.clear();
       _doctorController.clear();
       _hospitalController.clear();
       _validationErrors = {
-        'title': '',
         'type': '',
         'date': '',
         'doctor': '',
@@ -213,7 +187,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   List<Report> get _filteredReports {
     return _reports.where((report) {
       final matchesSearch =
-          report.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          report.type.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           report.doctor.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           report.hospital.toLowerCase().contains(_searchQuery.toLowerCase());
 
@@ -251,9 +225,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 _buildHeader(),
 
                 // Reports List
-                Expanded(
-                  child: _buildReportsList(),
-                ),
+                Expanded(child: _buildReportsList()),
               ],
             ),
           ),
@@ -272,7 +244,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
         color: Colors.white.withOpacity(0.8),
         border: Border(bottom: BorderSide(color: Colors.grey[100]!)),
       ),
-      child: ClipRRect( // For backdrop blur if supported, or just container
+      child: ClipRRect(
+        // For backdrop blur if supported, or just container
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Column(
@@ -280,8 +253,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(LucideIcons.chevronLeft, color: Colors.grey),
-                    onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
+                    icon: const Icon(
+                      LucideIcons.chevronLeft,
+                      color: Colors.grey,
+                    ),
+                    onPressed:
+                        widget.onBack ?? () => Navigator.of(context).maybePop(),
                   ),
                   const SizedBox(width: 8),
                   const Expanded(
@@ -298,10 +275,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         ),
                         Text(
                           'View and manage your reports',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
                         ),
                       ],
                     ),
@@ -321,15 +295,23 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(LucideIcons.search, size: 18, color: Colors.grey),
+                          const Icon(
+                            LucideIcons.search,
+                            size: 18,
+                            color: Colors.grey,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: TextField(
-                              onChanged: (value) => setState(() => _searchQuery = value),
+                              onChanged: (value) =>
+                                  setState(() => _searchQuery = value),
                               decoration: const InputDecoration(
                                 hintText: 'Search reports...',
                                 border: InputBorder.none,
-                                hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+                                hintStyle: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
                               ),
                             ),
                           ),
@@ -341,7 +323,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   GestureDetector(
                     onTap: () => setState(() => _showFilters = !_showFilters),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: _showFilters || _filterType != 'all'
                             ? const Color(0xFF39A4E6)
@@ -391,7 +376,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           runSpacing: 8,
                           children: [
                             _buildFilterChip('All', 'all'),
-                            ..._reportTypes.map((type) => _buildFilterChip(type, type)),
+                            ..._reportTypes.map(
+                              (type) => _buildFilterChip(type, type),
+                            ),
                           ],
                         ),
                       )
@@ -441,7 +428,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
             GestureDetector(
               onTap: () => setState(() => _showAddForm = true),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
@@ -502,7 +492,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     GestureDetector(
                       onTap: () => setState(() => _showAddForm = true),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
@@ -566,7 +559,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     ),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(LucideIcons.fileText, color: Colors.white, size: 28),
+                  child: const Icon(
+                    LucideIcons.fileText,
+                    color: Colors.white,
+                    size: 28,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -574,7 +571,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        report.title,
+                        report.type,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -587,13 +584,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFEFF6FF),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              report.type,
+                              report.date,
                               style: const TextStyle(
                                 color: Color(0xFF39A4E6),
                                 fontSize: 12,
@@ -603,7 +603,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           ),
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: report.status == 'completed'
                                   ? const Color(0xFFF0FDF4)
@@ -611,7 +614,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              report.status == 'completed' ? 'Completed' : 'Pending',
+                              report.status == 'completed'
+                                  ? 'Completed'
+                                  : 'Pending',
                               style: TextStyle(
                                 color: report.status == 'completed'
                                     ? Colors.green[600]
@@ -646,11 +651,23 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 ),
                 Column(
                   children: [
-                    _buildActionButton(LucideIcons.eye, () {}, const Color(0xFF39A4E6)),
+                    _buildActionButton(
+                      LucideIcons.eye,
+                      () {},
+                      const Color(0xFF39A4E6),
+                    ),
                     const SizedBox(height: 8),
-                    _buildActionButton(LucideIcons.download, () {}, const Color(0xFF39A4E6)),
+                    _buildActionButton(
+                      LucideIcons.download,
+                      () {},
+                      const Color(0xFF39A4E6),
+                    ),
                     const SizedBox(height: 8),
-                    _buildActionButton(LucideIcons.x, () => _handleDeleteReport(report.id), Colors.red[400]!),
+                    _buildActionButton(
+                      LucideIcons.x,
+                      () => _handleDeleteReport(report.id),
+                      Colors.red[400]!,
+                    ),
                   ],
                 ),
               ],
@@ -697,9 +714,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       children: [
         GestureDetector(
           onTap: _resetForm,
-          child: Container(
-            color: Colors.black.withOpacity(0.5),
-          ),
+          child: Container(color: Colors.black.withOpacity(0.5)),
         ),
         Center(
           child: Container(
@@ -739,15 +754,29 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  _buildTextField('Report Title *', _titleController, 'e.g., Blood Test Report', 'title'),
-                  const SizedBox(height: 16),
                   _buildDropdownField('Report Type *', _typeController, 'type'),
                   const SizedBox(height: 16),
-                  _buildTextField('Report Date *', _dateController, 'YYYY-MM-DD', 'date', isDate: true),
+                  _buildTextField(
+                    'Report Date *',
+                    _dateController,
+                    'YYYY-MM-DD',
+                    'date',
+                    isDate: true,
+                  ),
                   const SizedBox(height: 16),
-                  _buildTextField('Doctor Name *', _doctorController, 'e.g., Dr. Sarah Wilson', 'doctor'),
+                  _buildTextField(
+                    'Doctor Name *',
+                    _doctorController,
+                    'e.g., Dr. Sarah Wilson',
+                    'doctor',
+                  ),
                   const SizedBox(height: 16),
-                  _buildTextField('Hospital/Clinic *', _hospitalController, 'e.g., City Medical Center', 'hospital'),
+                  _buildTextField(
+                    'Hospital/Clinic *',
+                    _hospitalController,
+                    'e.g., City Medical Center',
+                    'hospital',
+                  ),
                   const SizedBox(height: 24),
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -768,7 +797,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                             ),
                           ),
                           TextSpan(
-                            text: 'You can upload the actual report file after saving this information.',
+                            text:
+                                'You can upload the actual report file after saving this information.',
                             style: TextStyle(
                               color: Color(0xFF4B5563),
                               fontSize: 12,
@@ -788,7 +818,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
-                              side: BorderSide(color: Colors.grey[200]!, width: 2),
+                              side: BorderSide(
+                                color: Colors.grey[200]!,
+                                width: 2,
+                              ),
                             ),
                           ),
                           child: Text(
@@ -832,7 +865,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, String hint, String errorKey, {bool isDate = false}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller,
+    String hint,
+    String errorKey, {
+    bool isDate = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -855,7 +894,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     lastDate: DateTime.now(),
                   );
                   if (date != null) {
-                    controller.text = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+                    controller.text =
+                        "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
                   }
                 }
               : null,
@@ -868,23 +908,32 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 hintStyle: TextStyle(color: Colors.grey[400]),
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: _validationErrors[errorKey]!.isNotEmpty ? Colors.red[400]! : Colors.grey[200]!,
+                    color: _validationErrors[errorKey]!.isNotEmpty
+                        ? Colors.red[400]!
+                        : Colors.grey[200]!,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: _validationErrors[errorKey]!.isNotEmpty ? Colors.red[400]! : Colors.grey[200]!,
+                    color: _validationErrors[errorKey]!.isNotEmpty
+                        ? Colors.red[400]!
+                        : Colors.grey[200]!,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: _validationErrors[errorKey]!.isNotEmpty ? Colors.red[400]! : const Color(0xFF39A4E6),
+                    color: _validationErrors[errorKey]!.isNotEmpty
+                        ? Colors.red[400]!
+                        : const Color(0xFF39A4E6),
                     width: 2,
                   ),
                 ),
@@ -904,7 +953,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  Widget _buildDropdownField(String label, TextEditingController controller, String errorKey) {
+  Widget _buildDropdownField(
+    String label,
+    TextEditingController controller,
+    String errorKey,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -932,23 +985,32 @@ class _ReportsScreenState extends State<ReportsScreen> {
             hintStyle: TextStyle(color: Colors.grey[400]),
             filled: true,
             fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: _validationErrors[errorKey]!.isNotEmpty ? Colors.red[400]! : Colors.grey[200]!,
+                color: _validationErrors[errorKey]!.isNotEmpty
+                    ? Colors.red[400]!
+                    : Colors.grey[200]!,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: _validationErrors[errorKey]!.isNotEmpty ? Colors.red[400]! : Colors.grey[200]!,
+                color: _validationErrors[errorKey]!.isNotEmpty
+                    ? Colors.red[400]!
+                    : Colors.grey[200]!,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: _validationErrors[errorKey]!.isNotEmpty ? Colors.red[400]! : const Color(0xFF39A4E6),
+                color: _validationErrors[errorKey]!.isNotEmpty
+                    ? Colors.red[400]!
+                    : const Color(0xFF39A4E6),
                 width: 2,
               ),
             ),
@@ -978,34 +1040,40 @@ class _AnimatedBackground extends StatelessWidget {
         Positioned(
           left: MediaQuery.of(context).size.width * 0.1,
           top: MediaQuery.of(context).size.height * 0.2,
-          child: Container(
-            width: 300,
-            height: 300,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.blue[400]!.withOpacity(0.08),
-            ),
-          ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(
-                begin: const Offset(1, 1),
-                end: const Offset(1.2, 1.2),
-                duration: 8.seconds,
-              ),
+          child:
+              Container(
+                    width: 300,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.blue[400]!.withOpacity(0.08),
+                    ),
+                  )
+                  .animate(onPlay: (c) => c.repeat(reverse: true))
+                  .scale(
+                    begin: const Offset(1, 1),
+                    end: const Offset(1.2, 1.2),
+                    duration: 8.seconds,
+                  ),
         ),
         Positioned(
           right: MediaQuery.of(context).size.width * 0.1,
           bottom: MediaQuery.of(context).size.height * 0.2,
-          child: Container(
-            width: 300,
-            height: 300,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.blue[300]!.withOpacity(0.08),
-            ),
-          ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(
-                begin: const Offset(1.2, 1.2),
-                end: const Offset(1, 1),
-                duration: 10.seconds,
-              ),
+          child:
+              Container(
+                    width: 300,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.blue[300]!.withOpacity(0.08),
+                    ),
+                  )
+                  .animate(onPlay: (c) => c.repeat(reverse: true))
+                  .scale(
+                    begin: const Offset(1.2, 1.2),
+                    end: const Offset(1, 1),
+                    duration: 10.seconds,
+                  ),
         ),
 
         // Floating Medical Icons
@@ -1016,14 +1084,62 @@ class _AnimatedBackground extends StatelessWidget {
 
   List<Widget> _buildFloatingIcons(BuildContext context) {
     final icons = [
-      {'icon': LucideIcons.stethoscope, 'x': 0.2, 'y': 0.1, 'delay': 0.0, 'duration': 20.0},
-      {'icon': LucideIcons.syringe, 'x': 0.7, 'y': 0.2, 'delay': 2.0, 'duration': 25.0},
-      {'icon': LucideIcons.pill, 'x': 0.85, 'y': 0.6, 'delay': 4.0, 'duration': 22.0},
-      {'icon': LucideIcons.heart, 'x': 0.1, 'y': 0.7, 'delay': 1.0, 'duration': 28.0},
-      {'icon': LucideIcons.activity, 'x': 0.5, 'y': 0.8, 'delay': 3.0, 'duration': 24.0},
-      {'icon': LucideIcons.thermometer, 'x': 0.3, 'y': 0.4, 'delay': 5.0, 'duration': 26.0},
-      {'icon': LucideIcons.clipboard, 'x': 0.9, 'y': 0.3, 'delay': 2.5, 'duration': 23.0},
-      {'icon': LucideIcons.testTube, 'x': 0.15, 'y': 0.5, 'delay': 4.5, 'duration': 27.0},
+      {
+        'icon': LucideIcons.stethoscope,
+        'x': 0.2,
+        'y': 0.1,
+        'delay': 0.0,
+        'duration': 20.0,
+      },
+      {
+        'icon': LucideIcons.syringe,
+        'x': 0.7,
+        'y': 0.2,
+        'delay': 2.0,
+        'duration': 25.0,
+      },
+      {
+        'icon': LucideIcons.pill,
+        'x': 0.85,
+        'y': 0.6,
+        'delay': 4.0,
+        'duration': 22.0,
+      },
+      {
+        'icon': LucideIcons.heart,
+        'x': 0.1,
+        'y': 0.7,
+        'delay': 1.0,
+        'duration': 28.0,
+      },
+      {
+        'icon': LucideIcons.activity,
+        'x': 0.5,
+        'y': 0.8,
+        'delay': 3.0,
+        'duration': 24.0,
+      },
+      {
+        'icon': LucideIcons.thermometer,
+        'x': 0.3,
+        'y': 0.4,
+        'delay': 5.0,
+        'duration': 26.0,
+      },
+      {
+        'icon': LucideIcons.clipboard,
+        'x': 0.9,
+        'y': 0.3,
+        'delay': 2.5,
+        'duration': 23.0,
+      },
+      {
+        'icon': LucideIcons.testTube,
+        'x': 0.15,
+        'y': 0.5,
+        'delay': 4.5,
+        'duration': 27.0,
+      },
     ];
 
     return icons.map((data) {
@@ -1036,18 +1152,33 @@ class _AnimatedBackground extends StatelessWidget {
       return Positioned(
         left: MediaQuery.of(context).size.width * x,
         top: MediaQuery.of(context).size.height * y,
-        child: Icon(
-          icon,
-          size: 48,
-          color: const Color(0xFF39A4E6).withOpacity(0.08),
-        )
-            .animate(onPlay: (c) => c.repeat())
-            .moveY(begin: 0, end: -30, duration: duration.seconds, curve: Curves.easeInOut)
-            .then(delay: delay.seconds)
-            .moveY(begin: -30, end: 0, duration: duration.seconds, curve: Curves.easeInOut)
-            .rotate(begin: 0, end: 0.05, duration: (duration * 0.5).seconds)
-            .then()
-            .rotate(begin: 0.05, end: -0.05, duration: (duration * 0.5).seconds),
+        child:
+            Icon(
+                  icon,
+                  size: 48,
+                  color: const Color(0xFF39A4E6).withOpacity(0.08),
+                )
+                .animate(onPlay: (c) => c.repeat())
+                .moveY(
+                  begin: 0,
+                  end: -30,
+                  duration: duration.seconds,
+                  curve: Curves.easeInOut,
+                )
+                .then(delay: delay.seconds)
+                .moveY(
+                  begin: -30,
+                  end: 0,
+                  duration: duration.seconds,
+                  curve: Curves.easeInOut,
+                )
+                .rotate(begin: 0, end: 0.05, duration: (duration * 0.5).seconds)
+                .then()
+                .rotate(
+                  begin: 0.05,
+                  end: -0.05,
+                  duration: (duration * 0.5).seconds,
+                ),
       );
     }).toList();
   }
