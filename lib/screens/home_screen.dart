@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../widgets/quick_actions_widget.dart';
+
 import '../widgets/theme_toggle.dart';
 import '../widgets/animated_bubble_background.dart';
 import '../models/user_model.dart';
@@ -114,19 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ThemeProvider.of(context)?.toggleTheme();
   }
 
-  void _handleQuickAction(String label) {
-    if (label == 'Upload') {
-      setState(() => _showCameraUpload = true);
-    } else if (label == 'Timeline') {
-      setState(() => _showTimeline = true);
-    } else if (label == 'Favorite') {
-      setState(() => _showFavorites = true);
-    } else if (label == 'Analytics') {
-      setState(() => _showAnalytics = true);
-    } else if (label == 'Share') {
-      setState(() => _showShareModal = true);
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -205,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         _buildHeader(),
                         _buildSearchBar(),
-                        QuickActionsWidget(onActionTap: _handleQuickAction),
+                        const SizedBox(height: 24),
                         _buildRecentReports(),
                         _buildReportTypes(),
                       ],
@@ -273,31 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF39A4E6).withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
 
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Action Buttons Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
               // Notification Button
               GestureDetector(
                 onTap: () =>
