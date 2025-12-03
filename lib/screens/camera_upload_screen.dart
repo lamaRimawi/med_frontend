@@ -46,12 +46,11 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
   bool isCapturing = false;
   int viewerItemIndex = 0;
 
-  // New State Variables
-  bool showSettings = false;
-  bool gridEnabled = false;
-  ImageQuality imageQuality = ImageQuality.high;
-  String? settingsToast;
+  // Toast State
+  String? messageToast;
   Timer? _toastTimer;
+
+
 
   CameraController? cameraController;
   List<CameraDescription>? cameras;
@@ -80,12 +79,6 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
       'description':
           'Review your captured items, add more, or delete unwanted ones before processing.',
       'highlight': 'process-button',
-    },
-    {
-      'title': 'Camera Settings',
-      'description':
-          'Access flash, grid lines, camera direction, and quality settings from the toolbar.',
-      'highlight': 'settings',
     },
   ];
 
@@ -219,9 +212,9 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
 
   void _showToast(String message) {
     _toastTimer?.cancel();
-    setState(() => settingsToast = message);
+    setState(() => messageToast = message);
     _toastTimer = Timer(const Duration(seconds: 2), () {
-      if (mounted) setState(() => settingsToast = null);
+      if (mounted) setState(() => messageToast = null);
     });
   }
 
@@ -573,8 +566,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           else
             _buildCameraLoading(),
 
-          // Grid Overlay
-          if (gridEnabled) _buildGridOverlay(),
+
 
           // Document Frame
           if (showCamera) _buildDocumentFrame(),
@@ -590,8 +582,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           // Tutorial Overlay
           if (showTutorial && showCamera) _buildTutorialOverlay(),
 
-          // Settings Panel
-          if (showSettings) _buildSettingsPanel(),
+
 
           // Top Toolbar
           _buildTopToolbar(),
@@ -599,14 +590,14 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           // Bottom Controls
           _buildBottomControls(),
 
-          // Settings Toast
-          if (settingsToast != null) _buildSettingsToast(),
+          // Message Toast
+          if (messageToast != null) _buildToast(),
         ],
       ),
     );
   }
 
-  Widget _buildSettingsToast() {
+  Widget _buildToast() {
     return Positioned(
       top: 100,
       left: 0,
@@ -636,7 +627,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
               ),
               const SizedBox(width: 8),
               Text(
-                settingsToast!,
+                messageToast!,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w500,
@@ -649,415 +640,13 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
     );
   }
 
-  Widget _buildGridOverlay() {
-    return Positioned.fill(
-      child: IgnorePointer(
-        child: Stack(
-          children: [
-            // Vertical Lines
-            Row(
-              children: [
-                const Spacer(),
-                Container(width: 1, color: Colors.white.withOpacity(0.3)),
-                const Spacer(),
-                Container(width: 1, color: Colors.white.withOpacity(0.3)),
-                const Spacer(),
-              ],
-            ),
-            // Horizontal Lines
-            Column(
-              children: [
-                const Spacer(),
-                Container(height: 1, color: Colors.white.withOpacity(0.3)),
-                const Spacer(),
-                Container(height: 1, color: Colors.white.withOpacity(0.3)),
-                const Spacer(),
-              ],
-            ),
-          ],
-        ).animate().fadeIn(),
-      ),
-    );
-  }
 
-  Widget _buildSettingsPanel() {
-    return GestureDetector(
-      onTap: () => setState(() => showSettings = false),
-      child: Container(
-        color: Colors.black.withOpacity(0.6),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: GestureDetector(
-              onTap: () {}, // Prevent closing when tapping panel
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFF111827), Colors.black],
-                  ),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(32),
-                  ),
-                  border: Border(
-                    top: BorderSide(color: Colors.white.withOpacity(0.1)),
-                  ),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Handle
-                    Center(
-                      child: Container(
-                        margin: const EdgeInsets.only(top: 12, bottom: 16),
-                        width: 48,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                      ),
-                    ),
 
-                    // Header
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 8,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Camera Settings',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'Customize your camera experience',
-                                style: TextStyle(
-                                  color: Colors.grey[400],
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                          IconButton(
-                            onPressed: () =>
-                                setState(() => showSettings = false),
-                            icon: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                LucideIcons.x,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Divider(color: Colors.white12),
 
-                    // Settings Content
-                    SizedBox(
-                      height: 400,
-                      child: ListView(
-                        padding: const EdgeInsets.all(24),
-                        children: [
-                          // Flash
-                          _buildSettingItem(
-                            icon: flashEnabled
-                                ? LucideIcons.zap
-                                : LucideIcons.zapOff,
-                            iconColor: flashEnabled
-                                ? Colors.yellow
-                                : Colors.grey,
-                            title: 'Flash',
-                            subtitle: flashEnabled ? 'Enabled' : 'Disabled',
-                            trailing: Switch(
-                              value: flashEnabled,
-                              onChanged: (_) => _toggleFlash(),
-                              activeColor: Colors.yellow,
-                              activeTrackColor: Colors.yellow.withOpacity(0.3),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
 
-                          // Grid
-                          _buildSettingItem(
-                            icon: LucideIcons.grid,
-                            iconColor: gridEnabled
-                                ? const Color(0xFF39A4E6)
-                                : Colors.grey,
-                            title: 'Grid Lines',
-                            subtitle: gridEnabled ? 'Showing' : 'Hidden',
-                            trailing: Switch(
-                              value: gridEnabled,
-                              onChanged: (val) {
-                                setState(() => gridEnabled = val);
-                                _showToast(
-                                  val
-                                      ? 'Grid lines enabled'
-                                      : 'Grid lines disabled',
-                                );
-                              },
-                              activeColor: const Color(0xFF39A4E6),
-                              activeTrackColor: const Color(
-                                0xFF39A4E6,
-                              ).withOpacity(0.3),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
 
-                          // Camera Direction
-                          _buildSettingItem(
-                            icon: LucideIcons.switchCamera,
-                            iconColor: const Color(0xFF39A4E6),
-                            title: 'Camera',
-                            subtitle:
-                                cameraController?.description.lensDirection ==
-                                    CameraLensDirection.back
-                                ? 'Back Camera'
-                                : 'Front Camera',
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _buildDirectionButton(
-                                  'Back',
-                                  CameraLensDirection.back,
-                                ),
-                                const SizedBox(width: 8),
-                                _buildDirectionButton(
-                                  'Front',
-                                  CameraLensDirection.front,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
 
-                          // Quality
-                          _buildSettingItem(
-                            icon: LucideIcons.sparkles,
-                            iconColor: Colors.purpleAccent,
-                            title: 'Image Quality',
-                            subtitle:
-                                '${imageQuality.name[0].toUpperCase()}${imageQuality.name.substring(1)} quality',
-                            trailing: Container(), // Custom layout below
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: ImageQuality.values.map((q) {
-                              final isSelected = imageQuality == q;
-                              return Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() => imageQuality = q);
-                                    _showToast('Quality set to ${q.name}');
-                                  },
-                                  child: Container(
-                                    margin: const EdgeInsets.symmetric(
-                                      horizontal: 4,
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 10,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? Colors.purpleAccent
-                                          : Colors.white.withOpacity(0.05),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: isSelected
-                                            ? Colors.purpleAccent
-                                            : Colors.white.withOpacity(0.1),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        if (isSelected)
-                                          const Padding(
-                                            padding: EdgeInsets.only(right: 4),
-                                            child: Icon(
-                                              LucideIcons.check,
-                                              size: 14,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        Text(
-                                          '${q.name[0].toUpperCase()}${q.name.substring(1)}',
-                                          style: TextStyle(
-                                            color: isSelected
-                                                ? Colors.white
-                                                : Colors.grey,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
 
-                          const SizedBox(height: 24),
-                          // Tips
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF39A4E6).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: const Color(0xFF39A4E6).withOpacity(0.3),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  LucideIcons.info,
-                                  color: Color(0xFF39A4E6),
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Tips for Best Results',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '• Use good lighting\n• Keep documents flat\n• High quality recommended',
-                                        style: TextStyle(
-                                          color: Colors.grey[300],
-                                          fontSize: 12,
-                                          height: 1.5,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    ).animate().fadeIn().slideY(
-      begin: 1,
-      end: 0,
-      curve: Curves.easeOutQuart,
-      duration: 400.ms,
-    );
-  }
-
-  Widget _buildDirectionButton(String label, CameraLensDirection dir) {
-    final isSelected = cameraController?.description.lensDirection == dir;
-    return GestureDetector(
-      onTap: () {
-        if (!isSelected) _toggleCameraLens();
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? const Color(0xFF39A4E6)
-              : Colors.white.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey,
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSettingItem({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required Widget trailing,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: iconColor, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          trailing,
-        ],
-      ),
-    );
-  }
 
   Widget _buildTutorialOverlay() {
     final step = tutorialSteps[tutorialStep];
@@ -1308,13 +897,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                       color: const Color(0xFF39A4E6),
                       width: 2,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF39A4E6).withOpacity(0.4),
-                        blurRadius: 40,
-                        spreadRadius: 5,
-                      ),
-                    ],
+
                   ),
                   child: Stack(
                     children: [
@@ -1387,20 +970,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                     ],
                   ),
                 )
-                .animate(onPlay: (c) => c.repeat(reverse: true))
-                .boxShadow(
-                  duration: 2.seconds,
-                  begin: BoxShadow(
-                    color: const Color(0xFF39A4E6).withOpacity(0.4),
-                    blurRadius: 40,
-                    spreadRadius: 5,
-                  ),
-                  end: BoxShadow(
-                    color: const Color(0xFF39A4E6).withOpacity(0.6),
-                    blurRadius: 50,
-                    spreadRadius: 8,
-                  ),
-                ),
+                .animate(onPlay: (c) => c.repeat(reverse: true)),
       ),
     );
   }
@@ -1484,57 +1054,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                     ),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () => setState(() => showSettings = true),
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: showSettings
-                          ? const Color(0xFF39A4E6)
-                          : Colors.black.withOpacity(0.4),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: showSettings
-                            ? const Color(0xFF39A4E6)
-                            : Colors.white.withOpacity(0.1),
-                      ),
-                      boxShadow: showSettings
-                          ? [
-                              BoxShadow(
-                                color: const Color(0xFF39A4E6).withOpacity(0.5),
-                                blurRadius: 10,
-                              ),
-                            ]
-                          : [],
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        const Icon(
-                          LucideIcons.settings,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                        if ((gridEnabled ||
-                                imageQuality != ImageQuality.high) &&
-                            !showSettings)
-                          Positioned(
-                            top: 10,
-                            right: 10,
-                            child: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF39A4E6),
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
+
               ],
             ),
           ],
