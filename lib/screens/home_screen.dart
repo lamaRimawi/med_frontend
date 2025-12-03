@@ -289,64 +289,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-                child: const Icon(
-                  LucideIcons.user,
-                  color: Colors.white,
-                  size: 28,
-                ),
+
               ),
             ],
           ),
           const SizedBox(height: 16),
           // Action Buttons Row
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              // Dark Mode Toggle
-              GestureDetector(
-                onTap: _toggleTheme,
-                child: Container(
-                  width: 64,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: _isDarkMode
-                        ? const Color(0xFF1F2937)
-                        : const Color(0xFFD1D5DB),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: AnimatedAlign(
-                    duration: const Duration(milliseconds: 300),
-                    alignment: _isDarkMode
-                        ? Alignment.centerRight
-                        : Alignment.centerLeft,
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      margin: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: _isDarkMode
-                            ? const Color(0xFF0F172A)
-                            : Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        _isDarkMode ? LucideIcons.sun : LucideIcons.moon,
-                        size: 14,
-                        color: _isDarkMode
-                            ? const Color(0xFFFBBF24)
-                            : const Color(0xFF6B7280),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
               // Notification Button
               GestureDetector(
                 onTap: () =>
