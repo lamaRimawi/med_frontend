@@ -549,12 +549,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Are you sure you want to log out?',
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
-                                      color: Color(0xFF111827),
+                                      color: isDark ? Colors.white : const Color(0xFF111827),
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
@@ -574,10 +574,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                                               ),
                                               borderRadius: BorderRadius.circular(24),
                                             ),
-                                            child: const Text(
+                                            child: Text(
                                               'Cancel',
                                               style: TextStyle(
-                                                color: Color(0xFF111827),
+                                                color: isDark ? Colors.white : const Color(0xFF111827),
                                                 fontWeight: FontWeight.w600,
                                                 fontSize: 14,
                                               ),

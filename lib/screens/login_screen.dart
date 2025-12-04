@@ -5,6 +5,7 @@ import '../widgets/animated_bubble_background.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/alert_banner.dart';
+import '../widgets/theme_toggle.dart';
 import '../utils/validators.dart';
 import '../services/auth_service.dart';
 import '../services/auth_api.dart';
@@ -25,6 +26,9 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _showPassword = false;
   String? _alertMessage;
   bool _isAlertError = true;
+
+  bool get _isDarkMode =>
+      ThemeProvider.of(context)?.themeMode == ThemeMode.dark ?? false;
 
   @override
   void initState() {
@@ -206,11 +210,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = _isDarkMode;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
       body: Stack(
         children: [
-          const AnimatedBubbleBackground(),
+          AnimatedBubbleBackground(isDark: isDark),
 
           // Header
           Positioned(
@@ -290,7 +295,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   RichText(
                     textAlign: TextAlign.center,
                     text: TextSpan(
-                      style: TextStyle(color: Colors.grey[500], fontSize: 18),
+                      style: TextStyle(
+                        color: isDark ? Colors.grey[400] : Colors.grey[500],
+                        fontSize: 18,
+                      ),
                       children: [
                         const TextSpan(text: 'Sign in to '),
                         TextSpan(
@@ -373,7 +381,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Divider
                   Row(
                     children: [
-                      Expanded(child: Divider(color: Colors.grey[200])),
+                      Expanded(
+                        child: Divider(
+                          color: isDark ? Colors.grey[700] : Colors.grey[200],
+                        ),
+                      ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Container(
@@ -382,20 +394,28 @@ class _LoginScreenState extends State<LoginScreen> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: isDark
+                                ? const Color(0xFF1E293B)
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.grey[200]!),
+                            border: Border.all(
+                              color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
+                            ),
                           ),
                           child: Text(
                             'or sign in with',
                             style: TextStyle(
-                              color: Colors.grey[400],
+                              color: isDark ? Colors.grey[400] : Colors.grey[400],
                               fontSize: 13,
                             ),
                           ),
                         ),
                       ),
-                      Expanded(child: Divider(color: Colors.grey[200])),
+                      Expanded(
+                        child: Divider(
+                          color: isDark ? Colors.grey[700] : Colors.grey[200],
+                        ),
+                      ),
                     ],
                   ).animate().fadeIn(delay: 900.ms),
 
@@ -426,7 +446,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Text(
                           "Don't have an account? ",
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
                             fontSize: 15,
                           ),
                         ),

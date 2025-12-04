@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'theme_toggle.dart';
 
 class CustomTextField extends StatefulWidget {
   final String label;
@@ -38,6 +39,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
   bool _isValid = false;
   bool _hasBeenFocused = false;
   String? _errorMessage;
+
+  bool get _isDarkMode =>
+      ThemeProvider.of(context)?.themeMode == ThemeMode.dark ?? false;
 
   @override
   void initState() {
@@ -103,7 +107,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
           style: TextStyle(
             color: _hasError
                 ? const Color(0xFFEF4444)
-                : const Color(0xFF374151),
+                : _isDarkMode
+                    ? Colors.grey[300]
+                    : const Color(0xFF374151),
             fontWeight: FontWeight.w500,
             fontSize: 14,
           ),
@@ -112,7 +118,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
         AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
-            color: const Color(0xFFF9FAFB).withValues(alpha: 0.8),
+            color: _isDarkMode
+                ? const Color(0xFF1E293B)
+                : const Color(0xFFF9FAFB).withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: _borderColor,
@@ -141,10 +149,14 @@ class _CustomTextFieldState extends State<CustomTextField> {
             focusNode: _focusNode,
             obscureText: widget.isPassword && !widget.showPassword,
             keyboardType: widget.keyboardType,
-            style: const TextStyle(color: Color(0xFF1F2937)),
+            style: TextStyle(
+              color: _isDarkMode ? Colors.white : const Color(0xFF1F2937),
+            ),
             decoration: InputDecoration(
               hintText: widget.placeholder,
-              hintStyle: TextStyle(color: Colors.grey[400]),
+              hintStyle: TextStyle(
+                color: _isDarkMode ? Colors.grey[500] : Colors.grey[400],
+              ),
               prefixIcon: Padding(
                 padding: const EdgeInsets.all(12),
                 child: AnimatedContainer(
