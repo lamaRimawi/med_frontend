@@ -345,7 +345,13 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
                           const SizedBox(width: 8),
                           _roundIconButton(
                             LucideIcons.x,
-                            onTap: widget.onClose,
+                            onTap: () {
+                              if (widget.onClose != null) {
+                                widget.onClose();
+                              } else {
+                                Navigator.of(context).maybePop();
+                              }
+                            },
                           ),
                         ],
                       ),

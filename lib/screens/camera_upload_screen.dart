@@ -373,9 +373,17 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
 
     bool backendCompleted = false;
     // Kick off backend extraction using a sample image URL for now.
-    // TODO: Replace ApiConfig.sampleImageUrl with an uploaded image URL accessible by the backend.
-    VlmService.extractFromImageUrl(ApiConfig.sampleImageUrl)
-        .then((result) {
+    // Use the first captured item for extraction
+    if (capturedItems.isNotEmpty) {
+      debugPrint('Starting extraction for file: ${capturedItems.first.path}');
+      debugPrint('File type: ${capturedItems.first.type}');
+      
+      VlmService.extractFromImageFile(capturedItems.first.path)
+          .then((result) {
+          debugPrint('Backend extraction successful!');
+          debugPrint('Extracted data - Patient: ${result.patientInfo.name}, Report Type: ${result.reportType}');
+          debugPrint('Test results count: ${result.testResults?.length ?? 0}');
+          
           backendCompleted = true;
           if (!mounted) return;
           setState(() {
@@ -387,14 +395,33 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           });
         })
         .catchError((e) {
+          debugPrint('Backend extraction error: $e');
+          debugPrint('Error type: ${e.runtimeType}');
+          
           backendCompleted = true;
           if (!mounted) return;
+          
+          if (e.toString().contains('Unauthorized')) {
+             // Token expired, redirect to login
+             debugPrint('Token expired, redirecting to login');
+             ScaffoldMessenger.of(context).showSnackBar(
+               const SnackBar(content: Text('Session expired. Please login again.')),
+             );
+             Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/login',
+                (route) => false,
+             );
+             return;
+          }
+
           // Fallback to mock data on error
+          debugPrint('Using mock data as fallback');
           setState(() {
             extractedData = _buildMockExtractedData();
           });
-          debugPrint('Backend extraction failed: $e');
         });
+    }
 
     // Simulate processing/progress bar while backend runs
     Timer.periodic(const Duration(milliseconds: 100), (timer) {
@@ -908,80 +935,12 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           left: 32,
           right: 32,
         ),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFF39A4E6), width: 2),
-          ),
-          child: Stack(
-            children: [
-              // Corner Markers
-              ...List.generate(4, (index) {
-                final isTop = index < 2;
-                final isLeft = index % 2 == 0;
-                return Positioned(
-                  top: isTop ? -2 : null,
-                  bottom: !isTop ? -2 : null,
-                  left: isLeft ? -2 : null,
-                  right: !isLeft ? -2 : null,
-                  child:
-                      Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              border: Border(
-                                top: isTop
-                                    ? const BorderSide(
-                                        color: Color(0xFF39A4E6),
-                                        width: 4,
-                                      )
-                                    : BorderSide.none,
-                                bottom: !isTop
-                                    ? const BorderSide(
-                                        color: Color(0xFF39A4E6),
-                                        width: 4,
-                                      )
-                                    : BorderSide.none,
-                                left: isLeft
-                                    ? const BorderSide(
-                                        color: Color(0xFF39A4E6),
-                                        width: 4,
-                                      )
-                                    : BorderSide.none,
-                                right: !isLeft
-                                    ? const BorderSide(
-                                        color: Color(0xFF39A4E6),
-                                        width: 4,
-                                      )
-                                    : BorderSide.none,
-                              ),
-                              borderRadius: BorderRadius.only(
-                                topLeft: isTop && isLeft
-                                    ? const Radius.circular(16)
-                                    : Radius.zero,
-                                topRight: isTop && !isLeft
-                                    ? const Radius.circular(16)
-                                    : Radius.zero,
-                                bottomLeft: !isTop && isLeft
-                                    ? const Radius.circular(16)
-                                    : Radius.zero,
-                                bottomRight: !isTop && !isLeft
-                                    ? const Radius.circular(16)
-                                    : Radius.zero,
-                              ),
-                            ),
-                          )
-                          .animate(onPlay: (c) => c.repeat(reverse: true))
-                          .scale(
-                            duration: 2.seconds,
-                            begin: const Offset(1, 1),
-                            end: const Offset(1.1, 1.1),
-                          ),
-                );
-              }),
-            ],
-          ),
-        ).animate(onPlay: (c) => c.repeat(reverse: true)),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFF39A4E6), width: 2),
+            ),
+          ).animate(onPlay: (c) => c.repeat(reverse: true)),
       ),
     );
   }
@@ -1010,6 +969,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           children: [
             GestureDetector(
               onTap: widget.onClose ?? () => Navigator.of(context).maybePop(),
+              behavior: HitTestBehavior.opaque,
               child: Container(
                 width: 44,
                 height: 44,

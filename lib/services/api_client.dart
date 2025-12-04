@@ -38,7 +38,13 @@ class ApiClient {
         mergedHeaders['Authorization'] = 'Bearer $token';
       }
     }
-    return http.post(_uri(path, query), headers: mergedHeaders, body: body);
+    final response = await http.post(_uri(path, query), headers: mergedHeaders, body: body);
+    if (response.statusCode == 401) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('jwt_token');
+      throw Exception('Unauthorized: Token expired');
+    }
+    return response;
   }
 
   Future<http.Response> get(
@@ -57,7 +63,13 @@ class ApiClient {
         mergedHeaders['Authorization'] = 'Bearer $token';
       }
     }
-    return http.get(_uri(path, query), headers: mergedHeaders);
+    final response = await http.get(_uri(path, query), headers: mergedHeaders);
+    if (response.statusCode == 401) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('jwt_token');
+      throw Exception('Unauthorized: Token expired');
+    }
+    return response;
   }
 
   Future<http.Response> put(
@@ -77,7 +89,15 @@ class ApiClient {
         mergedHeaders['Authorization'] = 'Bearer $token';
       }
     }
-    return http.put(_uri(path, query), headers: mergedHeaders, body: body);
+    final response = await http.put(_uri(path, query), headers: mergedHeaders, body: body);
+    if (response.statusCode == 401) {
+      // Token expired or invalid
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('jwt_token');
+      // You might want to trigger a navigation to login here or throw a specific exception
+      throw Exception('Unauthorized: Token expired');
+    }
+    return response;
   }
 
   Future<http.Response> delete(
@@ -96,7 +116,45 @@ class ApiClient {
         mergedHeaders['Authorization'] = 'Bearer $token';
       }
     }
-    return http.delete(_uri(path, query), headers: mergedHeaders);
+    final response = await http.delete(_uri(path, query), headers: mergedHeaders);
+    if (response.statusCode == 401) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('jwt_token');
+      throw Exception('Unauthorized: Token expired');
+    }
+    return response;
+  }
+
+  Future<http.Response> postMultipart(
+    String path, {
+    required String filePath,
+    Map<String, String>? fields,
+    bool auth = false,
+  }) async {
+    final request = http.MultipartRequest('POST', _uri(path));
+    
+    if (auth) {
+      final token = await _getToken();
+      if (token != null && token.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+    }
+
+    if (fields != null) {
+      request.fields.addAll(fields);
+    }
+
+    request.files.add(await http.MultipartFile.fromPath('file', filePath));
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+    
+    if (response.statusCode == 401) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('jwt_token');
+      throw Exception('Unauthorized: Token expired');
+    }
+    return response;
   }
 
   static T decodeJson<T>(http.Response res) {
