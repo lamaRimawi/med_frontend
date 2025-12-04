@@ -531,9 +531,97 @@ class _ProfileScreenState extends State<ProfileScreen>
                       // Logout Button
                       GestureDetector(
                         onTap: () async {
-                          await User.clearFromPrefs();
-                          await AuthApi.logout();
-                          widget.onLogout();
+                          // Show bottom sheet confirmation
+                          final shouldLogout = await showModalBottomSheet<bool>(
+                            context: context,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => Container(
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF1E293B)
+                                    : Colors.white,
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(24),
+                                  topRight: Radius.circular(24),
+                                ),
+                              ),
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                    'Are you sure you want to log out?',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF111827),
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 20),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: GestureDetector(
+                                          onTap: () => Navigator.pop(context, false),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(vertical: 12),
+                                            decoration: BoxDecoration(
+                                              color: Colors.transparent,
+                                              border: Border.all(
+                                                color: const Color(0xFF39A4E6),
+                                                width: 1.5,
+                                              ),
+                                              borderRadius: BorderRadius.circular(24),
+                                            ),
+                                            child: const Text(
+                                              'Cancel',
+                                              style: TextStyle(
+                                                color: Color(0xFF111827),
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 14,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: GestureDetector(
+                                          onTap: () => Navigator.pop(context, true),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(vertical: 12),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF39A4E6),
+                                              borderRadius: BorderRadius.circular(24),
+                                            ),
+                                            child: const Text(
+                                              'Yes, Logout',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 14,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                ],
+                              ),
+                            ),
+                          );
+
+                          // Only logout if user confirmed
+                          if (shouldLogout == true) {
+                            await User.clearFromPrefs();
+                            await AuthApi.logout();
+                            widget.onLogout();
+                          }
                         },
                         child: Container(
                           width: double.infinity,
