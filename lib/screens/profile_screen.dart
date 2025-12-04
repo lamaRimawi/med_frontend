@@ -545,10 +545,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                                   topRight: Radius.circular(24),
                                 ),
                               ),
-                              padding: const EdgeInsets.all(24),
+                              padding: const EdgeInsets.fromLTRB(32, 48, 32, 32),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
+                                  const SizedBox(height: 16),
                                   Text(
                                     'Are you sure you want to log out?',
                                     style: TextStyle(
@@ -558,7 +559,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
-                                  const SizedBox(height: 20),
+                                  const SizedBox(height: 36),
                                   Row(
                                     children: [
                                       Expanded(
@@ -610,7 +611,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: 24),
                                 ],
                               ),
                             ),
