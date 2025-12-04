@@ -13,6 +13,7 @@ import '../services/auth_api.dart';
 import 'timeline_screen.dart';
 import 'reports_screen.dart';
 import 'dark_mode_screen.dart';
+import 'settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Function(String) onNavigate;
@@ -443,7 +444,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                 _buildMenuItem(
                   LucideIcons.settings,
                   'Settings',
-                  () {}, // TODO: Navigate to settings
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 _buildMenuItem(
