@@ -6,6 +6,8 @@ class User {
   final String email;
   final String phoneNumber;
   final String dateOfBirth;
+  final String? medicalHistory;
+  final String? allergies;
 
   User({
     required this.firstName,
@@ -13,6 +15,8 @@ class User {
     required this.email,
     required this.phoneNumber,
     required this.dateOfBirth,
+    this.medicalHistory,
+    this.allergies,
   });
 
   String get fullName => '$firstName $lastName';
@@ -24,6 +28,8 @@ class User {
       email: json['email']?.toString() ?? '',
       phoneNumber: json['phone_number']?.toString() ?? '',
       dateOfBirth: json['date_of_birth']?.toString() ?? '',
+      medicalHistory: json['medical_history']?.toString(),
+      allergies: json['allergies']?.toString(),
     );
   }
 
@@ -34,6 +40,8 @@ class User {
       'email': email,
       'phone_number': phoneNumber,
       'date_of_birth': dateOfBirth,
+      'medical_history': medicalHistory,
+      'allergies': allergies,
     };
   }
 
@@ -45,6 +53,12 @@ class User {
     await prefs.setString('user_email', user.email);
     await prefs.setString('user_phone', user.phoneNumber);
     await prefs.setString('user_dob', user.dateOfBirth);
+    if (user.medicalHistory != null) {
+      await prefs.setString('user_medical_history', user.medicalHistory!);
+    }
+    if (user.allergies != null) {
+      await prefs.setString('user_allergies', user.allergies!);
+    }
   }
 
   // Load from SharedPreferences
@@ -60,6 +74,8 @@ class User {
       email: prefs.getString('user_email') ?? '',
       phoneNumber: prefs.getString('user_phone') ?? '',
       dateOfBirth: prefs.getString('user_dob') ?? '',
+      medicalHistory: prefs.getString('user_medical_history'),
+      allergies: prefs.getString('user_allergies'),
     );
   }
 
@@ -71,5 +87,7 @@ class User {
     await prefs.remove('user_email');
     await prefs.remove('user_phone');
     await prefs.remove('user_dob');
+    await prefs.remove('user_medical_history');
+    await prefs.remove('user_allergies');
   }
 }

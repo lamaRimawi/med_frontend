@@ -12,6 +12,7 @@ class ApiConfig {
   static const String resetPassword = '/auth/reset-password';
   static const String vlmChat = '/vlm/chat';
   static const String userProfile = '/users/profile';
+  static const String reports = '/reports';
 
   // Temporary sample image URL for backend extraction testing
   // Replace with a real, publicly accessible URL of the captured image.

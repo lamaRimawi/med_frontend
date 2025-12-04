@@ -4,25 +4,8 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:ui';
 import '../widgets/theme_toggle.dart';
 
-class Report {
-  final String id;
-  final String type;
-  final String date;
-  final String doctor;
-  final String hospital;
-  final String status;
-  final String? fileUrl;
-
-  Report({
-    required this.id,
-    required this.type,
-    required this.date,
-    required this.doctor,
-    required this.hospital,
-    required this.status,
-    this.fileUrl,
-  });
-}
+import '../models/report_model.dart';
+import '../services/reports_service.dart';
 
 class ReportsScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -34,40 +17,34 @@ class ReportsScreen extends StatefulWidget {
 }
 
 class _ReportsScreenState extends State<ReportsScreen> {
-  final List<Report> _reports = [
-    Report(
-      id: "1",
-      type: "Laboratory",
-      date: "18 Nov 2025",
-      doctor: "Dr. Sarah Wilson",
-      hospital: "City Medical Center",
-      status: "completed",
-    ),
-    Report(
-      id: "2",
-      type: "Radiology",
-      date: "15 Nov 2025",
-      doctor: "Dr. Michael Chen",
-      hospital: "General Hospital",
-      status: "completed",
-    ),
-    Report(
-      id: "3",
-      type: "Cardiology",
-      date: "10 Nov 2025",
-      doctor: "Dr. James Brown",
-      hospital: "Heart Care Clinic",
-      status: "completed",
-    ),
-    Report(
-      id: "4",
-      type: "Radiology",
-      date: "05 Nov 2025",
-      doctor: "Dr. Emily Davis",
-      hospital: "Advanced Imaging Center",
-      status: "pending",
-    ),
-  ];
+  List<Report> _reports = [];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchReports();
+  }
+
+  Future<void> _fetchReports() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+      final reports = await ReportsService().getReports();
+      setState(() {
+        _reports = reports;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   bool _showAddForm = false;
   String _searchQuery = "";
@@ -149,26 +126,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   void _handleAddReport() {
-    if (_validateReport()) {
-      final report = Report(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        type: _typeController.text,
-        date: _dateController.text, // In a real app, format this date
-        doctor: _doctorController.text.trim(),
-        hospital: _hospitalController.text.trim(),
-        status: "pending",
-      );
-
-      setState(() {
-        _reports.insert(0, report);
-        _resetForm();
-      });
-    }
+    // TODO: Implement add report with backend if needed
+    setState(() {
+      _showAddForm = false;
+    });
   }
 
   void _handleDeleteReport(String id) {
     setState(() {
-      _reports.removeWhere((report) => report.id == id);
+      _reports.removeWhere((report) => report.reportId.toString() == id);
     });
   }
 
@@ -177,16 +143,25 @@ class _ReportsScreenState extends State<ReportsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('View Report'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Type: ${report.type}'),
-            Text('Date: ${report.date}'),
-            Text('Doctor: ${report.doctor}'),
-            Text('Hospital: ${report.hospital}'),
-          ],
+        title: Text('View Report #${report.reportId}'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: report.fields.length,
+            itemBuilder: (context, index) {
+              final field = report.fields[index];
+              return ListTile(
+                title: Text(field.fieldName),
+                subtitle: Text('${field.fieldValue} ${field.fieldUnit ?? ""}'),
+                trailing: field.isNormal == true
+                    ? const Icon(Icons.check_circle, color: Colors.green)
+                    : (field.isNormal == false
+                        ? const Icon(Icons.warning, color: Colors.orange)
+                        : null),
+              );
+            },
+          ),
         ),
         actions: [
           TextButton(
@@ -202,7 +177,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     // Show a toast message indicating share action
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Sharing ${report.type} report...'),
+        content: Text('Sharing Report #${report.reportId}...'),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -212,7 +187,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     // Show a toast message indicating download action
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Downloading ${report.type} report...'),
+        content: Text('Downloading Report #${report.reportId}...'),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -237,11 +212,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
   List<Report> get _filteredReports {
     return _reports.where((report) {
       final matchesSearch =
-          report.type.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          report.doctor.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          report.hospital.toLowerCase().contains(_searchQuery.toLowerCase());
+          report.reportDate.toLowerCase().contains(_searchQuery.toLowerCase());
 
-      final matchesFilter = _filterType == "all" || report.type == _filterType;
+      final matchesFilter = _filterType == "all"; // Simplified for now
 
       return matchesSearch && matchesFilter;
     }).toList();
@@ -484,6 +457,25 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Widget _buildReportsList() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Error: $_error', style: const TextStyle(color: Colors.red)),
+            ElevatedButton(
+              onPressed: _fetchReports,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
     final reports = _filteredReports;
     return ListView(
       padding: const EdgeInsets.all(20),
@@ -567,7 +559,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        report.type,
+                        'Report #${report.reportId}',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -590,7 +582,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          report.date,
+                          report.reportDate,
                           style: const TextStyle(
                             color: Color(0xFF39A4E6),
                             fontSize: 12,
@@ -603,15 +595,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 ),
                 _buildIconOnlyButton(
                   LucideIcons.trash2,
-                  () => _handleDeleteReport(report.id),
+                  () => _handleDeleteReport(report.reportId.toString()),
                   isDestructive: true,
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            _buildInfoRow(LucideIcons.stethoscope, report.doctor),
+            _buildInfoRow(LucideIcons.list, '${report.totalFields} Fields Extracted'),
             const SizedBox(height: 8),
-            _buildInfoRow(LucideIcons.clipboard, report.hospital),
+            _buildInfoRow(LucideIcons.calendar, 'Created: ${report.createdAt}'),
 
             const SizedBox(height: 16),
             Row(

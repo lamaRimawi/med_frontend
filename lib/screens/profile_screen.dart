@@ -10,6 +10,7 @@ import '../widgets/animated_bubble_background.dart';
 import '../widgets/theme_toggle.dart';
 import '../models/user_model.dart';
 import '../services/auth_api.dart';
+import '../services/user_service.dart';
 import 'timeline_screen.dart';
 import 'reports_screen.dart';
 import 'dark_mode_screen.dart';
@@ -66,6 +67,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     'phone': '',
     'phonePrefix': '+1',
     'dateOfBirth': '',
+    'medicalHistory': '',
+    'allergies': '',
     'avatar': '',
   };
 
@@ -85,20 +88,20 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Future<void> _loadUserData() async {
-    final user = await User.loadFromPrefs();
-    if (user != null && mounted) {
-      final nameParts = user.fullName.split(' ');
-      setState(() {
-        _profileData['name'] = user.fullName;
-        _profileData['email'] = user.email;
-        _profileData['phone'] = user.phoneNumber
-            .replaceFirst(RegExp(r'^\+[0-9]+'), '')
-            .trim();
-        _profileData['dateOfBirth'] = user.dateOfBirth;
-        _profileData['avatar'] =
-            'https://api.dicebear.com/7.x/avataaars/svg?seed=${user.firstName}';
-      });
+    try {
+      // Try to fetch from backend first
+      final user = await UserService().getUserProfile();
+      if (mounted) {
+        _updateLocalUserState(user);
+      }
+    } catch (e) {
+      // Fallback to local storage if offline or error
+      final user = await User.loadFromPrefs();
+      if (user != null && mounted) {
+        _updateLocalUserState(user);
+      }
     }
+
     // Load saved profile image
     final prefs = await SharedPreferences.getInstance();
     final savedImagePath = prefs.getString('profile_image_path');
@@ -110,6 +113,21 @@ class _ProfileScreenState extends State<ProfileScreen>
         });
       }
     }
+  }
+
+  void _updateLocalUserState(User user) {
+    setState(() {
+      _profileData['name'] = user.fullName;
+      _profileData['email'] = user.email;
+      _profileData['phone'] = user.phoneNumber
+          .replaceFirst(RegExp(r'^\+[0-9]+'), '')
+          .trim();
+      _profileData['dateOfBirth'] = user.dateOfBirth;
+      _profileData['medicalHistory'] = user.medicalHistory ?? '';
+      _profileData['allergies'] = user.allergies ?? '';
+      _profileData['avatar'] =
+          'https://api.dicebear.com/7.x/avataaars/svg?seed=${user.firstName}';
+    });
   }
 
   int _selectedYear = DateTime.now().year;
@@ -991,13 +1009,65 @@ class _ProfileScreenState extends State<ProfileScreen>
                               : const SizedBox.shrink(),
                         ),
 
+                        const SizedBox(height: 20),
+
+                        _buildLabel('MEDICAL HISTORY'),
+                        _buildTextField(
+                          LucideIcons.fileText,
+                          _profileData['medicalHistory'],
+                          (val) => setState(() => _profileData['medicalHistory'] = val),
+                        ),
+                        const SizedBox(height: 20),
+
+                        _buildLabel('ALLERGIES'),
+                        _buildTextField(
+                          LucideIcons.alertCircle,
+                          _profileData['allergies'],
+                          (val) => setState(() => _profileData['allergies'] = val),
+                        ),
+
                         const SizedBox(height: 32),
                         GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _showCalendarDropdown = false;
-                              _currentScreen = 'main';
-                            });
+                          onTap: () async {
+                            try {
+                              // Split name into first and last
+                              final nameParts = _profileData['name'].toString().split(' ');
+                              final firstName = nameParts.isNotEmpty ? nameParts.first : '';
+                              final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+
+                              await UserService().updateUserProfile({
+                                'first_name': firstName,
+                                'last_name': lastName,
+                                'phone_number': '${_profileData['phonePrefix']}${_profileData['phone']}',
+                                'medical_history': _profileData['medicalHistory'],
+                                'allergies': _profileData['allergies'],
+                              });
+
+                              // Refresh data
+                              await _loadUserData();
+
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Profile updated successfully'),
+                                    backgroundColor: Color(0xFF10B981),
+                                  ),
+                                );
+                                setState(() {
+                                  _showCalendarDropdown = false;
+                                  _currentScreen = 'main';
+                                });
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Failed to update profile: $e'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
                           },
                           child: Container(
                             width: double.infinity,
