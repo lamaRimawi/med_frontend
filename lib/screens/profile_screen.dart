@@ -300,373 +300,319 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget _buildMainProfileScreen() {
     final isDark = _isDarkMode;
 
-    return Stack(
-      children: [
-        // Animated Background
-        Positioned.fill(child: AnimatedBubbleBackground(isDark: isDark)),
-
-        // Content
-        SafeArea(
-          child: Column(
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Profile',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : const Color(0xFF111827),
+    return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF5F5F5),
+      body: Column(
+        children: [
+          // Blue Header with User Info
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  // Header with title aligned left
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'My Profile',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 40),
-                  ],
-                ),
-              ),
-
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
-                  child: Column(
-                    children: [
-                      // Profile Picture
-                      Center(
-                        child: Column(
+                  ),
+                  
+                  // Profile Picture and User Info
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+                    child: Row(
+                      children: [
+                        // Profile Picture
+                        Stack(
                           children: [
-                            Stack(
-                              children: [
-                                Container(
-                                  width: 112,
-                                  height: 112,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        Color(0xFF39A4E6),
-                                        Color(0xFF5BB5ED),
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(
-                                          0xFF39A4E6,
-                                        ).withOpacity(0.3),
-                                        blurRadius: 20,
-                                        offset: const Offset(0, 10),
-                                      ),
-                                    ],
-                                  ),
-                                  padding: const EdgeInsets.all(4),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: isDark
-                                          ? const Color(0xFF111827)
-                                          : Colors.white,
-                                      image: DecorationImage(
-                                        image: _imageFile != null
-                                            ? FileImage(_imageFile!)
-                                                  as ImageProvider
-                                            : const NetworkImage(
-                                                'https://api.dicebear.com/7.x/avataaars/png?seed=Maria',
-                                              ),
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: GestureDetector(
-                                    onTap: _pickImage,
-                                    child: Container(
-                                      width: 36,
-                                      height: 36,
-                                      decoration: const BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            Color(0xFF39A4E6),
-                                            Color(0xFF5BB5ED),
-                                          ],
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 3),
+                                image: DecorationImage(
+                                  image: _imageFile != null
+                                      ? FileImage(_imageFile!) as ImageProvider
+                                      : const NetworkImage(
+                                          'https://api.dicebear.com/7.x/avataaars/png?seed=Maria',
                                         ),
-                                      ),
-                                      child: const Icon(
-                                        LucideIcons.camera,
-                                        color: Colors.white,
-                                        size: 16,
-                                      ),
-                                    ),
-                                  ),
+                                  fit: BoxFit.cover,
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              _profileData['name'],
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF111827),
                               ),
                             ),
-                            const SizedBox(height: 24),
-
-                            // Edit Profile Button
-                            GestureDetector(
-                              onTap: () => setState(
-                                () => _currentScreen = 'personal-info',
-                              ),
-                              child: Container(
-                                width: 200,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFF39A4E6),
-                                      Color(0xFF5BB5ED),
-                                    ],
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: GestureDetector(
+                                onTap: _pickImage,
+                                child: Container(
+                                  width: 28,
+                                  height: 28,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Color(0xFF39A4E6),
                                   ),
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(
-                                        0xFF39A4E6,
-                                      ).withOpacity(0.3),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    'Edit Profile',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                  child: const Icon(
+                                    LucideIcons.camera,
+                                    color: Colors.white,
+                                    size: 14,
                                   ),
                                 ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Settings Options
-                      Column(
-                        children: [
-
-                          _buildSettingItem(
-                            LucideIcons.lock,
-                            'Privacy & Security',
-                            () => setState(() => _currentScreen = 'privacy'),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildSwitchSettingItem(
-                            LucideIcons.bell,
-                            'Notifications',
-                            _notificationsEnabled,
-                            (value) async {
-                              setState(() => _notificationsEnabled = value);
-                              final prefs =
-                                  await SharedPreferences.getInstance();
-                              await prefs.setBool(
-                                'notifications_enabled',
-                                value,
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          _buildSwitchSettingItem(
-                            LucideIcons.shieldCheck,
-                            'Two-Factor Authentication',
-                            _twoFactorEnabled,
-                            (value) async {
-                              setState(() => _twoFactorEnabled = value);
-                              final prefs =
-                                  await SharedPreferences.getInstance();
-                              await prefs.setBool(
-                                'two_factor_enabled',
-                                value,
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          _buildSettingItem(
-                            LucideIcons.headphones,
-                            'Help & Support',
-                            () => setState(() => _currentScreen = 'support'),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildSettingItem(
-                            isDark ? LucideIcons.moon : LucideIcons.sun,
-                            'Dark mode',
-                            () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const DarkModeScreen(),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Logout Button
-                      GestureDetector(
-                        onTap: () async {
-                          // Show bottom sheet confirmation
-                          final shouldLogout = await showModalBottomSheet<bool>(
-                            context: context,
-                            backgroundColor: Colors.transparent,
-                            builder: (context) => Container(
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? const Color(0xFF1E293B)
-                                    : Colors.white,
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(24),
-                                  topRight: Radius.circular(24),
+                        const SizedBox(width: 16),
+                        
+                        // User Info
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _profileData['name'],
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              padding: const EdgeInsets.fromLTRB(32, 48, 32, 32),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'Are you sure you want to log out?',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: isDark ? Colors.white : const Color(0xFF111827),
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  const SizedBox(height: 36),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: GestureDetector(
-                                          onTap: () => Navigator.pop(context, false),
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(vertical: 12),
-                                            decoration: BoxDecoration(
-                                              color: Colors.transparent,
-                                              border: Border.all(
-                                                color: const Color(0xFF39A4E6),
-                                                width: 1.5,
-                                              ),
-                                              borderRadius: BorderRadius.circular(24),
-                                            ),
-                                            child: Text(
-                                              'Cancel',
-                                              style: TextStyle(
-                                                color: isDark ? Colors.white : const Color(0xFF111827),
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 14,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: GestureDetector(
-                                          onTap: () => Navigator.pop(context, true),
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(vertical: 12),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFF39A4E6),
-                                              borderRadius: BorderRadius.circular(24),
-                                            ),
-                                            child: const Text(
-                                              'Yes, Logout',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 14,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 24),
-                                ],
-                              ),
-                            ),
-                          );
-
-                          // Only logout if user confirmed
-                          if (shouldLogout == true) {
-                            await User.clearFromPrefs();
-                            await AuthApi.logout();
-                            widget.onLogout();
-                          }
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF7F1D1D).withOpacity(0.2)
-                                : const Color(0xFFFEF2F2),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                LucideIcons.logOut,
-                                color: isDark
-                                    ? const Color(0xFFF87171)
-                                    : const Color(0xFFDC2626),
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
+                              const SizedBox(height: 4),
                               Text(
-                                'Logout',
+                                _profileData['phone'].isNotEmpty 
+                                    ? '${_profileData['phonePrefix'] ?? '+962'} ${_profileData['phone']}'
+                                    : '+962 79 123 4567',
                                 style: TextStyle(
-                                  color: isDark
-                                      ? const Color(0xFFF87171)
-                                      : const Color(0xFFDC2626),
-                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _profileData['email'],
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 14,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                ],
+              ),
+            ),
+          ),
+          
+          // Menu Items
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+              children: [
+                _buildMenuItem(
+                  LucideIcons.user,
+                  'Profile',
+                  () => setState(() => _currentScreen = 'personal-info'),
+                ),
+                const SizedBox(height: 12),
+                _buildMenuItem(
+                  LucideIcons.lock,
+                  'Privacy Policy',
+                  () => setState(() => _currentScreen = 'privacy'),
+                ),
+                const SizedBox(height: 12),
+                _buildMenuItem(
+                  LucideIcons.settings,
+                  'Settings',
+                  () {}, // TODO: Navigate to settings
+                ),
+                const SizedBox(height: 12),
+                _buildMenuItem(
+                  LucideIcons.helpCircle,
+                  'Help',
+                  () => setState(() => _currentScreen = 'support'),
+                ),
+                const SizedBox(height: 12),
+                _buildMenuItem(
+                  LucideIcons.logOut,
+                  'Logout',
+                  () async {
+                    // Show bottom sheet confirmation
+                    final shouldLogout = await showModalBottomSheet<bool>(
+                      context: context,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => Container(
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF1E293B)
+                              : Colors.white,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(24),
+                            topRight: Radius.circular(24),
+                          ),
+                        ),
+                        padding: const EdgeInsets.fromLTRB(32, 48, 32, 32),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(height: 16),
+                            Text(
+                              'Are you sure you want to log out?',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: isDark ? Colors.white : const Color(0xFF111827),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 36),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => Navigator.pop(context, false),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.transparent,
+                                        border: Border.all(
+                                          color: const Color(0xFF39A4E6),
+                                          width: 1.5,
+                                        ),
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                      child: Text(
+                                        'Cancel',
+                                        style: TextStyle(
+                                          color: isDark ? Colors.white : const Color(0xFF111827),
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => Navigator.pop(context, true),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF39A4E6),
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                      child: const Text(
+                                        'Yes, Logout',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      ),
+                    );
+
+                    // Only logout if user confirmed
+                    if (shouldLogout == true) {
+                      await User.clearFromPrefs();
+                      await AuthApi.logout();
+                      widget.onLogout();
+                    }
+                  },
+                  isLogout: true,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuItem(IconData icon, String title, VoidCallback onTap, {bool isLogout = false}) {
+    final isDark = _isDarkMode;
+    
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF39A4E6).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: const Color(0xFF39A4E6),
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: isLogout 
+                      ? const Color(0xFF39A4E6)
+                      : (isDark ? Colors.white : const Color(0xFF111827)),
                 ),
               ),
-            ],
-          ),
+            ),
+            if (!isLogout)
+              Icon(
+                LucideIcons.chevronRight,
+                color: isDark ? Colors.grey[600] : Colors.grey[400],
+                size: 20,
+              ),
+          ],
         ),
-
-
-      ],
+      ),
     );
   }
 
