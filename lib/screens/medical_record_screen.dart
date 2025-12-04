@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../widgets/medical_background.dart';
+import '../widgets/theme_toggle.dart';
 import '../models/patient_data.dart';
 import 'add_record_screen.dart';
 import 'allergies_screen.dart';
@@ -21,6 +22,10 @@ class MedicalRecordScreen extends StatefulWidget {
 
 class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
   final TextEditingController _searchController = TextEditingController();
+
+  bool get _isDarkMode =>
+      ThemeProvider.of(context)?.themeMode == ThemeMode.dark ?? false;
+
   PatientData _patient = const PatientData(
     gender: 'Female',
     age: 26,
@@ -160,8 +165,9 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = _isDarkMode;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
       body: Stack(
         children: [
           const MedicalBackground(),
@@ -229,7 +235,11 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
                 ),
                 child: IconButton(
                   onPressed: widget.onBack,
-                  icon: const Icon(LucideIcons.chevronLeft, color: Colors.white, size: 24),
+                  icon: const Icon(
+                    LucideIcons.chevronLeft,
+                    color: Colors.white,
+                    size: 24,
+                  ),
                 ),
               ),
               const Expanded(

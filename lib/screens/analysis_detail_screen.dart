@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../widgets/medical_background.dart';
+import '../widgets/theme_toggle.dart';
 
 class AnalysisDetailScreen extends StatelessWidget {
   final VoidCallback onBack;
@@ -52,12 +53,14 @@ class AnalysisDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark =
+        ThemeProvider.of(context)?.themeMode == ThemeMode.dark ?? false;
     final Map<String, dynamic> data =
         (_testData[testName] ?? _testData['Blood Test'])
             as Map<String, dynamic>;
     final List<dynamic> sections = data['sections'] as List<dynamic>;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
       body: Stack(
         children: [
           const MedicalBackground(),
@@ -68,7 +71,7 @@ class AnalysisDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(data['title'] as String),
+                  _buildHeader(data['title'] as String, isDark),
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
@@ -77,11 +80,12 @@ class AnalysisDetailScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Analysis',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white : Colors.black,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -196,12 +200,12 @@ class AnalysisDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(String title) {
+  Widget _buildHeader(String title, bool isDark) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(left: 24, right: 24, top: 12, bottom: 24),
-      decoration: const BoxDecoration(
-        color: Color(0xFF39A4E6),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : const Color(0xFF39A4E6),
       ),
       child: Column(
         children: [

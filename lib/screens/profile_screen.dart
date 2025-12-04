@@ -5,11 +5,14 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/animated_bubble_background.dart';
 import '../widgets/theme_toggle.dart';
 import '../models/user_model.dart';
 import '../services/auth_api.dart';
 import 'timeline_screen.dart';
+import 'reports_screen.dart';
+import 'dark_mode_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Function(String) onNavigate;
@@ -31,6 +34,8 @@ class _ProfileScreenState extends State<ProfileScreen>
   bool _showCountryPicker = false;
   bool _showCalendarDropdown = false;
   String _calendarView = 'day'; // 'day', 'month', 'year'
+  bool _notificationsEnabled = true;
+  bool _twoFactorEnabled = false;
 
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
@@ -47,6 +52,9 @@ class _ProfileScreenState extends State<ProfileScreen>
       setState(() {
         _imageFile = File(pickedFile.path);
       });
+      // Save image path to SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('profile_image_path', pickedFile.path);
     }
   }
 
@@ -64,6 +72,15 @@ class _ProfileScreenState extends State<ProfileScreen>
   void initState() {
     super.initState();
     _loadUserData();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+      _twoFactorEnabled = prefs.getBool('two_factor_enabled') ?? false;
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -80,6 +97,17 @@ class _ProfileScreenState extends State<ProfileScreen>
         _profileData['avatar'] =
             'https://api.dicebear.com/7.x/avataaars/svg?seed=${user.firstName}';
       });
+    }
+    // Load saved profile image
+    final prefs = await SharedPreferences.getInstance();
+    final savedImagePath = prefs.getString('profile_image_path');
+    if (savedImagePath != null && mounted) {
+      final file = File(savedImagePath);
+      if (await file.exists()) {
+        setState(() {
+          _imageFile = file;
+        });
+      }
     }
   }
 
@@ -241,7 +269,9 @@ class _ProfileScreenState extends State<ProfileScreen>
       case 'location':
         return _buildLocationScreen();
       case 'reports':
-        return _buildReportsScreen();
+        return ReportsScreen(
+          onBack: () => setState(() => _currentScreen = 'main'),
+        );
       case 'doctors':
         return _buildDoctorsScreen();
       case 'timeline':
@@ -392,16 +422,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                                     : const Color(0xFF111827),
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _profileData['email'],
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: isDark
-                                    ? Colors.grey[400]
-                                    : Colors.grey[600],
-                              ),
-                            ),
                             const SizedBox(height: 24),
 
                             // Edit Profile Button
@@ -451,34 +471,41 @@ class _ProfileScreenState extends State<ProfileScreen>
                       // Settings Options
                       Column(
                         children: [
-                          _buildSettingItem(
-                            LucideIcons.fileText,
-                            'My Medical Reports',
-                            () => Navigator.pushNamed(context, '/reports'),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildSettingItem(
-                            LucideIcons.users,
-                            'Shared with Doctors',
-                            () => setState(() => _currentScreen = 'doctors'),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildSettingItem(
-                            LucideIcons.activity,
-                            'Health Timeline',
-                            () => setState(() => _currentScreen = 'timeline'),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildSettingItem(
-                            LucideIcons.mapPin,
-                            'Location Settings',
-                            () => setState(() => _currentScreen = 'location'),
-                          ),
-                          const SizedBox(height: 12),
+
                           _buildSettingItem(
                             LucideIcons.lock,
                             'Privacy & Security',
                             () => setState(() => _currentScreen = 'privacy'),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildSwitchSettingItem(
+                            LucideIcons.bell,
+                            'Notifications',
+                            _notificationsEnabled,
+                            (value) async {
+                              setState(() => _notificationsEnabled = value);
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.setBool(
+                                'notifications_enabled',
+                                value,
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          _buildSwitchSettingItem(
+                            LucideIcons.shieldCheck,
+                            'Two-Factor Authentication',
+                            _twoFactorEnabled,
+                            (value) async {
+                              setState(() => _twoFactorEnabled = value);
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.setBool(
+                                'two_factor_enabled',
+                                value,
+                              );
+                            },
                           ),
                           const SizedBox(height: 12),
                           _buildSettingItem(
@@ -488,9 +515,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                           ),
                           const SizedBox(height: 12),
                           _buildSettingItem(
-                            isDark ? LucideIcons.sun : LucideIcons.moon,
-                            isDark ? 'Light Mode' : 'Dark Mode',
-                            () => ThemeProvider.of(context)?.toggleTheme(),
+                            isDark ? LucideIcons.moon : LucideIcons.sun,
+                            'Dark mode',
+                            () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const DarkModeScreen(),
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -544,8 +576,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
         ),
 
-        // Bottom Navigation (Overlay)
-        Positioned(bottom: 0, left: 0, right: 0, child: _buildBottomNav()),
+
       ],
     );
   }
@@ -593,27 +624,77 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildBottomNav() {
+  Widget _buildSwitchSettingItem(
+    IconData icon,
+    String title,
+    bool value,
+    ValueChanged<bool> onChanged,
+  ) {
     final isDark = _isDarkMode;
-    return ClipRRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.only(bottom: 24, top: 12),
-          decoration: BoxDecoration(
-            color: (isDark ? const Color(0xFF111827) : Colors.white)
-                .withOpacity(0.8),
-            border: Border(
-              top: BorderSide(
-                color: isDark
-                    ? const Color(0xFF1F2937)
-                    : const Color(0xFFE5E7EB),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF111827) : const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFF39A4E6).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: const Color(0xFF39A4E6), size: 20),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white : const Color(0xFF111827),
               ),
             ),
           ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: const Color(0xFF39A4E6),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    final isDark = _isDarkMode;
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1F2937) : Colors.white,
+        border: Border(
+          top: BorderSide(
+            color: isDark
+                ? const Color(0xFF374151)
+                : const Color(0xFFE5E7EB),
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildNavItem(
                 LucideIcons.home,
@@ -664,23 +745,21 @@ class _ProfileScreenState extends State<ProfileScreen>
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 44,
-            height: 44,
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: isActive
                   ? const Color(0xFF39A4E6).withOpacity(0.1)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(icon, color: color, size: 20),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               color: color,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
             ),
           ),
         ],
@@ -691,42 +770,23 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget _buildCameraNavItem() {
     return GestureDetector(
       onTap: () {},
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            margin: const EdgeInsets.only(bottom: 4),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF39A4E6).withOpacity(0.3),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Icon(
-              LucideIcons.camera,
-              color: Colors.white,
-              size: 32,
-            ),
+      child: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
           ),
-          Text(
-            'Capture',
-            style: TextStyle(
-              fontSize: 12,
-              color: _isDarkMode ? Colors.grey[600] : Colors.grey[400],
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF39A4E6).withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
-          ),
-        ],
+          ],
+        ),
+        child: const Icon(LucideIcons.camera, color: Colors.white, size: 28),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:ui';
+import '../widgets/theme_toggle.dart';
 
 class Report {
   final String id;
@@ -86,6 +87,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
     'hospital': '',
   };
 
+  bool get _isDarkMode =>
+      ThemeProvider.of(context)?.themeMode == ThemeMode.dark ?? false;
+
   final List<String> _reportTypes = [
     "Laboratory",
     "Radiology",
@@ -168,6 +172,52 @@ class _ReportsScreenState extends State<ReportsScreen> {
     });
   }
 
+  void _handleViewReport(Report report) {
+    // Show a dialog or navigate to report details
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('View Report'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Type: ${report.type}'),
+            Text('Date: ${report.date}'),
+            Text('Doctor: ${report.doctor}'),
+            Text('Hospital: ${report.hospital}'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleShareReport(Report report) {
+    // Show a toast message indicating share action
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Sharing ${report.type} report...'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _handleDownloadReport(Report report) {
+    // Show a toast message indicating download action
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Downloading ${report.type} report...'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   void _resetForm() {
     setState(() {
       _typeController.clear();
@@ -199,17 +249,28 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = _isDarkMode;
     return Scaffold(
-      backgroundColor: Colors.white, // Will be covered by gradient
+      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
       body: Stack(
         children: [
           // Background Gradient
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFFEFF6FF), Colors.white, Color(0xFFEFF6FF)],
+                colors: isDark
+                    ? [
+                        const Color(0xFF1E293B),
+                        const Color(0xFF0F172A),
+                        const Color(0xFF1E293B),
+                      ]
+                    : [
+                        const Color(0xFFEFF6FF),
+                        Colors.white,
+                        const Color(0xFFEFF6FF),
+                      ],
               ),
             ),
           ),
@@ -238,11 +299,18 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Widget _buildHeader() {
+    final isDark = _isDarkMode;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
-        border: Border(bottom: BorderSide(color: Colors.grey[100]!)),
+        color: isDark
+            ? const Color(0xFF1E293B).withOpacity(0.9)
+            : Colors.white.withOpacity(0.8),
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? const Color(0xFF334155) : Colors.grey[100]!,
+          ),
+        ),
       ),
       child: ClipRRect(
         // For backdrop blur if supported, or just container
@@ -252,32 +320,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
             children: [
               Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(
-                      LucideIcons.chevronLeft,
-                      color: Colors.grey,
-                    ),
-                    onPressed:
-                        widget.onBack ?? () => Navigator.of(context).maybePop(),
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Medical Reports',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF111827),
-                          ),
-                        ),
-                        Text(
-                          'View and manage your reports',
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
-                        ),
-                      ],
+                  Expanded(
+                    child: Text(
+                      'My Medical Reports',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : const Color(0xFF111827),
+                      ),
                     ),
                   ),
                 ],
@@ -289,29 +339,43 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF334155) : Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey[200]!),
+                        border: Border.all(
+                          color: isDark
+                              ? const Color(0xFF475569)
+                              : Colors.grey[200]!,
+                        ),
                       ),
                       child: Row(
                         children: [
-                          const Icon(
+                          Icon(
                             LucideIcons.search,
                             size: 18,
-                            color: Colors.grey,
+                            color: isDark ? Colors.grey[400] : Colors.grey,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: TextField(
                               onChanged: (value) =>
                                   setState(() => _searchQuery = value),
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 hintText: 'Search reports...',
                                 border: InputBorder.none,
                                 hintStyle: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey,
+                                  color: isDark
+                                      ? Colors.grey[400]
+                                      : Colors.grey,
                                 ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                              ),
+                              style: TextStyle(
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF111827),
                               ),
                             ),
                           ),
@@ -330,11 +394,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       decoration: BoxDecoration(
                         color: _showFilters || _filterType != 'all'
                             ? const Color(0xFF39A4E6)
+                            : isDark
+                            ? const Color(0xFF334155)
                             : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: _showFilters || _filterType != 'all'
                               ? const Color(0xFF39A4E6)
+                              : isDark
+                              ? const Color(0xFF475569)
                               : Colors.grey[200]!,
                         ),
                       ),
@@ -345,6 +413,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                             size: 18,
                             color: _showFilters || _filterType != 'all'
                                 ? Colors.white
+                                : isDark
+                                ? Colors.grey[400]
                                 : Colors.grey[600],
                           ),
                           const SizedBox(width: 8),
@@ -418,51 +488,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '${reports.length} ${reports.length == 1 ? 'Report' : 'Reports'}',
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
-            ),
-            GestureDetector(
-              onTap: () => setState(() => _showAddForm = true),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF39A4E6).withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Row(
-                  children: [
-                    Icon(LucideIcons.plus, color: Colors.white, size: 18),
-                    SizedBox(width: 8),
-                    Text(
-                      'Add Report',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
         const SizedBox(height: 20),
         if (reports.isEmpty)
           Center(
@@ -472,46 +497,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 children: [
                   Icon(LucideIcons.fileText, size: 64, color: Colors.grey[300]),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'No reports found',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF111827),
+                      color: _isDarkMode ? Colors.white : const Color(0xFF111827),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _searchQuery.isNotEmpty || _filterType != 'all'
-                        ? 'Try adjusting your filters'
-                        : 'Add your first medical report',
-                    style: TextStyle(color: Colors.grey[500], fontSize: 14),
-                  ),
-                  if (_searchQuery.isEmpty && _filterType == 'all') ...[
-                    const SizedBox(height: 24),
-                    GestureDetector(
-                      onTap: () => setState(() => _showAddForm = true),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
-                          ),
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: const Text(
-                          'Add Report',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -527,12 +520,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Widget _buildReportCard(Report report, int index) {
+    final isDark = _isDarkMode;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey[100]!),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : Colors.grey[100]!,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
@@ -572,104 +568,59 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     children: [
                       Text(
                         report.type,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF111827),
+                          color:
+                              isDark ? Colors.white : const Color(0xFF111827),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEFF6FF),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              report.date,
-                              style: const TextStyle(
-                                color: Color(0xFF39A4E6),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF1E3A5F)
+                              : const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          report.date,
+                          style: const TextStyle(
+                            color: Color(0xFF39A4E6),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: report.status == 'completed'
-                                  ? const Color(0xFFF0FDF4)
-                                  : const Color(0xFFFEFCE8),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              report.status == 'completed'
-                                  ? 'Completed'
-                                  : 'Pending',
-                              style: TextStyle(
-                                color: report.status == 'completed'
-                                    ? Colors.green[600]
-                                    : Colors.orange[600],
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
                 ),
+                _buildIconOnlyButton(
+                  LucideIcons.trash2,
+                  () => _handleDeleteReport(report.id),
+                  isDestructive: true,
+                ),
               ],
             ),
             const SizedBox(height: 16),
-            const Divider(height: 1, color: Color(0xFFF3F4F6)),
+            _buildInfoRow(LucideIcons.stethoscope, report.doctor),
+            const SizedBox(height: 8),
+            _buildInfoRow(LucideIcons.clipboard, report.hospital),
+
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      _buildInfoRow(LucideIcons.stethoscope, report.doctor),
-                      const SizedBox(height: 8),
-                      _buildInfoRow(LucideIcons.clipboard, report.hospital),
-                      const SizedBox(height: 8),
-                      _buildInfoRow(LucideIcons.calendar, report.date),
-                    ],
-                  ),
-                ),
-                Column(
-                  children: [
-                    _buildActionButton(
-                      LucideIcons.eye,
-                      () {},
-                      const Color(0xFF39A4E6),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildActionButton(
-                      LucideIcons.download,
-                      () {},
-                      const Color(0xFF39A4E6),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildActionButton(
-                      LucideIcons.x,
-                      () => _handleDeleteReport(report.id),
-                      Colors.red[400]!,
-                    ),
-                  ],
-                ),
+                _buildTextButton(LucideIcons.eye, 'View', () => _handleViewReport(report)),
+                const SizedBox(width: 12),
+                _buildTextButton(LucideIcons.share2, 'Share', () => _handleShareReport(report)),
+                const SizedBox(width: 12),
+                _buildIconOnlyButton(LucideIcons.download, () => _handleDownloadReport(report)),
               ],
             ),
           ],
@@ -679,14 +630,22 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Widget _buildInfoRow(IconData icon, String text) {
+    final isDark = _isDarkMode;
     return Row(
       children: [
-        Icon(icon, size: 14, color: Colors.grey[400]),
+        Icon(
+          icon,
+          size: 14,
+          color: isDark ? Colors.grey[500] : Colors.grey[400],
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             text,
-            style: TextStyle(color: Colors.grey[600], fontSize: 13),
+            style: TextStyle(
+              color: isDark ? Colors.grey[300] : Colors.grey[600],
+              fontSize: 13,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -695,21 +654,73 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  Widget _buildActionButton(IconData icon, VoidCallback onTap, Color color) {
+  Widget _buildTextButton(
+    IconData icon,
+    String label,
+    VoidCallback onTap, {
+    bool isDestructive = false,
+  }) {
+    final isDark = _isDarkMode;
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          shape: BoxShape.circle,
+          color: isDark ? const Color(0xFF334155) : Colors.grey[100],
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, size: 16, color: color),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isDark ? Colors.grey[300] : Colors.grey[700],
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.grey[300] : Colors.grey[700],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconOnlyButton(
+    IconData icon,
+    VoidCallback onTap, {
+    bool isDestructive = false,
+  }) {
+    final isDark = _isDarkMode;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: isDestructive
+              ? (isDark ? const Color(0xFF450A0A) : Colors.red[50])
+              : (isDark ? const Color(0xFF334155) : Colors.grey[100]),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(
+          icon,
+          size: 16,
+          color: isDestructive
+              ? (isDark ? Colors.red[300] : Colors.red[600])
+              : (isDark ? Colors.grey[300] : Colors.grey[600]),
+        ),
       ),
     );
   }
 
   Widget _buildAddReportModal() {
+    final isDark = _isDarkMode;
     return Stack(
       children: [
         GestureDetector(
@@ -721,7 +732,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             margin: const EdgeInsets.all(24),
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
@@ -739,16 +750,19 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Add Medical Report',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF39A4E6),
+                          color: const Color(0xFF39A4E6),
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(LucideIcons.x, color: Colors.grey),
+                        icon: Icon(
+                          LucideIcons.x,
+                          color: isDark ? Colors.grey[400] : Colors.grey,
+                        ),
                         onPressed: _resetForm,
                       ),
                     ],
@@ -781,17 +795,23 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
+                      color: isDark
+                          ? const Color(0xFF1E3A5F)
+                          : const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFDBEAFE)),
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0xFF3B82F6)
+                            : const Color(0xFFDBEAFE),
+                      ),
                     ),
-                    child: const Text.rich(
+                    child: Text.rich(
                       TextSpan(
                         children: [
                           TextSpan(
                             text: 'Note: ',
                             style: TextStyle(
-                              color: Color(0xFF39A4E6),
+                              color: const Color(0xFF39A4E6),
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),
@@ -800,7 +820,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                             text:
                                 'You can upload the actual report file after saving this information.',
                             style: TextStyle(
-                              color: Color(0xFF4B5563),
+                              color: isDark
+                                  ? Colors.grey[300]
+                                  : const Color(0xFF4B5563),
                               fontSize: 12,
                             ),
                           ),
@@ -819,7 +841,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
                               side: BorderSide(
-                                color: Colors.grey[200]!,
+                                color: isDark
+                                    ? const Color(0xFF475569)
+                                    : Colors.grey[200]!,
                                 width: 2,
                               ),
                             ),
@@ -827,7 +851,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           child: Text(
                             'Cancel',
                             style: TextStyle(
-                              color: Colors.grey[600],
+                              color: isDark
+                                  ? Colors.grey[400]
+                                  : Colors.grey[600],
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -872,15 +898,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
     String errorKey, {
     bool isDate = false,
   }) {
+    final isDark = _isDarkMode;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF374151),
+            color: isDark ? Colors.grey[300] : const Color(0xFF374151),
           ),
         ),
         const SizedBox(height: 8),
@@ -903,11 +930,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
             absorbing: isDate,
             child: TextField(
               controller: controller,
+              style: TextStyle(color: isDark ? Colors.white : Colors.black),
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: TextStyle(color: Colors.grey[400]),
+                hintStyle: TextStyle(
+                  color: isDark ? Colors.grey[500] : Colors.grey[400],
+                ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: isDark ? const Color(0xFF334155) : Colors.white,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 14,
@@ -917,6 +947,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   borderSide: BorderSide(
                     color: _validationErrors[errorKey]!.isNotEmpty
                         ? Colors.red[400]!
+                        : isDark
+                        ? const Color(0xFF475569)
                         : Colors.grey[200]!,
                   ),
                 ),
@@ -925,6 +957,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   borderSide: BorderSide(
                     color: _validationErrors[errorKey]!.isNotEmpty
                         ? Colors.red[400]!
+                        : isDark
+                        ? const Color(0xFF475569)
                         : Colors.grey[200]!,
                   ),
                 ),
@@ -1036,46 +1070,6 @@ class _AnimatedBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Glowing Circles
-        Positioned(
-          left: MediaQuery.of(context).size.width * 0.1,
-          top: MediaQuery.of(context).size.height * 0.2,
-          child:
-              Container(
-                    width: 300,
-                    height: 300,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.blue[400]!.withOpacity(0.08),
-                    ),
-                  )
-                  .animate(onPlay: (c) => c.repeat(reverse: true))
-                  .scale(
-                    begin: const Offset(1, 1),
-                    end: const Offset(1.2, 1.2),
-                    duration: 8.seconds,
-                  ),
-        ),
-        Positioned(
-          right: MediaQuery.of(context).size.width * 0.1,
-          bottom: MediaQuery.of(context).size.height * 0.2,
-          child:
-              Container(
-                    width: 300,
-                    height: 300,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.blue[300]!.withOpacity(0.08),
-                    ),
-                  )
-                  .animate(onPlay: (c) => c.repeat(reverse: true))
-                  .scale(
-                    begin: const Offset(1.2, 1.2),
-                    end: const Offset(1, 1),
-                    duration: 10.seconds,
-                  ),
-        ),
-
         // Floating Medical Icons
         ..._buildFloatingIcons(context),
       ],

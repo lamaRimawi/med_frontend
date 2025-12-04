@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gal/gal.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'dart:async';
 import 'dart:ui'; // For ImageFilter
@@ -49,8 +50,6 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
   // Toast State
   String? messageToast;
   Timer? _toastTimer;
-
-
 
   CameraController? cameraController;
   List<CameraDescription>? cameras;
@@ -256,33 +255,21 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
     }
   }
 
-  Future<void> _pickFiles() async {
+  // Pick images only from gallery
+  Future<void> _pickImages() async {
     try {
-      final List<XFile> files = await _picker.pickMultipleMedia();
-      for (var xfile in files) {
-        final file = File(xfile.path);
-        final isPdf = xfile.path.toLowerCase().endsWith('.pdf');
+      final List<XFile> images = await _picker.pickMultiImage(
+        requestFullMetadata: false,
+      );
 
-        // Check PDF limit
-        if (isPdf &&
-            capturedItems.any((item) => item.type == 'application/pdf')) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Only one PDF file is allowed. Please remove the existing PDF first.',
-                ),
-              ),
-            );
-          }
-          continue;
-        }
+      for (var xfile in images) {
+        final file = File(xfile.path);
 
         final newItem = UploadedFile(
           id: DateTime.now().millisecondsSinceEpoch.toString() + xfile.name,
           name: xfile.name,
           size: await file.length(),
-          type: isPdf ? 'application/pdf' : 'image/jpeg',
+          type: xfile.mimeType ?? 'image/jpeg',
           path: file.path,
           timestamp: DateTime.now().millisecondsSinceEpoch,
         );
@@ -292,7 +279,51 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
         });
       }
     } catch (e) {
-      debugPrint('Error picking files: $e');
+      debugPrint('Error picking images: $e');
+    }
+  }
+
+  // Pick PDF files only
+  Future<void> _pickFiles() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        final file = result.files.single;
+        final fileObj = File(file.path!);
+
+        // Check PDF limit
+        if (capturedItems.any((item) => item.type == 'application/pdf')) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Only one document file is allowed. Please remove the existing file first.',
+                ),
+              ),
+            );
+          }
+          return;
+        }
+
+        final newItem = UploadedFile(
+          id: DateTime.now().millisecondsSinceEpoch.toString() + file.name,
+          name: file.name,
+          size: await fileObj.length(),
+          type: 'application/pdf',
+          path: file.path!,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+        );
+
+        setState(() {
+          capturedItems.add(newItem);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error picking file: $e');
     }
   }
 
@@ -566,8 +597,6 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           else
             _buildCameraLoading(),
 
-
-
           // Document Frame
           if (showCamera) _buildDocumentFrame(),
 
@@ -581,8 +610,6 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
 
           // Tutorial Overlay
           if (showTutorial && showCamera) _buildTutorialOverlay(),
-
-
 
           // Top Toolbar
           _buildTopToolbar(),
@@ -639,14 +666,6 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
       ),
     );
   }
-
-
-
-
-
-
-
-
 
   Widget _buildTutorialOverlay() {
     final step = tutorialSteps[tutorialStep];
@@ -889,88 +908,80 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           left: 32,
           right: 32,
         ),
-        child:
-            Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: const Color(0xFF39A4E6),
-                      width: 2,
-                    ),
-
-                  ),
-                  child: Stack(
-                    children: [
-                      // Corner Markers
-                      ...List.generate(4, (index) {
-                        final isTop = index < 2;
-                        final isLeft = index % 2 == 0;
-                        return Positioned(
-                          top: isTop ? -2 : null,
-                          bottom: !isTop ? -2 : null,
-                          left: isLeft ? -2 : null,
-                          right: !isLeft ? -2 : null,
-                          child:
-                              Container(
-                                    width: 32,
-                                    height: 32,
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                        top: isTop
-                                            ? const BorderSide(
-                                                color: Color(0xFF39A4E6),
-                                                width: 4,
-                                              )
-                                            : BorderSide.none,
-                                        bottom: !isTop
-                                            ? const BorderSide(
-                                                color: Color(0xFF39A4E6),
-                                                width: 4,
-                                              )
-                                            : BorderSide.none,
-                                        left: isLeft
-                                            ? const BorderSide(
-                                                color: Color(0xFF39A4E6),
-                                                width: 4,
-                                              )
-                                            : BorderSide.none,
-                                        right: !isLeft
-                                            ? const BorderSide(
-                                                color: Color(0xFF39A4E6),
-                                                width: 4,
-                                              )
-                                            : BorderSide.none,
-                                      ),
-                                      borderRadius: BorderRadius.only(
-                                        topLeft: isTop && isLeft
-                                            ? const Radius.circular(16)
-                                            : Radius.zero,
-                                        topRight: isTop && !isLeft
-                                            ? const Radius.circular(16)
-                                            : Radius.zero,
-                                        bottomLeft: !isTop && isLeft
-                                            ? const Radius.circular(16)
-                                            : Radius.zero,
-                                        bottomRight: !isTop && !isLeft
-                                            ? const Radius.circular(16)
-                                            : Radius.zero,
-                                      ),
-                                    ),
-                                  )
-                                  .animate(
-                                    onPlay: (c) => c.repeat(reverse: true),
-                                  )
-                                  .scale(
-                                    duration: 2.seconds,
-                                    begin: const Offset(1, 1),
-                                    end: const Offset(1.1, 1.1),
-                                  ),
-                        );
-                      }),
-                    ],
-                  ),
-                )
-                .animate(onPlay: (c) => c.repeat(reverse: true)),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFF39A4E6), width: 2),
+          ),
+          child: Stack(
+            children: [
+              // Corner Markers
+              ...List.generate(4, (index) {
+                final isTop = index < 2;
+                final isLeft = index % 2 == 0;
+                return Positioned(
+                  top: isTop ? -2 : null,
+                  bottom: !isTop ? -2 : null,
+                  left: isLeft ? -2 : null,
+                  right: !isLeft ? -2 : null,
+                  child:
+                      Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              border: Border(
+                                top: isTop
+                                    ? const BorderSide(
+                                        color: Color(0xFF39A4E6),
+                                        width: 4,
+                                      )
+                                    : BorderSide.none,
+                                bottom: !isTop
+                                    ? const BorderSide(
+                                        color: Color(0xFF39A4E6),
+                                        width: 4,
+                                      )
+                                    : BorderSide.none,
+                                left: isLeft
+                                    ? const BorderSide(
+                                        color: Color(0xFF39A4E6),
+                                        width: 4,
+                                      )
+                                    : BorderSide.none,
+                                right: !isLeft
+                                    ? const BorderSide(
+                                        color: Color(0xFF39A4E6),
+                                        width: 4,
+                                      )
+                                    : BorderSide.none,
+                              ),
+                              borderRadius: BorderRadius.only(
+                                topLeft: isTop && isLeft
+                                    ? const Radius.circular(16)
+                                    : Radius.zero,
+                                topRight: isTop && !isLeft
+                                    ? const Radius.circular(16)
+                                    : Radius.zero,
+                                bottomLeft: !isTop && isLeft
+                                    ? const Radius.circular(16)
+                                    : Radius.zero,
+                                bottomRight: !isTop && !isLeft
+                                    ? const Radius.circular(16)
+                                    : Radius.zero,
+                              ),
+                            ),
+                          )
+                          .animate(onPlay: (c) => c.repeat(reverse: true))
+                          .scale(
+                            duration: 2.seconds,
+                            begin: const Offset(1, 1),
+                            end: const Offset(1.1, 1.1),
+                          ),
+                );
+              }),
+            ],
+          ),
+        ).animate(onPlay: (c) => c.repeat(reverse: true)),
       ),
     );
   }
@@ -1054,7 +1065,6 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                     ),
                   ),
                 ),
-
               ],
             ),
           ],
@@ -1229,9 +1239,9 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Gallery
+                  // Gallery (Images only)
                   GestureDetector(
-                    onTap: _pickFiles,
+                    onTap: _pickImages,
                     child: Container(
                       width: 56,
                       height: 56,

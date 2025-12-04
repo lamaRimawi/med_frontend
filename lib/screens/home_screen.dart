@@ -21,7 +21,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  
+
   bool get _isDarkMode {
     final themeProvider = ThemeProvider.of(context);
     return themeProvider?.themeMode == ThemeMode.dark;
@@ -114,68 +114,63 @@ class _HomeScreenState extends State<HomeScreen> {
     ThemeProvider.of(context)?.toggleTheme();
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-    // Show different screens based on active tab
-    if (_showProfile) {
-      return ProfileScreen(
-        onLogout: () {
-          Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-        },
-        onNavigate: (route) {
-          setState(() {
-            _showProfile = false;
-            _activeTab = 'home';
-          });
-        },
-      );
-    }
-
-    if (_showReports) {
-      return ReportsScreen(
-        onBack: () => setState(() {
-          _showReports = false;
-          _activeTab = 'home';
-        }),
-      );
-    }
-
-    if (_showRecords) {
-      return MedicalRecordScreen(
-        onBack: () => setState(() {
-          _showRecords = false;
-          _activeTab = 'home';
-        }),
-      );
-    }
-
-    if (_showTimeline) {
-      return TimelineScreen(
-        onBack: () => setState(() {
-          _showTimeline = false;
-          _activeTab = 'home';
-        }),
-        isDarkMode: _isDarkMode,
-      );
-    }
-
     if (_showCameraUpload) {
       return CameraUploadScreen(
         isDarkMode: _isDarkMode,
         onClose: () => setState(() {
           _showCameraUpload = false;
           _activeTab = 'home';
+          _selectedIndex = 0;
         }),
       );
     }
 
-    return Scaffold(
-      backgroundColor: _isDarkMode
-          ? const Color(0xFF0F172A)
-          : const Color(0xFFF9FAFB),
-      body: Stack(
+    Widget body;
+    if (_showProfile) {
+      body = ProfileScreen(
+        onLogout: () {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/login',
+            (route) => false,
+          );
+        },
+        onNavigate: (route) {
+          setState(() {
+            _showProfile = false;
+            _activeTab = 'home';
+            _selectedIndex = 0;
+          });
+        },
+      );
+    } else if (_showReports) {
+      body = ReportsScreen(
+        onBack: () => setState(() {
+          _showReports = false;
+          _activeTab = 'home';
+          _selectedIndex = 0;
+        }),
+      );
+    } else if (_showTimeline) {
+      body = TimelineScreen(
+        onBack: () => setState(() {
+          _showTimeline = false;
+          _activeTab = 'home';
+          _selectedIndex = 0;
+        }),
+        isDarkMode: _isDarkMode,
+      );
+    } else if (_showRecords) {
+      body = MedicalRecordScreen(
+        onBack: () => setState(() {
+          _showRecords = false;
+          _activeTab = 'home';
+        }),
+      );
+    } else {
+      body = Stack(
         children: [
           // Animated Background
           Positioned.fill(child: AnimatedBubbleBackground(isDark: _isDarkMode)),
@@ -203,25 +198,16 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-
-          // Bottom Navigation
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: _buildBottomNavigation(),
-          ),
-
-          // Notifications Panel
-          if (_showNotifications) _buildNotificationsPanel(),
-
-          // Quick View Modal
-          if (_showQuickView != null) _buildQuickViewModal(),
-
-          // All Report Types Modal
-          if (_showAllReportTypes) _buildAllReportTypesModal(),
         ],
-      ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: _isDarkMode
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF9FAFB),
+      body: body,
+      bottomNavigationBar: _buildBottomNavigation(),
     );
   }
 
@@ -408,24 +394,22 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
-
   Widget _buildRecentReports() {
     final isSearching = _searchQuery.isNotEmpty;
-    
+
     final filtered = isSearching
         ? _reports.where((r) {
             final query = _searchQuery.toLowerCase();
             final title = (r['title'] ?? '').toLowerCase();
             final doctor = (r['doctor'] ?? '').toLowerCase();
             final type = (r['type'] ?? '').toLowerCase();
-            return title.contains(query) || 
-                   doctor.contains(query) || 
-                   type.contains(query);
+            return title.contains(query) ||
+                doctor.contains(query) ||
+                type.contains(query);
           }).toList()
         : _reports
-            .where((r) => int.tryParse(r['day'] ?? '') == _selectedDate)
-            .toList();
+              .where((r) => int.tryParse(r['day'] ?? '') == _selectedDate)
+              .toList();
 
     Color textOnBlue = Colors.white;
     return Padding(
@@ -472,7 +456,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Date selector (Only show if not searching)
             if (!isSearching) ...[
               SizedBox(
@@ -616,14 +600,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    isSearching ? 'No matching reports found' : 'No reports for this date',
+                    isSearching
+                        ? 'No matching reports found'
+                        : 'No reports for this date',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.7),
                       fontSize: 13,
                     ),
                   ),
                   Text(
-                    isSearching ? 'Try a different search term' : 'Select another day to view reports',
+                    isSearching
+                        ? 'Try a different search term'
+                        : 'Select another day to view reports',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.5),
                       fontSize: 11,
@@ -714,16 +702,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   const SizedBox(height: 8),
                                   Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(
-                                        filtered[i]['doctor'] ?? '',
-                                        style: TextStyle(
-                                          color: textOnBlue.withOpacity(0.6),
-                                          fontSize: 13,
+                                      Flexible(
+                                        child: Text(
+                                          filtered[i]['doctor'] ?? '',
+                                          style: TextStyle(
+                                            color: textOnBlue.withOpacity(0.6),
+                                            fontSize: 13,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
+                                      const SizedBox(width: 8),
                                       ReportTypeBadge(
                                         type: filtered[i]['type'] ?? 'General',
                                         variant: ReportBadgeVariant.compact,
@@ -1003,7 +993,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: (type['color'] as Color).withOpacity(0.4),
+                                    color: (type['color'] as Color).withOpacity(
+                                      0.4,
+                                    ),
                                     blurRadius: 12,
                                     offset: const Offset(0, 4),
                                   ),
@@ -1138,6 +1130,15 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _selectedIndex = index;
           _activeTab = label.toLowerCase();
+
+          // Reset all flags first
+          _showProfile = false;
+          _showReports = false;
+          _showTimeline = false;
+          _showRecords = false;
+          _showCameraUpload = false;
+
+          // Set active flag
           if (index == 1) {
             _showReports = true;
           } else if (index == 3) {

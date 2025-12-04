@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math' as math;
 
 class SplashScreen extends StatefulWidget {
@@ -21,12 +22,26 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
 
-    // Navigate to onboarding screen after 3 seconds
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
+    // Check for login status
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    // Wait for animation minimum duration
+    await Future.delayed(const Duration(seconds: 3));
+
+    if (!mounted) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('jwt_token');
+
+    if (mounted) {
+      if (token != null && token.isNotEmpty) {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
         Navigator.pushReplacementNamed(context, '/onboarding');
       }
-    });
+    }
   }
 
   @override

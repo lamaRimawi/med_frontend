@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class ThemeProvider extends InheritedWidget {
   final ThemeMode themeMode;
   final VoidCallback toggleTheme;
+  final ValueChanged<ThemeMode> setThemeMode;
 
   const ThemeProvider({
     super.key,
     required this.themeMode,
     required this.toggleTheme,
+    required this.setThemeMode,
     required super.child,
   });
 

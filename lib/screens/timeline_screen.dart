@@ -440,135 +440,52 @@ class _TimelineScreenState extends State<TimelineScreen> {
       child: ClipRRect(
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: widget.onBack,
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.grey[800]!.withOpacity(0.8)
-                              : Colors.grey[100],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          LucideIcons.chevronLeft,
-                          color: textColor,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
-                                LucideIcons.activity,
-                                color: Color(0xFF39A4E6),
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Flexible(
-                                child: Text(
-                                  'Medical Timeline',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: textColor,
+                              Row(
+                                children: [
+                                  const Icon(
+                                    LucideIcons.activity,
+                                    color: Color(0xFF39A4E6),
+                                    size: 20,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: Text(
+                                      'Medical Timeline',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: textColor,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                '${_filteredRecords.length} ${_filteredRecords.length == 1 ? 'record' : 'records'}',
+                                style: TextStyle(
+                                    fontSize: 12, color: subTextColor),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
-                          Text(
-                            '${_filteredRecords.length} ${_filteredRecords.length == 1 ? 'record' : 'records'} • ${_selectedView[0].toUpperCase()}${_selectedView.substring(1)}',
-                            style: TextStyle(fontSize: 12, color: subTextColor),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // View Selector (Desktop style but adapted for mobile)
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.grey[800]!.withOpacity(0.8)
-                          : Colors.grey[100],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: ['week', 'month', 'year'].map((view) {
-                        final isSelected = _selectedView == view;
-                        return GestureDetector(
-                          onTap: () => setState(() {
-                            _selectedView = view;
-                            _expandedCard = null;
-                          }),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? const Color(0xFF39A4E6)
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(8),
-                              gradient: isSelected
-                                  ? const LinearGradient(
-                                      colors: [
-                                        Color(0xFF39A4E6),
-                                        Color(0xFF2B8DD4),
-                                      ],
-                                    )
-                                  : null,
-                              boxShadow: isSelected
-                                  ? [
-                                      BoxShadow(
-                                        color: const Color(
-                                          0xFF39A4E6,
-                                        ).withOpacity(0.3),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            child: Text(
-                              view,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isSelected ? Colors.white : subTextColor,
-                                fontWeight: isSelected
-                                    ? FontWeight.w600
-                                    : FontWeight.normal,
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () =>
                         setState(() => _showExportMenu = !_showExportMenu),
@@ -589,6 +506,72 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 16),
+              // View Selector (Desktop style but adapted for mobile)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.grey[800]!.withOpacity(0.8)
+                      : Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: ['week', 'month', 'year'].map((view) {
+                    final isSelected = _selectedView == view;
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() {
+                          _selectedView = view;
+                          _expandedCard = null;
+                        }),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? const Color(0xFF39A4E6)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            gradient: isSelected
+                                ? const LinearGradient(
+                                    colors: [
+                                      Color(0xFF39A4E6),
+                                      Color(0xFF2B8DD4),
+                                    ],
+                                  )
+                                : null,
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: const Color(
+                                        0xFF39A4E6,
+                                      ).withOpacity(0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Text(
+                            view,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isSelected ? Colors.white : subTextColor,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
             ],
           ),

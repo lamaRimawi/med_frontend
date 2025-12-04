@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:toastification/toastification.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'widgets/theme_toggle.dart';
 import 'screens/splash_screen.dart';
 import 'screens/onboarding_screen.dart';
@@ -14,13 +15,13 @@ import 'screens/reports_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Lock orientation to portrait mode only
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
+
   runApp(const MyApp());
 }
 
@@ -32,20 +33,68 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  ThemeMode _themeMode = ThemeMode.light;
+  ThemeMode _themeMode = ThemeMode.system;
+  late SharedPreferences _prefs;
+  bool _isLoading = true;
 
-  void _toggleTheme() {
+  @override
+  void initState() {
+    super.initState();
+    _initTheme();
+  }
+
+  Future<void> _initTheme() async {
+    _prefs = await SharedPreferences.getInstance();
+    final savedTheme = _prefs.getString('theme_mode') ?? 'system';
     setState(() {
-      _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+      _themeMode = _getThemeModeFromString(savedTheme);
+      _isLoading = false;
     });
   }
 
+  ThemeMode _getThemeModeFromString(String theme) {
+    switch (theme) {
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      case 'system':
+      default:
+        return ThemeMode.system;
+    }
+  }
+
+  String _getStringFromThemeMode(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.light:
+        return 'light';
+      case ThemeMode.dark:
+        return 'dark';
+      case ThemeMode.system:
+        return 'system';
+    }
+  }
+
+  void _setThemeMode(ThemeMode mode) {
+    setState(() {
+      _themeMode = mode;
+      _prefs.setString('theme_mode', _getStringFromThemeMode(mode));
+    });
+  }
+
+  void _toggleTheme() {
+    // Legacy toggle support, cycles between light and dark
+    final newMode =
+        _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    _setThemeMode(newMode);
+  }
 
   @override
   Widget build(BuildContext context) {
     return ThemeProvider(
       themeMode: _themeMode,
       toggleTheme: _toggleTheme,
+      setThemeMode: _setThemeMode,
       child: ToastificationWrapper(
         config: const ToastificationConfig(
           alignment: Alignment.topRight,
@@ -55,7 +104,7 @@ class _MyAppState extends State<MyApp> {
           title: 'MediScan',
           debugShowCheckedModeBanner: false,
           themeMode: _themeMode,
-          
+
           // Light Theme
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(
@@ -72,7 +121,7 @@ class _MyAppState extends State<MyApp> {
               foregroundColor: Colors.white,
             ),
           ),
-          
+
           // Dark Theme
           darkTheme: ThemeData(
             colorScheme: ColorScheme.fromSeed(
@@ -89,7 +138,7 @@ class _MyAppState extends State<MyApp> {
               foregroundColor: Colors.white,
             ),
           ),
-          
+
           initialRoute: '/',
           routes: {
             '/': (context) => const SplashScreen(),
