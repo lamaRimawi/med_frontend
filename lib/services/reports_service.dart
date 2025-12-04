@@ -44,4 +44,37 @@ class ReportsService {
       throw Exception('Error fetching report detail: $e');
     }
   }
+
+  Future<void> deleteReport(int reportId) async {
+    try {
+      final response = await _client.delete(
+        '${ApiConfig.reports}/$reportId',
+        auth: true,
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to delete report: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error deleting report: $e');
+    }
+  }
+
+  Future<List<String>> getReportImages(int reportId) async {
+    try {
+      final response = await _client.get(
+        '${ApiConfig.reports}/$reportId/images',
+        auth: true,
+      );
+
+      if (response.statusCode == 200) {
+        final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
+        return List<String>.from(data['images'] ?? []);
+      } else {
+        throw Exception('Failed to load report images: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching report images: $e');
+    }
+  }
 }

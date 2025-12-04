@@ -6,6 +6,8 @@ import '../widgets/theme_toggle.dart';
 
 import '../models/report_model.dart';
 import '../services/reports_service.dart';
+import '../services/api_client.dart';
+import '../config/api_config.dart';
 
 class ReportsScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -132,10 +134,152 @@ class _ReportsScreenState extends State<ReportsScreen> {
     });
   }
 
-  void _handleDeleteReport(String id) {
-    setState(() {
-      _reports.removeWhere((report) => report.reportId.toString() == id);
-    });
+  Future<void> _handleViewImages(Report report) async {
+    try {
+      // Show loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => const Center(child: CircularProgressIndicator()),
+      );
+
+      final images = await ReportsService().getReportImages(report.reportId);
+      
+      if (mounted) {
+        Navigator.pop(context); // Hide loading
+
+        if (images.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No images found for this report')),
+          );
+          return;
+        }
+
+        final token = await ApiClient.instance.getToken();
+        
+        showDialog(
+          context: context,
+          builder: (context) => Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(16),
+            child: Stack(
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: 500,
+                  decoration: BoxDecoration(
+                    color: _isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(
+                          'Report Images (${images.length})',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: _isDarkMode ? Colors.white : Colors.black,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: PageView.builder(
+                          itemCount: images.length,
+                          itemBuilder: (context, index) {
+                            final imageUrl = images[index].startsWith('http') 
+                                ? images[index] 
+                                : '${ApiConfig.baseUrl}${images[index]}';
+                            
+                            return Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  imageUrl,
+                                  headers: token != null 
+                                      ? {'Authorization': 'Bearer $token'} 
+                                      : null,
+                                  fit: BoxFit.contain,
+                                  loadingBuilder: (ctx, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        value: loadingProgress.expectedTotalBytes != null
+                                            ? loadingProgress.cumulativeBytesLoaded /
+                                                loadingProgress.expectedTotalBytes!
+                                            : null,
+                                      ),
+                                    );
+                                  },
+                                  errorBuilder: (ctx, err, stack) => const Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(LucideIcons.alertTriangle, color: Colors.orange, size: 48),
+                                        SizedBox(height: 8),
+                                        Text('Failed to load image', style: TextStyle(color: Colors.grey)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: IconButton(
+                    icon: const Icon(LucideIcons.x, color: Colors.grey),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Hide loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading images: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleDeleteReport(String id) async {
+    try {
+      await ReportsService().deleteReport(int.parse(id));
+      setState(() {
+        _reports.removeWhere((report) => report.reportId.toString() == id);
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Report deleted successfully'),
+            backgroundColor: Color(0xFF10B981),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete report: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _handleViewReport(Report report) {
@@ -610,7 +754,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
               children: [
                 _buildTextButton(LucideIcons.eye, 'View', () => _handleViewReport(report)),
                 const SizedBox(width: 12),
-                _buildTextButton(LucideIcons.share2, 'Share', () => _handleShareReport(report)),
+                _buildTextButton(LucideIcons.image, 'Images', () => _handleViewImages(report)),
                 const SizedBox(width: 12),
                 _buildIconOnlyButton(LucideIcons.download, () => _handleDownloadReport(report)),
               ],

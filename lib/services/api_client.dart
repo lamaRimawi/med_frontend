@@ -9,10 +9,12 @@ class ApiClient {
   ApiClient._();
   static final ApiClient instance = ApiClient._();
 
-  Future<String?> _getToken() async {
+  Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('jwt_token');
   }
+
+  Future<String?> _getToken() => getToken();
 
   Uri _uri(String path, [Map<String, String>? query]) {
     final base = ApiConfig.baseUrl;
@@ -76,6 +78,25 @@ class ApiClient {
       }
     }
     return http.put(_uri(path, query), headers: mergedHeaders, body: body);
+  }
+
+  Future<http.Response> delete(
+    String path, {
+    Map<String, String>? headers,
+    Map<String, String>? query,
+    bool auth = false,
+  }) async {
+    final mergedHeaders = <String, String>{
+      'Content-Type': 'application/json',
+      ...?headers,
+    };
+    if (auth) {
+      final token = await _getToken();
+      if (token != null && token.isNotEmpty) {
+        mergedHeaders['Authorization'] = 'Bearer $token';
+      }
+    }
+    return http.delete(_uri(path, query), headers: mergedHeaders);
   }
 
   static T decodeJson<T>(http.Response res) {
