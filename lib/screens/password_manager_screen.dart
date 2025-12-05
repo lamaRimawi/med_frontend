@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_api.dart';
+import '../utils/validators.dart';
 
 class PasswordManagerScreen extends StatefulWidget {
   const PasswordManagerScreen({super.key});
@@ -21,21 +22,55 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
   bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
 
-  @override
-  void dispose() {
-    _currentPasswordController.dispose();
-    _newPasswordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
-  }
+  final _currentPasswordFocus = FocusNode();
+  final _newPasswordFocus = FocusNode();
+  final _confirmPasswordFocus = FocusNode();
 
-  String? _storedPassword;
+  // Track if fields have been touched/blurred to enable auto-validation
+  bool _currentPasswordTouched = false;
+  bool _newPasswordTouched = false;
+  bool _confirmPasswordTouched = false;
 
   @override
   void initState() {
     super.initState();
     _loadStoredPassword();
+    
+    // Add focus listeners for validation on blur
+    _currentPasswordFocus.addListener(() {
+      if (!_currentPasswordFocus.hasFocus) {
+        setState(() => _currentPasswordTouched = true);
+        _formKey.currentState?.validate(); // trigger re-validation
+      }
+    });
+    
+    _newPasswordFocus.addListener(() {
+      if (!_newPasswordFocus.hasFocus) {
+        setState(() => _newPasswordTouched = true);
+        _formKey.currentState?.validate();
+      }
+    });
+
+    _confirmPasswordFocus.addListener(() {
+      if (!_confirmPasswordFocus.hasFocus) {
+        setState(() => _confirmPasswordTouched = true);
+        _formKey.currentState?.validate();
+      }
+    });
   }
+
+  @override
+  void dispose() {
+    _currentPasswordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    _currentPasswordFocus.dispose();
+    _newPasswordFocus.dispose();
+    _confirmPasswordFocus.dispose();
+    super.dispose();
+  }
+
+  String? _storedPassword;
 
   Future<void> _loadStoredPassword() async {
     final prefs = await SharedPreferences.getInstance();
@@ -53,12 +88,20 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
   }
 
   Future<void> _changePassword() async {
+    // Trigger validation on all fields
+    setState(() {
+      _currentPasswordTouched = true;
+      _newPasswordTouched = true;
+      _confirmPasswordTouched = true;
+    });
+
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
-      // Local validation double-check (though validator handles it)
+      // Local validation double-check (optional, currently disabled per request)
+      /*
       if (_storedPassword != null && _currentPasswordController.text != _storedPassword) {
          setState(() => _isLoading = false);
          ScaffoldMessenger.of(context).showSnackBar(
@@ -66,6 +109,7 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
          );
          return;
       }
+      */
 
       // Call API to change password
       final (success, message) = await AuthApi.changePassword(
@@ -192,15 +236,19 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Form(
                   key: _formKey,
+                  // Use autovalidateMode disabled initially, we trigger validation manually on blur
+                  autovalidateMode: AutovalidateMode.disabled,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const SizedBox(height: 8),
                       
                       // Current Password Field
-                      _buildPasswordField(
+                      _buildModernPasswordField(
                         label: 'Current Password',
                         controller: _currentPasswordController,
+                        focusNode: _currentPasswordFocus,
+                        touched: _currentPasswordTouched,
                         isVisible: _isCurrentPasswordVisible,
                         textInputAction: TextInputAction.next,
                         onVisibilityToggle: () {
@@ -212,10 +260,6 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your current password';
                           }
-                          // Verify against locally stored password
-                          if (_storedPassword != null && value != _storedPassword) {
-                            return 'Incorrect current password';
-                          }
                           return null;
                         },
                         showForgotPassword: true,
@@ -225,27 +269,21 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
                       const SizedBox(height: 20),
                       
                       // New Password Field
-                      _buildPasswordField(
+                      _buildModernPasswordField(
                         label: 'New Password',
                         controller: _newPasswordController,
+                        focusNode: _newPasswordFocus,
+                        touched: _newPasswordTouched,
                         isVisible: _isNewPasswordVisible,
-                         textInputAction: TextInputAction.next,
+                        textInputAction: TextInputAction.next,
                         onVisibilityToggle: () {
                           setState(() {
                             _isNewPasswordVisible = !_isNewPasswordVisible;
                           });
                         },
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a new password';
-                          }
-                          if (value.length < 6) {
-                            return 'Password must be at least 6 characters';
-                          }
-                          if (value == _currentPasswordController.text) {
-                            return 'New password must be different from current';
-                          }
-                          return null;
+                          // Use strict validation for new password
+                          return Validators.validatePassword(value);
                         },
                         isDark: isDark,
                       ),
@@ -253,9 +291,11 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
                       const SizedBox(height: 20),
                       
                       // Confirm New Password Field
-                      _buildPasswordField(
+                      _buildModernPasswordField(
                         label: 'Confirm New Password',
                         controller: _confirmPasswordController,
+                        focusNode: _confirmPasswordFocus,
+                        touched: _confirmPasswordTouched,
                         isVisible: _isConfirmPasswordVisible,
                         textInputAction: TextInputAction.done,
                         onVisibilityToggle: () {
@@ -320,9 +360,11 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
     );
   }
 
-  Widget _buildPasswordField({
+  Widget _buildModernPasswordField({
     required String label,
     required TextEditingController controller,
+    required FocusNode focusNode,
+    required bool touched,
     required bool isVisible,
     required VoidCallback onVisibilityToggle,
     required String? Function(String?) validator,
@@ -330,6 +372,11 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
     bool showForgotPassword = false,
     required bool isDark,
   }) {
+    // Only show error if touched and field has error (validator returns string)
+    // We achieve this by letting TextFormField handle it but manually triggering logic
+    // Actually, simply using AutovalidateMode.onUserInteraction on the FIELD (if touched)
+    // is the standard way.
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -342,43 +389,75 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB),
-              width: 1,
-            ),
+        TextFormField(
+          controller: controller,
+          focusNode: focusNode,
+          obscureText: !isVisible,
+          validator: validator,
+          textInputAction: textInputAction,
+          // Only auto-validate if already touched (blurred once)
+          autovalidateMode: touched ? AutovalidateMode.onUserInteraction : AutovalidateMode.disabled,
+          style: TextStyle(
+            fontSize: 15,
+            color: isDark ? Colors.white : const Color(0xFF111827),
           ),
-          child: TextFormField(
-            controller: controller,
-            obscureText: !isVisible,
-            validator: validator,
-            textInputAction: textInputAction,
-            style: TextStyle(
+          decoration: InputDecoration(
+            hintText: '••••••••••',
+            hintStyle: TextStyle(
+              color: isDark ? Colors.grey[600] : Colors.grey[400],
               fontSize: 15,
-              color: isDark ? Colors.white : const Color(0xFF111827),
             ),
-            decoration: InputDecoration(
-              hintText: '••••••••••',
-              hintStyle: TextStyle(
-                color: isDark ? Colors.grey[600] : Colors.grey[400],
-                fontSize: 15,
+            filled: true,
+            fillColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+            // Border definitions for modern look
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB),
               ),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB),
               ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  isVisible ? LucideIcons.eye : LucideIcons.eyeOff,
-                  size: 20,
-                  color: const Color(0xFF39A4E6),
-                ),
-                onPressed: onVisibilityToggle,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0xFF39A4E6), // Brand color on focus
+                width: 2,
               ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0xFFEF4444), // Red on error
+              ),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0xFFEF4444), // Red on focused error
+                width: 2,
+              ),
+            ),
+            // Error style - below input
+            errorStyle: const TextStyle(
+              color: Color(0xFFEF4444),
+              fontSize: 13,
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(
+                isVisible ? LucideIcons.eye : LucideIcons.eyeOff,
+                size: 20,
+                color: const Color(0xFF39A4E6),
+              ),
+              onPressed: onVisibilityToggle,
             ),
           ),
         ),
