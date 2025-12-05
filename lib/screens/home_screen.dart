@@ -80,6 +80,12 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       debugPrint('Error loading home reports: $e');
+      if (e.toString().contains('Unauthorized')) {
+        if (mounted) {
+           Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+        }
+        return;
+      }
       if (mounted) setState(() => _isLoadingReports = false);
     }
   }

@@ -64,6 +64,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
       }
     } catch (e) {
       if (mounted) {
+        if (e.toString().contains('Unauthorized')) {
+           Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+           return;
+        }
+
         // If we have data, show snackbar instead of full error
         if (_reports.isNotEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(

@@ -45,6 +45,11 @@ class ReportsService {
           throw Exception('Failed to load reports: ${response.statusCode}');
         }
       } catch (e) {
+        // Don't retry if unauthorized (token expired)
+        if (e.toString().contains('Unauthorized')) {
+          rethrow;
+        }
+
         retries--;
         if (retries == 0) {
           // If we have cache even after failure, maybe return it? 
