@@ -2223,10 +2223,10 @@ class _HomeScreenState extends State<HomeScreen> {
           child: GestureDetector(
             onTap: () {}, // Prevent closing when tapping modal
             child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-              constraints: const BoxConstraints(
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              constraints: BoxConstraints(
                 maxWidth: 600,
-                maxHeight: 700,
+                maxHeight: MediaQuery.of(context).size.height * 0.6,
               ),
               decoration: BoxDecoration(
                 color: _isDarkMode
