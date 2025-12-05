@@ -128,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
         'title': title,
         'doctor': doctor,
         'status': status,
-        'type': 'Lab Results', // Defaulting for now
+        'type': _determineReportType(r),
       };
     }).toList();
   }
@@ -961,38 +961,42 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  String _determineReportType(Report r) {
+    String type = 'General';
+    
+    // Try to find a matching field in additionalFields
+    final typeField = r.additionalFields.firstWhere(
+      (f) => f.fieldName.toLowerCase() == 'type' || f.category.toLowerCase() == 'type',
+      orElse: () => AdditionalField(id: -1, fieldName: '', fieldValue: '', category: ''),
+    );
+    
+    if (typeField.id != -1) {
+      type = typeField.fieldValue;
+    }
+    
+    // Normalize type string
+    final typeLower = type.toLowerCase();
+    if (typeLower.contains('lab') || typeLower.contains('blood')) return 'Lab Results';
+    if (typeLower.contains('prescription') || typeLower.contains('medication')) return 'Prescriptions';
+    if (typeLower.contains('imaging') || typeLower.contains('x-ray') || typeLower.contains('scan')) return 'Imaging';
+    if (typeLower.contains('vital')) return 'Vitals';
+    if (typeLower.contains('pathology')) return 'Pathology';
+    if (typeLower.contains('cardio')) return 'Cardiology';
+    if (typeLower.contains('neuro')) return 'Neurology';
+    if (typeLower.contains('ortho')) return 'Orthopedic';
+    if (typeLower.contains('temp')) return 'Temperature';
+    if (typeLower.contains('resp')) return 'Respiratory';
+    
+    return 'General';
+  }
+
   List<Map<String, dynamic>> _getReportTypes() {
     // Calculate counts from cached reports
     final counts = <String, int>{};
     final allReports = ReportsService().cachedReports ?? [];
     
     for (var r in allReports) {
-      String type = 'General';
-      
-      // Try to find a matching field in additionalFields
-      final typeField = r.additionalFields.firstWhere(
-        (f) => f.fieldName.toLowerCase() == 'type' || f.category.toLowerCase() == 'type',
-        orElse: () => AdditionalField(id: -1, fieldName: '', fieldValue: '', category: ''),
-      );
-      
-      if (typeField.id != -1) {
-        type = typeField.fieldValue;
-      }
-      
-      // Normalize type string
-      final typeLower = type.toLowerCase();
-      if (typeLower.contains('lab') || typeLower.contains('blood')) type = 'Lab Results';
-      else if (typeLower.contains('prescription') || typeLower.contains('medication')) type = 'Prescriptions';
-      else if (typeLower.contains('imaging') || typeLower.contains('x-ray') || typeLower.contains('scan')) type = 'Imaging';
-      else if (typeLower.contains('vital')) type = 'Vitals';
-      else if (typeLower.contains('pathology')) type = 'Pathology';
-      else if (typeLower.contains('cardio')) type = 'Cardiology';
-      else if (typeLower.contains('neuro')) type = 'Neurology';
-      else if (typeLower.contains('ortho')) type = 'Orthopedic';
-      else if (typeLower.contains('temp')) type = 'Temperature';
-      else if (typeLower.contains('resp')) type = 'Respiratory';
-      else type = 'General';
-
+      final type = _determineReportType(r);
       counts[type] = (counts[type] ?? 0) + 1;
     }
 
@@ -1639,172 +1643,54 @@ class _HomeScreenState extends State<HomeScreen> {
     ).animate().fadeIn(duration: const Duration(milliseconds: 200));
   }
 
-  Widget _buildQuickViewContent(String type) {
-    // Sample data for different report types
-    switch (type) {
-      case 'lab':
-        return _buildLabResultsView();
-      case 'prescription':
-        return _buildPrescriptionsView();
-      case 'imaging':
-        return _buildImagingView();
-      case 'vitals':
-        return _buildVitalsView();
-      case 'pathology':
-        return _buildPathologyView();
-      default:
-        return const Center(child: Text('No data available'));
+  Widget _buildQuickViewContent(String typeKey) {
+    // Map type key to display label matching _determineReportType
+    final keyToLabel = {
+      'lab': 'Lab Results',
+      'prescription': 'Prescriptions',
+      'imaging': 'Imaging',
+      'vitals': 'Vitals',
+      'pathology': 'Pathology',
+      'cardiology': 'Cardiology',
+      'neurology': 'Neurology',
+      'orthopedic': 'Orthopedic',
+      'temperature': 'Temperature',
+      'respiratory': 'Respiratory',
+      'general': 'General',
+    };
+
+    final targetLabel = keyToLabel[typeKey] ?? 'General';
+    final filteredReports = _reports.where((r) => r['type'] == targetLabel).toList();
+    
+    return _buildGenericReportList(filteredReports);
+  }
+
+  Widget _buildGenericReportList(List<Map<String, dynamic>> reports) {
+    if (reports.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(LucideIcons.fileX, size: 48, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'No reports found',
+              style: TextStyle(
+                color: Colors.grey[500],
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      );
     }
-  }
-
-  Widget _buildLabResultsView() {
-    final labResults = [
-      {
-        'title': 'Complete Blood Count (CBC)',
-        'result': 'Normal',
-        'date': 'Nov 28, 2025',
-        'values': 'WBC: 7.2, RBC: 4.8, Hgb: 14.5',
-        'lab': 'Quest Diagnostics',
-        'alert': false,
-      },
-      {
-        'title': 'Lipid Panel',
-        'result': 'Elevated',
-        'date': 'Nov 20, 2025',
-        'values': 'Total: 245, LDL: 165, HDL: 45',
-        'lab': 'LabCorp',
-        'alert': true,
-      },
-      {
-        'title': 'Thyroid Function (TSH)',
-        'result': 'Normal',
-        'date': 'Nov 15, 2025',
-        'values': 'TSH: 2.1 mIU/L, T4: 1.2',
-        'lab': 'Quest Diagnostics',
-        'alert': false,
-      },
-    ];
 
     return ListView.separated(
       shrinkWrap: true,
-      itemCount: labResults.length,
+      itemCount: reports.length,
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final test = labResults[index];
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: _isDarkMode
-                ? const Color(0xFF374151)
-                : const Color(0xFFF9FAFB),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          test['title'] as String,
-                          style: TextStyle(
-                            color: _isDarkMode
-                                ? Colors.white
-                                : const Color(0xFF111827),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          test['lab'] as String,
-                          style: TextStyle(
-                            color: _isDarkMode
-                                ? Colors.grey[400]
-                                : Colors.grey[600],
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: (test['alert'] as bool)
-                          ? const Color(0xFFEF4444)
-                          : const Color(0xFF34D399),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      test['result'] as String,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                test['values'] as String,
-                style: TextStyle(
-                  color: _isDarkMode
-                      ? Colors.grey[300]
-                      : const Color(0xFF374151),
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                test['date'] as String,
-                style: TextStyle(
-                  color: _isDarkMode ? Colors.grey[500] : Colors.grey[400],
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildPrescriptionsView() {
-    final prescriptions = [
-      {
-        'name': 'Amoxicillin 500mg',
-        'dosage': '1 capsule, 3 times daily',
-        'duration': '7 days',
-        'prescribedBy': 'Dr. Sarah Johnson',
-        'startDate': 'Nov 28, 2025',
-        'active': true,
-      },
-      {
-        'name': 'Lisinopril 10mg',
-        'dosage': '1 tablet, once daily',
-        'duration': 'Ongoing',
-        'prescribedBy': 'Dr. Michael Chen',
-        'startDate': 'Oct 15, 2025',
-        'active': true,
-      },
-    ];
-
-    return ListView.separated(
-      shrinkWrap: true,
-      itemCount: prescriptions.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final rx = prescriptions[index];
+        final report = reports[index];
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -1821,7 +1707,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      rx['name'] as String,
+                      report['title'] ?? 'Report',
                       style: TextStyle(
                         color: _isDarkMode
                             ? Colors.white
@@ -1831,43 +1717,31 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF34D399),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'Active',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+                  _buildStatusBadge(report['status'] ?? 'Unknown'),
                 ],
               ),
               const SizedBox(height: 12),
-              Text(
-                rx['dosage'] as String,
-                style: TextStyle(
-                  color: _isDarkMode
-                      ? Colors.grey[300]
-                      : const Color(0xFF374151),
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 8),
               Row(
                 children: [
+                  Icon(LucideIcons.user, size: 14, color: _isDarkMode ? Colors.grey[400] : Colors.grey[600]),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      report['doctor'] ?? 'Unknown Doctor',
+                      style: TextStyle(
+                        color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                        fontSize: 12,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Icon(LucideIcons.calendar, size: 14, color: _isDarkMode ? Colors.grey[400] : Colors.grey[600]),
+                  const SizedBox(width: 4),
                   Text(
-                    '${rx['duration']} • ${rx['prescribedBy']}',
+                    report['date'] ?? '',
                     style: TextStyle(
-                      color: _isDarkMode ? Colors.grey[500] : Colors.grey[400],
+                      color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
                       fontSize: 12,
                     ),
                   ),
@@ -1880,334 +1754,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildImagingView() {
-    final imagingScans = [
-      {
-        'title': 'MRI Brain Scan',
-        'date': 'Nov 20, 2025',
-        'facility': 'City Medical Imaging Center',
-        'findings': 'No acute abnormalities detected',
-        'type': 'MRI',
-      },
-      {
-        'title': 'X-Ray Chest',
-        'date': 'Nov 26, 2025',
-        'facility': 'Regional Radiology',
-        'findings': 'Clear lung fields',
-        'type': 'X-Ray',
-      },
-    ];
 
-    return ListView.separated(
-      shrinkWrap: true,
-      itemCount: imagingScans.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final scan = imagingScans[index];
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: _isDarkMode
-                ? const Color(0xFF374151)
-                : const Color(0xFFF9FAFB),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      scan['title'] as String,
-                      style: TextStyle(
-                        color: _isDarkMode
-                            ? Colors.white
-                            : const Color(0xFF111827),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF39A4E6),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      scan['type'] as String,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF39A4E6).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Findings',
-                      style: TextStyle(
-                        color: _isDarkMode
-                            ? Colors.grey[400]
-                            : Colors.grey[600],
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      scan['findings'] as String,
-                      style: TextStyle(
-                        color: _isDarkMode
-                            ? Colors.white
-                            : const Color(0xFF111827),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${scan['facility']} • ${scan['date']}',
-                style: TextStyle(
-                  color: _isDarkMode ? Colors.grey[500] : Colors.grey[400],
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildVitalsView() {
-    final vitals = [
-      {
-        'icon': LucideIcons.heartPulse,
-        'label': 'Heart Rate',
-        'value': '72 bpm',
-        'status': 'Normal',
-        'date': 'Nov 30, 2025',
-      },
-      {
-        'icon': LucideIcons.gauge,
-        'label': 'Blood Pressure',
-        'value': '120/80 mmHg',
-        'status': 'Normal',
-        'date': 'Nov 30, 2025',
-      },
-      {
-        'icon': LucideIcons.thermometer,
-        'label': 'Temperature',
-        'value': '98.6°F',
-        'status': 'Normal',
-        'date': 'Nov 30, 2025',
-      },
-    ];
-
-    return ListView.separated(
-      shrinkWrap: true,
-      itemCount: vitals.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final vital = vitals[index];
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: _isDarkMode
-                ? const Color(0xFF374151)
-                : const Color(0xFFF9FAFB),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  vital['icon'] as IconData,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      vital['label'] as String,
-                      style: TextStyle(
-                        color: _isDarkMode
-                            ? Colors.white
-                            : const Color(0xFF111827),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${vital['value']} • ${vital['date']}',
-                      style: TextStyle(
-                        color: _isDarkMode
-                            ? Colors.grey[400]
-                            : Colors.grey[600],
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF34D399),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  vital['status'] as String,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildPathologyView() {
-    final pathologyReports = [
-      {
-        'title': 'Tissue Biopsy - Breast',
-        'result': 'Benign',
-        'date': 'Nov 25, 2025',
-        'doctor': 'Dr. Sarah Mitchell',
-      },
-      {
-        'title': 'Pap Smear Test',
-        'result': 'Normal',
-        'date': 'Nov 18, 2025',
-        'doctor': 'Dr. Emily Chen',
-      },
-    ];
-
-    return ListView.separated(
-      shrinkWrap: true,
-      itemCount: pathologyReports.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final report = pathologyReports[index];
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: _isDarkMode
-                ? const Color(0xFF374151)
-                : const Color(0xFFF9FAFB),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          report['title'] as String,
-                          style: TextStyle(
-                            color: _isDarkMode
-                                ? Colors.white
-                                : const Color(0xFF111827),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          report['doctor'] as String,
-                          style: TextStyle(
-                            color: _isDarkMode
-                                ? Colors.grey[400]
-                                : Colors.grey[600],
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF34D399),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      report['result'] as String,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    report['date'] as String,
-                    style: TextStyle(
-                      color: _isDarkMode ? Colors.grey[500] : Colors.grey[400],
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
 
 
