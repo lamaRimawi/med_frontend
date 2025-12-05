@@ -12,6 +12,8 @@ import 'screens/forgot_password_screen.dart';
 import 'screens/verification_screen.dart';
 import 'screens/reset_password_screen.dart';
 import 'screens/reports_screen.dart';
+import 'screens/notification_settings_screen.dart';
+import 'screens/dark_mode_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -131,8 +133,8 @@ class _MyAppState extends State<MyApp> {
             ),
             useMaterial3: true,
             fontFamily: 'Inter',
-            scaffoldBackgroundColor: const Color(0xFF121212),
-            cardColor: const Color(0xFF1E1E1E),
+            scaffoldBackgroundColor: const Color(0xFF0F172A),
+            cardColor: const Color(0xFF1E293B),
             appBarTheme: const AppBarTheme(
               backgroundColor: Color(0xFF1E1E1E),
               foregroundColor: Colors.white,
@@ -150,6 +152,8 @@ class _MyAppState extends State<MyApp> {
             '/verification': (context) => const VerificationScreen(),
             '/reset-password': (context) => const ResetPasswordScreen(),
             '/reports': (context) => const ReportsScreen(),
+            '/notification-settings': (context) => const NotificationSettingsScreen(),
+            '/dark-mode': (context) => const DarkModeScreen(),
           },
         ),
       ),

@@ -39,11 +39,14 @@ class ApiClient {
       }
     }
     final response = await http.post(_uri(path, query), headers: mergedHeaders, body: body);
-    if (response.statusCode == 401) {
+    
+    // Only throw exception for 401 if this was an authenticated request
+    if (response.statusCode == 401 && auth) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('jwt_token');
       throw Exception('Unauthorized: Token expired');
     }
+    
     return response;
   }
 

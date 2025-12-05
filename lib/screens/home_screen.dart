@@ -11,6 +11,7 @@ import 'profile_screen.dart';
 import 'timeline_screen.dart';
 import 'reports_screen.dart';
 import '../widgets/report_type_badge.dart';
+import '../widgets/modern_bottom_nav_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -47,10 +48,15 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedDate = 11;
   User? _currentUser;
 
+  // Recent reports data (mirrors React structure)
+  List<Map<String, dynamic>> _dates = [];
+  List<Map<String, String>> _reports = [];
+
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _initializeDates();
   }
 
   Future<void> _loadUserData() async {
@@ -62,53 +68,81 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Recent reports data (mirrors React structure)
-  final List<Map<String, dynamic>> _dates = [
-    {'day': 9, 'label': 'Mon'},
-    {'day': 10, 'label': 'Tue'},
-    {'day': 11, 'label': 'Today'},
-    {'day': 12, 'label': 'Thu'},
-    {'day': 13, 'label': 'Fri'},
-  ];
+  void _initializeDates() {
+    final now = DateTime.now();
+    _selectedDate = now.day;
+    
+    // Generate 5 days centered on today
+    _dates = List.generate(5, (index) {
+      final date = now.subtract(Duration(days: 2 - index));
+      return {
+        'day': date.day,
+        'label': _getDayLabel(date),
+      };
+    });
 
-  final List<Map<String, String>> _reports = [
-    {
-      'day': '11',
-      'date': '11 Dec - Wednesday - Today',
-      'time': '09:30',
-      'title': 'Blood Test Report',
-      'doctor': 'Dr. Olivia Turner',
-      'status': 'Normal',
-      'type': 'Lab Results',
-    },
-    {
-      'day': '11',
-      'date': '11 Dec - Wednesday - Today',
-      'time': '13:10',
-      'title': 'Vitamin D Level Test',
-      'doctor': 'Dr. Amanda Stevens',
-      'status': 'Low',
-      'type': 'Lab Results',
-    },
-    {
-      'day': '10',
-      'date': '10 Dec - Tuesday',
-      'time': '16:20',
-      'title': 'Chest X-ray',
-      'doctor': 'Dr. Mark Jensen',
-      'status': 'Clear',
-      'type': 'Imaging',
-    },
-    {
-      'day': '9',
-      'date': '9 Dec - Monday',
-      'time': '08:45',
-      'title': 'Prescription Renewal',
-      'doctor': 'Dr. Sara Connor',
-      'status': 'Scheduled',
-      'type': 'Prescriptions',
-    },
-  ];
+    // Update reports to match today/yesterday
+    _reports = [
+      {
+        'day': '${now.day}',
+        'date': '${now.day} ${_getMonthName(now.month)} - ${_getDayName(now.weekday)} - Today',
+        'time': '09:30',
+        'title': 'Blood Test Report',
+        'doctor': 'Dr. Olivia Turner',
+        'status': 'Normal',
+        'type': 'Lab Results',
+      },
+      {
+        'day': '${now.day}',
+        'date': '${now.day} ${_getMonthName(now.month)} - ${_getDayName(now.weekday)} - Today',
+        'time': '13:10',
+        'title': 'Vitamin D Level Test',
+        'doctor': 'Dr. Amanda Stevens',
+        'status': 'Low',
+        'type': 'Lab Results',
+      },
+      {
+        'day': '${now.subtract(const Duration(days: 1)).day}',
+        'date': '${now.subtract(const Duration(days: 1)).day} ${_getMonthName(now.subtract(const Duration(days: 1)).month)} - ${_getDayName(now.subtract(const Duration(days: 1)).weekday)}',
+        'time': '16:20',
+        'title': 'Chest X-ray',
+        'doctor': 'Dr. Mark Jensen',
+        'status': 'Clear',
+        'type': 'Imaging',
+      },
+      {
+        'day': '${now.subtract(const Duration(days: 2)).day}',
+        'date': '${now.subtract(const Duration(days: 2)).day} ${_getMonthName(now.subtract(const Duration(days: 2)).month)} - ${_getDayName(now.subtract(const Duration(days: 2)).weekday)}',
+        'time': '08:45',
+        'title': 'Prescription Renewal',
+        'doctor': 'Dr. Sara Connor',
+        'status': 'Scheduled',
+        'type': 'Prescriptions',
+      },
+    ];
+  }
+
+  String _getDayLabel(DateTime date) {
+    final now = DateTime.now();
+    if (date.year == now.year && date.month == now.month && date.day == now.day) {
+      return 'Today';
+    }
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return days[date.weekday - 1];
+  }
+
+  String _getDayName(int weekday) {
+    const days = ['Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Monday', 'Tuesday'];
+    // Adjust index based on standard weekday (1=Mon, 7=Sun)
+    // My array starts with Wed? No, let's use standard.
+    const standardDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    return standardDays[weekday - 1];
+  }
+
+  String _getMonthName(int month) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months[month - 1];
+  }
 
   void _toggleTheme() {
     ThemeProvider.of(context)?.toggleTheme();
@@ -172,8 +206,8 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       body = Stack(
         children: [
-          // Animated Background
-          Positioned.fill(child: AnimatedBubbleBackground(isDark: _isDarkMode)),
+          // Animated Background removed
+
 
           // Main Content
           SafeArea(
@@ -206,8 +240,32 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: _isDarkMode
           ? const Color(0xFF0F172A)
           : const Color(0xFFF9FAFB),
+      extendBody: true,
       body: body,
-      bottomNavigationBar: _buildBottomNavigation(),
+      bottomNavigationBar: ModernBottomNavBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+            // Reset all flags first
+            _showProfile = false;
+            _showReports = false;
+            _showTimeline = false;
+            _showRecords = false;
+            _showCameraUpload = false;
+
+            // Set active flag
+            if (index == 1) {
+              _showReports = true;
+            } else if (index == 3) {
+              _showTimeline = true;
+            } else if (index == 4) {
+              _showProfile = true;
+            }
+          });
+        },
+        onCameraTap: () => setState(() => _showCameraUpload = true),
+      ),
     );
   }
 
@@ -247,6 +305,34 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
+
+              // Theme Toggle Button
+              GestureDetector(
+                onTap: _toggleTheme,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: _isDarkMode ? const Color(0xFF1F2937) : Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Icon(
+                      _isDarkMode ? LucideIcons.sun : LucideIcons.moon,
+                      color: const Color(0xFF39A4E6),
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
 
               // Notification Button
               GestureDetector(
@@ -1084,123 +1170,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBottomNavigation() {
-    return Container(
-      // allow intrinsic height; removing fixed height to avoid overflow
-      decoration: BoxDecoration(
-        color: _isDarkMode ? const Color(0xFF1F2937) : Colors.white,
-        border: Border(
-          top: BorderSide(
-            color: _isDarkMode
-                ? const Color(0xFF374151)
-                : const Color(0xFFE5E7EB),
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildNavItem(LucideIcons.home, 'Home', 0),
-              _buildNavItem(LucideIcons.fileText, 'Reports', 1),
-              _buildCameraButton(),
-              _buildNavItem(LucideIcons.calendar, 'Timeline', 3),
-              _buildNavItem(LucideIcons.user, 'Profile', 4),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildNavItem(IconData icon, String label, int index) {
-    final isActive = _selectedIndex == index;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedIndex = index;
-          _activeTab = label.toLowerCase();
-
-          // Reset all flags first
-          _showProfile = false;
-          _showReports = false;
-          _showTimeline = false;
-          _showRecords = false;
-          _showCameraUpload = false;
-
-          // Set active flag
-          if (index == 1) {
-            _showReports = true;
-          } else if (index == 3) {
-            _showTimeline = true;
-          } else if (index == 4) {
-            _showProfile = true;
-          }
-        });
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: isActive
-                  ? const Color(0xFF39A4E6).withOpacity(0.1)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(
-              icon,
-              color: isActive ? const Color(0xFF39A4E6) : Colors.grey[400],
-              size: 20,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: isActive ? const Color(0xFF39A4E6) : Colors.grey[400],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCameraButton() {
-    return GestureDetector(
-      onTap: () => setState(() => _showCameraUpload = true),
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF39A4E6).withOpacity(0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: const Icon(LucideIcons.camera, color: Colors.white, size: 28),
-      ),
-    );
-  }
 
   Widget _buildNotificationsPanel() {
     return Positioned.fill(

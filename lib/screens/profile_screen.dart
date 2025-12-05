@@ -365,7 +365,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                               height: 80,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 3),
+                                border: Border.all(color: Colors.transparent, width: 0),
                                 image: DecorationImage(
                                   image: _imageFile != null
                                       ? FileImage(_imageFile!) as ImageProvider
@@ -449,7 +449,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               children: [
                 _buildMenuItem(
                   LucideIcons.user,
-                  'Profile',
+                  'Edit Profile',
                   () => setState(() => _currentScreen = 'personal-info'),
                 ),
                 const SizedBox(height: 12),
@@ -647,7 +647,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF111827) : const Color(0xFFF9FAFB),
+          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF9FAFB),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -693,7 +693,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF111827) : const Color(0xFFF9FAFB),
+        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF9FAFB),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -728,139 +728,18 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildBottomNav() {
-    final isDark = _isDarkMode;
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1F2937) : Colors.white,
-        border: Border(
-          top: BorderSide(
-            color: isDark
-                ? const Color(0xFF374151)
-                : const Color(0xFFE5E7EB),
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildNavItem(
-                LucideIcons.home,
-                'Home',
-                () => widget.onNavigate('home'),
-                false,
-              ),
-              _buildNavItem(
-                LucideIcons.fileText,
-                'Reports',
-                () => setState(() => _currentScreen = 'reports'),
-                _currentScreen == 'reports',
-              ),
-              _buildCameraNavItem(),
-              _buildNavItem(
-                LucideIcons.calendar,
-                'Timeline',
-                () => setState(() => _currentScreen = 'timeline'),
-                _currentScreen == 'timeline',
-              ),
-              _buildNavItem(
-                LucideIcons.user,
-                'Profile',
-                () => setState(() => _currentScreen = 'main'),
-                _currentScreen == 'main',
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildNavItem(
-    IconData icon,
-    String label,
-    VoidCallback onTap,
-    bool isActive,
-  ) {
-    final isDark = _isDarkMode;
-    final color = isActive
-        ? const Color(0xFF39A4E6)
-        : (isDark ? Colors.grey[600] : Colors.grey[400]);
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: isActive
-                  ? const Color(0xFF39A4E6).withOpacity(0.1)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCameraNavItem() {
-    return GestureDetector(
-      onTap: () {},
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF39A4E6).withOpacity(0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: const Icon(LucideIcons.camera, color: Colors.white, size: 28),
-      ),
-    );
-  }
 
   // --- Personal Info Screen ---
   Widget _buildPersonalInfoScreen() {
     final isDark = _isDarkMode;
-    final bgColor = isDark ? const Color(0xFF030712) : const Color(0xFFF9FAFB);
+    final bgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF9FAFB);
 
     return Container(
       color: bgColor,
       child: Stack(
         children: [
-          // Background Animation
-          Positioned.fill(child: AnimatedBubbleBackground(isDark: isDark)),
+          // Background Animation removed as requested
 
           SafeArea(
             child: Column(
@@ -1011,20 +890,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
                         const SizedBox(height: 20),
 
-                        _buildLabel('MEDICAL HISTORY'),
-                        _buildTextField(
-                          LucideIcons.fileText,
-                          _profileData['medicalHistory'],
-                          (val) => setState(() => _profileData['medicalHistory'] = val),
-                        ),
-                        const SizedBox(height: 20),
-
-                        _buildLabel('ALLERGIES'),
-                        _buildTextField(
-                          LucideIcons.alertCircle,
-                          _profileData['allergies'],
-                          (val) => setState(() => _profileData['allergies'] = val),
-                        ),
+                        // Medical History and Allergies removed as requested
 
                         const SizedBox(height: 32),
                         GestureDetector(
@@ -2076,7 +1942,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   // --- Placeholder Screen ---
   Widget _buildPlaceholderScreen(String title, IconData icon, String message) {
     final isDark = _isDarkMode;
-    final bgColor = isDark ? const Color(0xFF030712) : const Color(0xFFF9FAFB);
+    final bgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF9FAFB);
 
     return Container(
       color: bgColor,

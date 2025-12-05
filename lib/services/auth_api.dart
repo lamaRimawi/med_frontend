@@ -38,6 +38,12 @@ class AuthApi {
     required String email,
     required String password,
   }) async {
+    // Get SharedPreferences instance
+    final prefs = await SharedPreferences.getInstance();
+    
+    // Clear any old token before attempting new login
+    await prefs.remove('jwt_token');
+    
     final client = ApiClient.instance;
 
     final res = await client.post(
@@ -51,8 +57,11 @@ class AuthApi {
       if (token == null || token.isEmpty) {
         return (false, 'No access token in response');
       }
-      final prefs = await SharedPreferences.getInstance();
       await prefs.setString('jwt_token', token);
+      
+      // Save the password locally after successful login
+      await prefs.setString('user_password', password);
+      
       return (true, null);
     }
 
@@ -213,6 +222,32 @@ class AuthApi {
       return (false, data['message']?.toString() ?? 'Reset failed');
     } catch (_) {
       return (false, 'Reset failed (${res.statusCode})');
+    }
+  }
+
+  static Future<(bool success, String? message)> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    final client = ApiClient.instance;
+    final res = await client.post(
+      ApiConfig.changePassword,
+      body: json.encode({
+        'old_password': oldPassword,
+        'new_password': newPassword,
+      }),
+      auth: true,
+    );
+
+    if (res.statusCode == 200) {
+      return (true, null);
+    }
+
+    try {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      return (false, data['message']?.toString() ?? 'Password change failed');
+    } catch (_) {
+      return (false, 'Password change failed (${res.statusCode})');
     }
   }
 

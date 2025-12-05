@@ -10,6 +10,7 @@ class ApiConfig {
   static const String verifyResetCode = '/auth/verify-reset-code';
   static const String resendVerification = '/auth/resend-verification';
   static const String resetPassword = '/auth/reset-password';
+  static const String changePassword = '/auth/change-password';
   static const String vlmChat = '/vlm/chat';
   static const String userProfile = '/users/profile';
   static const String reports = '/reports';

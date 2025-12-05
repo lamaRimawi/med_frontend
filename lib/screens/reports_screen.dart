@@ -8,6 +8,7 @@ import '../models/report_model.dart';
 import '../services/reports_service.dart';
 import '../services/api_client.dart';
 import '../config/api_config.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ReportsScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -283,47 +284,226 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   void _handleViewReport(Report report) {
-    // Show a dialog or navigate to report details
+    final isDark = _isDarkMode;
+    final title = _getReportTitle(report);
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('View Report #${report.reportId}'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: report.fields.length,
-            itemBuilder: (context, index) {
-              final field = report.fields[index];
-              return ListTile(
-                title: Text(field.fieldName),
-                subtitle: Text('${field.fieldValue} ${field.fieldUnit ?? ""}'),
-                trailing: field.isNormal == true
-                    ? const Icon(Icons.check_circle, color: Colors.green)
-                    : (field.isNormal == false
-                        ? const Icon(Icons.warning, color: Colors.orange)
-                        : null),
-              );
-            },
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(16),
+        child: Container(
+          width: double.infinity,
+          constraints: const BoxConstraints(maxHeight: 600),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
+                  ),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: isDark ? const Color(0xFF334155) : Colors.grey[200]!,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF39A4E6).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(LucideIcons.fileText, color: Color(0xFF39A4E6), size: 24),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : const Color(0xFF1E293B),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            report.reportDate,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark ? Colors.grey[400] : Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(LucideIcons.x, color: isDark ? Colors.grey[400] : Colors.grey[400]),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Content
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.all(20),
+                  itemCount: report.fields.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final field = report.fields[index];
+                    final isNormal = field.isNormal ?? true; // Default to true if null
+                    
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF334155) : Colors.grey[100]!,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  field.fieldName,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Text(
+                                      field.fieldValue,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: isDark ? Colors.grey[300] : const Color(0xFF475569),
+                                      ),
+                                    ),
+                                    if (field.fieldUnit != null) ...[
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        field.fieldUnit!,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: isDark ? Colors.grey[500] : Colors.grey[400],
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: isNormal 
+                                  ? const Color(0xFF10B981).withOpacity(0.1)
+                                  : const Color(0xFFF59E0B).withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              isNormal ? LucideIcons.check : LucideIcons.alertTriangle,
+                              size: 16,
+                              color: isNormal ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              
+              // Footer
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: isDark ? const Color(0xFF334155) : Colors.grey[200]!,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(LucideIcons.check, size: 18),
+                        label: const Text('Done'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF39A4E6),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
       ),
     );
   }
 
-  void _handleShareReport(Report report) {
-    // Show a toast message indicating share action
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Sharing Report #${report.reportId}...'),
-        duration: const Duration(seconds: 2),
-      ),
+  Future<void> _handleShareReport(Report report) async {
+    final buffer = StringBuffer();
+    buffer.writeln('📋 Medical Report: ${_getReportTitle(report)}');
+    buffer.writeln('📅 Date: ${report.reportDate}');
+    buffer.writeln('🏥 Fields Extracted: ${report.totalFields}');
+    buffer.writeln('----------------------------------------');
+    
+    for (var field in report.fields) {
+      buffer.write('• ${field.fieldName}: ${field.fieldValue}');
+      if (field.fieldUnit != null && field.fieldUnit!.isNotEmpty) {
+        buffer.write(' ${field.fieldUnit}');
+      }
+      buffer.writeln();
+    }
+    
+    buffer.writeln('----------------------------------------');
+    buffer.writeln('Shared from HealthTrack App 📱');
+    
+    await Share.share(
+      buffer.toString(),
+      subject: 'Medical Report: ${_getReportTitle(report)}',
     );
   }
 
@@ -392,8 +572,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
             ),
           ),
 
-          // Animated Background Elements
-          const _AnimatedBackground(),
+          // Animated Background Elements removed
+
 
           // Content
           SafeArea(
@@ -655,8 +835,37 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
+  String _getReportTitle(Report report) {
+    // Try to find a title from fields
+    final titleField = report.fields.firstWhere(
+      (f) => f.fieldName.toLowerCase().contains('test name') || 
+             f.fieldName.toLowerCase().contains('report type') ||
+             f.fieldName.toLowerCase().contains('study'),
+      orElse: () => ReportField(
+        id: 0, 
+        fieldName: '', 
+        fieldValue: '', 
+        createdAt: ''
+      ),
+    );
+
+    if (titleField.fieldName.isNotEmpty) {
+      return titleField.fieldValue;
+    }
+    
+    // If no specific field, try to guess from the first field if it looks like a title
+    if (report.fields.isNotEmpty) {
+      // Often the first field is the main test name
+      return "Medical Report"; 
+    }
+
+    return "Medical Report";
+  }
+
   Widget _buildReportCard(Report report, int index) {
     final isDark = _isDarkMode;
+    final title = _getReportTitle(report);
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -678,7 +887,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         child: Column(
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
                   width: 56,
@@ -703,35 +912,21 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Report #${report.reportId}',
+                        title,
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color:
-                              isDark ? Colors.white : const Color(0xFF111827),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF111827),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF1E3A5F)
-                              : const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          report.reportDate,
-                          style: const TextStyle(
-                            color: Color(0xFF39A4E6),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${report.totalFields} Fields Extracted',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark ? Colors.grey[400] : Colors.grey[500],
                         ),
                       ),
                     ],
@@ -744,17 +939,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            _buildInfoRow(LucideIcons.list, '${report.totalFields} Fields Extracted'),
-            const SizedBox(height: 8),
-            _buildInfoRow(LucideIcons.calendar, 'Created: ${report.createdAt}'),
+            
+            const SizedBox(height: 20),
 
-            const SizedBox(height: 16),
+
+
             Row(
               children: [
-                _buildTextButton(LucideIcons.eye, 'View', () => _handleViewReport(report)),
+                Expanded(child: _buildOutlinedButton(LucideIcons.eye, 'View Details', () => _handleViewReport(report))),
                 const SizedBox(width: 12),
-                _buildTextButton(LucideIcons.image, 'Images', () => _handleViewImages(report)),
+                _buildIconOnlyButton(LucideIcons.share2, () => _handleShareReport(report)),
                 const SizedBox(width: 12),
                 _buildIconOnlyButton(LucideIcons.download, () => _handleDownloadReport(report)),
               ],
@@ -763,6 +957,39 @@ class _ReportsScreenState extends State<ReportsScreen> {
         ),
       ),
     ).animate(delay: (index * 50).ms).fadeIn().slideX(begin: -0.1, end: 0);
+  }
+
+  Widget _buildOutlinedButton(IconData icon, String label, VoidCallback onTap) {
+    final isDark = _isDarkMode;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFF39A4E6),
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18, color: const Color(0xFF39A4E6)),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF39A4E6),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildInfoRow(IconData icon, String text) {
@@ -837,19 +1064,19 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isDestructive
-              ? (isDark ? const Color(0xFF450A0A) : Colors.red[50])
-              : (isDark ? const Color(0xFF334155) : Colors.grey[100]),
+              ? (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2))
+              : (isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(
           icon,
-          size: 16,
+          size: 20,
           color: isDestructive
-              ? (isDark ? Colors.red[300] : Colors.red[600])
-              : (isDark ? Colors.grey[300] : Colors.grey[600]),
+              ? (isDark ? Colors.red[300] : Colors.red[500])
+              : (isDark ? Colors.grey[300] : const Color(0xFF64748B)),
         ),
       ),
     );

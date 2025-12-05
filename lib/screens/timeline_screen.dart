@@ -351,7 +351,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = widget.isDarkMode;
-    final bgColor = isDark ? const Color(0xFF0F1419) : const Color(0xFFF9FAFB);
+    final bgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF9FAFB);
     final textColor = isDark ? Colors.white : const Color(0xFF111827);
     final subTextColor = isDark ? Colors.grey[400] : Colors.grey[600];
     final borderColor = isDark ? Colors.grey[800]! : Colors.grey[200]!;
