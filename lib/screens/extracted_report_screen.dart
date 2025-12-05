@@ -205,10 +205,13 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
     switch (status) {
       case 'high':
       case 'low':
-        return const Color(0xFF39A4E6);
+        return const Color(0xFFF59E0B); // Orange for borderline
       case 'critical':
-        return Colors.redAccent;
+        return const Color(0xFFEF4444); // Red for critical
+      case 'abnormal':
+        return const Color(0xFFF59E0B); // Orange for abnormal
       case 'normal':
+        return const Color(0xFF10B981); // Green for normal
       default:
         return widget.isDarkMode ? Colors.grey : Colors.grey.shade700;
     }
@@ -218,10 +221,13 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
     switch (status) {
       case 'high':
       case 'low':
-        return const Color(0x1A39A4E6); // 10% alpha
+        return const Color(0x1AF59E0B); // 10% alpha orange
       case 'critical':
-        return widget.isDarkMode ? const Color(0x33FF0000) : Colors.red.shade50;
+        return const Color(0x1AEF4444); // 10% alpha red
+      case 'abnormal':
+        return const Color(0x1AF59E0B); // 10% alpha orange
       case 'normal':
+        return const Color(0x1A10B981); // 10% alpha green
       default:
         return widget.isDarkMode
             ? const Color(0x80373737)

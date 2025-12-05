@@ -111,11 +111,41 @@ class VlmService {
         ? null
         : DoctorInfo(name: doctorNames, specialty: 'Referring Physician');
 
-    // We don't have age/gender in response; fill placeholders
+    // Parse age and gender from backend response
+    int age = 0;
+    String gender = 'Unknown';
+    
+    // Try to get age and gender from separate fields if available
+    if (reportData.containsKey('patient_age')) {
+      age = int.tryParse(reportData['patient_age'].toString()) ?? 0;
+    }
+    if (reportData.containsKey('patient_gender')) {
+      gender = reportData['patient_gender'].toString();
+    }
+    
+    // If not found, try to extract from patient_name or other fields
+    // The backend might include "Female/20 Years" in the response
+    if (age == 0 || gender == 'Unknown') {
+      // Check if there's a gender_age field
+      final genderAge = reportData['gender_age']?.toString() ?? '';
+      if (genderAge.isNotEmpty) {
+        final parts = genderAge.split('/');
+        if (parts.length >= 2) {
+          gender = parts[0].trim();
+          final ageMatch = RegExp(r'(\d+)').firstMatch(parts[1]);
+          if (ageMatch != null) {
+            age = int.tryParse(ageMatch.group(1) ?? '0') ?? 0;
+          }
+        }
+      }
+    }
+    
+    print('VlmService: Parsed patient info - Age: $age, Gender: $gender');
+
     final patientInfo = PatientInfo(
       name: patientName.isEmpty ? 'Unknown' : patientName,
-      age: 0,
-      gender: 'Unknown',
+      age: age,
+      gender: gender,
     );
 
     return ExtractedReportData(
