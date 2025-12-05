@@ -260,6 +260,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+
+          // Notifications Panel
+          if (_showNotifications) _buildNotificationsPanel(),
+
+          // Quick View Modal
+          if (_showQuickView != null) _buildQuickViewModal(),
+
+          // All Report Types Modal
+          if (_showAllReportTypes) _buildAllReportTypesModal(),
         ],
       );
     }
@@ -946,13 +955,47 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildReportTypes() {
-    final reportTypes = [
+  List<Map<String, dynamic>> _getReportTypes() {
+    // Calculate counts from cached reports
+    final counts = <String, int>{};
+    final allReports = ReportsService().cachedReports ?? [];
+    
+    for (var r in allReports) {
+      String type = 'General';
+      
+      // Try to find a matching field in additionalFields
+      final typeField = r.additionalFields.firstWhere(
+        (f) => f.fieldName.toLowerCase() == 'type' || f.category.toLowerCase() == 'type',
+        orElse: () => AdditionalField(id: -1, fieldName: '', fieldValue: '', category: ''),
+      );
+      
+      if (typeField.id != -1) {
+        type = typeField.fieldValue;
+      }
+      
+      // Normalize type string
+      final typeLower = type.toLowerCase();
+      if (typeLower.contains('lab') || typeLower.contains('blood')) type = 'Lab Results';
+      else if (typeLower.contains('prescription') || typeLower.contains('medication')) type = 'Prescriptions';
+      else if (typeLower.contains('imaging') || typeLower.contains('x-ray') || typeLower.contains('scan')) type = 'Imaging';
+      else if (typeLower.contains('vital')) type = 'Vitals';
+      else if (typeLower.contains('pathology')) type = 'Pathology';
+      else if (typeLower.contains('cardio')) type = 'Cardiology';
+      else if (typeLower.contains('neuro')) type = 'Neurology';
+      else if (typeLower.contains('ortho')) type = 'Orthopedic';
+      else if (typeLower.contains('temp')) type = 'Temperature';
+      else if (typeLower.contains('resp')) type = 'Respiratory';
+      else type = 'General';
+
+      counts[type] = (counts[type] ?? 0) + 1;
+    }
+
+    return [
       {
         'icon': LucideIcons.clipboard,
         'label': 'All Records',
         'color': const Color(0xFF39A4E6),
-        'count': 24,
+        'count': allReports.length,
         'navigateTo': 'records',
         'description': 'View all medical records',
       },
@@ -960,7 +1003,7 @@ class _HomeScreenState extends State<HomeScreen> {
         'icon': LucideIcons.droplet,
         'label': 'Lab Results',
         'color': const Color(0xFFFF6B9D),
-        'count': 12,
+        'count': counts['Lab Results'] ?? 0,
         'quickView': 'lab',
         'description': 'Blood tests & diagnostics',
       },
@@ -968,7 +1011,7 @@ class _HomeScreenState extends State<HomeScreen> {
         'icon': LucideIcons.pill,
         'label': 'Prescriptions',
         'color': const Color(0xFF6C63FF),
-        'count': 8,
+        'count': counts['Prescriptions'] ?? 0,
         'quickView': 'prescription',
         'description': 'Medication history',
       },
@@ -976,27 +1019,81 @@ class _HomeScreenState extends State<HomeScreen> {
         'icon': LucideIcons.scan,
         'label': 'Imaging',
         'color': const Color(0xFFA78BFA),
-        'count': 6,
+        'count': counts['Imaging'] ?? 0,
         'quickView': 'imaging',
         'description': 'X-rays, MRI, CT scans',
       },
       {
-        'icon': LucideIcons.activity,
-        'label': 'Vitals',
-        'color': const Color(0xFF34D399),
-        'count': 18,
-        'quickView': 'vitals',
-        'description': 'BP, heart rate, temp',
+        'icon': LucideIcons.heartPulse,
+        'label': 'Cardiology',
+        'color': const Color(0xFFEF4444),
+        'count': counts['Cardiology'] ?? 0,
+        'quickView': 'cardiology',
+        'description': 'Heart health',
+      },
+      {
+        'icon': LucideIcons.brainCircuit,
+        'label': 'Neurology',
+        'color': const Color(0xFF8B5CF6),
+        'count': counts['Neurology'] ?? 0,
+        'quickView': 'neurology',
+        'description': 'Brain & nerves',
+      },
+      {
+        'icon': LucideIcons.bone,
+        'label': 'Orthopedic',
+        'color': const Color(0xFFF59E0B),
+        'count': counts['Orthopedic'] ?? 0,
+        'quickView': 'orthopedic',
+        'description': 'Bones & joints',
       },
       {
         'icon': LucideIcons.microscope,
         'label': 'Pathology',
         'color': const Color(0xFFFBBF24),
-        'count': 4,
+        'count': counts['Pathology'] ?? 0,
         'quickView': 'pathology',
         'description': 'Tissue & cell analysis',
       },
+      {
+        'icon': LucideIcons.stethoscope,
+        'label': 'General',
+        'color': const Color(0xFF10B981),
+        'count': counts['General'] ?? 0,
+        'quickView': 'general',
+        'description': 'General checkups',
+      },
+      {
+        'icon': LucideIcons.thermometer,
+        'label': 'Temperature',
+        'color': const Color(0xFFF97316),
+        'count': counts['Temperature'] ?? 0,
+        'quickView': 'temperature',
+        'description': 'Body temp records',
+      },
+      {
+        'icon': LucideIcons.wind,
+        'label': 'Respiratory',
+        'color': const Color(0xFF06B6D4),
+        'count': counts['Respiratory'] ?? 0,
+        'quickView': 'respiratory',
+        'description': 'Lungs & breathing',
+      },
+      {
+        'icon': LucideIcons.activity,
+        'label': 'Vitals',
+        'color': const Color(0xFF34D399),
+        'count': counts['Vitals'] ?? 0,
+        'quickView': 'vitals',
+        'description': 'BP, heart rate',
+      },
     ];
+  }
+
+  Widget _buildReportTypes() {
+    final reportTypes = _getReportTypes();
+    // Show top 6 on main screen
+    final displayTypes = reportTypes.take(6).toList();
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -1033,9 +1130,9 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisSpacing: 16,
               childAspectRatio: 1,
             ),
-            itemCount: reportTypes.length,
+            itemCount: displayTypes.length,
             itemBuilder: (context, index) {
-              final type = reportTypes[index];
+              final type = displayTypes[index];
               return GestureDetector(
                     onTap: () {
                       setState(
@@ -2106,106 +2203,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildAllReportTypesModal() {
-    final allReportTypes = [
-      {
-        'icon': LucideIcons.clipboard,
-        'label': 'All Records',
-        'color': const Color(0xFF39A4E6),
-        'count': 24,
-        'navigateTo': 'reports',
-        'description': 'View all medical records',
-      },
-      {
-        'icon': LucideIcons.droplet,
-        'label': 'Lab Results',
-        'color': const Color(0xFFFF6B9D),
-        'count': 12,
-        'quickView': 'lab',
-        'description': 'Blood tests & diagnostics',
-      },
-      {
-        'icon': LucideIcons.pill,
-        'label': 'Prescriptions',
-        'color': const Color(0xFF6C63FF),
-        'count': 8,
-        'quickView': 'prescription',
-        'description': 'Medication history',
-      },
-      {
-        'icon': LucideIcons.scan,
-        'label': 'Imaging',
-        'color': const Color(0xFFA78BFA),
-        'count': 6,
-        'quickView': 'imaging',
-        'description': 'X-rays, MRI, CT scans',
-      },
-      {
-        'icon': LucideIcons.activity,
-        'label': 'Vitals',
-        'color': const Color(0xFF34D399),
-        'count': 18,
-        'quickView': 'vitals',
-        'description': 'BP, heart rate, temp',
-      },
-      {
-        'icon': LucideIcons.microscope,
-        'label': 'Pathology',
-        'color': const Color(0xFFFBBF24),
-        'count': 4,
-        'quickView': 'pathology',
-        'description': 'Tissue & cell analysis',
-      },
-      {
-        'icon': LucideIcons.heartPulse,
-        'label': 'Cardiology',
-        'color': const Color(0xFFEF4444),
-        'count': 5,
-        'quickView': 'cardiology',
-        'description': 'Heart health reports',
-      },
-      {
-        'icon': LucideIcons.brain,
-        'label': 'Neurology',
-        'color': const Color(0xFF8B5CF6),
-        'count': 3,
-        'quickView': 'neurology',
-        'description': 'Brain & nerve tests',
-      },
-      {
-        'icon': LucideIcons.bone,
-        'label': 'Orthopedics',
-        'color': const Color(0xFFF59E0B),
-        'count': 7,
-        'quickView': 'orthopedics',
-        'description': 'Bone & joint scans',
-      },
-      {
-        'icon': LucideIcons.stethoscope,
-        'label': 'General',
-        'color': const Color(0xFF10B981),
-        'count': 15,
-        'quickView': 'general',
-        'description': 'General checkups',
-      },
-      {
-        'icon': LucideIcons.thermometer,
-        'label': 'Temperature',
-        'color': const Color(0xFFF97316),
-        'count': 22,
-        'quickView': 'temperature',
-        'description': 'Body temperature logs',
-      },
-      {
-        'icon': LucideIcons.wind,
-        'label': 'Respiratory',
-        'color': const Color(0xFF06B6D4),
-        'count': 4,
-        'quickView': 'respiratory',
-        'description': 'Lung function tests',
-      },
-    ];
 
+
+
+  Widget _buildAllReportTypesModal() {
+    final reportTypes = _getReportTypes();
+    
     return GestureDetector(
       onTap: () => setState(() => _showAllReportTypes = false),
       child: Container(
@@ -2213,434 +2216,282 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Center(
           child: GestureDetector(
             onTap: () {}, // Prevent closing when tapping modal
-            child:
-                Container(
-                      margin: const EdgeInsets.all(16),
-                      constraints: const BoxConstraints(
-                        maxWidth: 500,
-                        maxHeight: 700,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _isDarkMode
-                            ? const Color(0xFF1F2937)
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(32),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 30,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Header
-                          Container(
-                            padding: const EdgeInsets.all(24),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+              constraints: const BoxConstraints(
+                maxWidth: 600,
+                maxHeight: 700,
+              ),
+              decoration: BoxDecoration(
+                color: _isDarkMode
+                    ? const Color(0xFF1F2937)
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 30,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'All Report Types',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: _isDarkMode ? Colors.white : const Color(0xFF111827),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Browse all medical report categories',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: _isDarkMode ? Colors.grey[400] : Colors.grey[500],
+                              ),
+                            ),
+                          ],
+                        ),
+                        // Close Button
+                        GestureDetector(
+                          onTap: () => setState(() => _showAllReportTypes = false),
+                          child: Container(
+                            width: 36,
+                            height: 36,
                             decoration: BoxDecoration(
                               color: _isDarkMode
-                                  ? const Color(0xFF374151)
-                                  : const Color(0xFFF9FAFB),
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(32),
-                                topRight: Radius.circular(32),
-                              ),
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: _isDarkMode
-                                      ? const Color(0xFF4B5563)
-                                      : const Color(0xFFE5E7EB),
-                                ),
-                              ),
+                                  ? Colors.white.withOpacity(0.1)
+                                  : Colors.grey[100],
+                              shape: BoxShape.circle,
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'All Report Types',
-                                      style: TextStyle(
-                                        color: _isDarkMode
-                                            ? Colors.white
-                                            : const Color(0xFF111827),
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Browse all medical report categories',
-                                      style: TextStyle(
-                                        color: _isDarkMode
-                                            ? Colors.grey[400]
-                                            : Colors.grey[600],
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                GestureDetector(
-                                  onTap: () => setState(
-                                    () => _showAllReportTypes = false,
-                                  ),
-                                  child: Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: _isDarkMode
-                                          ? const Color(0xFF4B5563)
-                                          : const Color(0xFFE5E7EB),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Icon(
-                                      LucideIcons.x,
-                                      color: _isDarkMode
-                                          ? Colors.grey[300]
-                                          : Colors.grey[600],
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            child: Icon(
+                              LucideIcons.x,
+                              size: 20,
+                              color: _isDarkMode ? Colors.white : Colors.grey[600],
                             ),
                           ),
-                          // Content
-                          Flexible(
-                            child: SingleChildScrollView(
-                              padding: const EdgeInsets.all(24),
-                              child: GridView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 3,
-                                      crossAxisSpacing: 16,
-                                      mainAxisSpacing: 16,
-                                      childAspectRatio: 1,
-                                    ),
-                                itemCount: allReportTypes.length,
-                                itemBuilder: (context, index) {
-                                  final type = allReportTypes[index];
-                                  return GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _showAllReportTypes = false;
-                                        _selectedReportType =
-                                            type['label'] as String;
-                                      });
-
-                                      Future.delayed(
-                                        const Duration(milliseconds: 200),
-                                        () {
-                                          setState(
-                                            () => _selectedReportType = null,
-                                          );
-
-                                          // Navigate to full Records screen (legacy flow)
-                                          if (type['navigateTo'] == 'records') {
-                                            setState(() => _showRecords = true);
-                                            return;
-                                          }
-
-                                          // Open quick view modal
-                                          if (type['quickView'] != null) {
-                                            setState(() {
-                                              _showQuickView = {
-                                                'type':
-                                                    type['quickView'] as String,
-                                                'title':
-                                                    type['label'] as String,
-                                              };
-                                            });
-                                          }
-                                        },
-                                      );
-                                    },
-                                    child:
-                                        Container(
-                                              decoration: BoxDecoration(
-                                                color: _isDarkMode
-                                                    ? Colors.white.withOpacity(
-                                                        0.05,
-                                                      )
-                                                    : Colors.white.withOpacity(
-                                                        0.95,
-                                                      ),
-                                                borderRadius:
-                                                    BorderRadius.circular(24),
-                                                border: Border.all(
-                                                  color: _isDarkMode
-                                                      ? const Color(0xFF374151)
-                                                      : const Color(0xFFE5E7EB),
-                                                ),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black
-                                                        .withOpacity(0.05),
-                                                    blurRadius: 10,
-                                                    offset: const Offset(0, 4),
-                                                  ),
-                                                ],
-                                              ),
-                                              child: Stack(
-                                                children: [
-                                                  // Subtle gradient overlay
-                                                  Positioned.fill(
-                                                    child: Container(
-                                                      decoration: BoxDecoration(
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              24,
-                                                            ),
-                                                        gradient: LinearGradient(
-                                                          begin:
-                                                              Alignment.topLeft,
-                                                          end: Alignment
-                                                              .bottomRight,
-                                                          colors: [
-                                                            (type['color']
-                                                                    as Color)
-                                                                .withOpacity(
-                                                                  0.05,
-                                                                ),
-                                                            Colors.transparent,
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  // Count Badge
-                                                  Positioned(
-                                                    top: 8,
-                                                    right: 8,
-                                                    child: Container(
-                                                      padding:
-                                                          const EdgeInsets.symmetric(
-                                                            horizontal: 8,
-                                                            vertical: 4,
-                                                          ),
-                                                      decoration: BoxDecoration(
-                                                        color:
-                                                            type['color']
-                                                                as Color,
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              12,
-                                                            ),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            color:
-                                                                (type['color']
-                                                                        as Color)
-                                                                    .withOpacity(
-                                                                      0.3,
-                                                                    ),
-                                                            blurRadius: 8,
-                                                            offset:
-                                                                const Offset(
-                                                                  0,
-                                                                  2,
-                                                                ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Text(
-                                                        '${type['count']}',
-                                                        style: const TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 11,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  // Icon and Label
-                                                  Center(
-                                                    child: Column(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        Icon(
-                                                          type['icon']
-                                                              as IconData,
-                                                          color:
-                                                              type['color']
-                                                                  as Color,
-                                                          size: 44,
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 8,
-                                                        ),
-                                                        Padding(
-                                                          padding:
-                                                              const EdgeInsets.symmetric(
-                                                                horizontal: 4,
-                                                              ),
-                                                          child: Text(
-                                                            type['label']
-                                                                as String,
-                                                            textAlign: TextAlign
-                                                                .center,
-                                                            style: TextStyle(
-                                                              fontSize: 13,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              color: _isDarkMode
-                                                                  ? Colors
-                                                                        .grey[200]
-                                                                  : Colors
-                                                                        .grey[700],
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            )
-                                            .animate()
-                                            .fadeIn(
-                                              delay: Duration(
-                                                milliseconds: index * 30,
-                                              ),
-                                              duration: const Duration(
-                                                milliseconds: 300,
-                                              ),
-                                            )
-                                            .scale(
-                                              begin: const Offset(0.8, 0.8),
-                                              end: const Offset(1, 1),
-                                              duration: const Duration(
-                                                milliseconds: 300,
-                                              ),
-                                              delay: Duration(
-                                                milliseconds: index * 30,
-                                              ),
-                                              curve: Curves.easeOutBack,
-                                            ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                          // Footer Info
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: _isDarkMode
-                                    ? [
-                                        const Color(
-                                          0xFF374151,
-                                        ).withOpacity(0.5),
-                                        const Color(
-                                          0xFF374151,
-                                        ).withOpacity(0.3),
-                                      ]
-                                    : [
-                                        const Color(0xFFF9FAFB),
-                                        const Color(
-                                          0xFFE5E7EB,
-                                        ).withOpacity(0.5),
-                                      ],
-                              ),
-                              borderRadius: const BorderRadius.only(
-                                bottomLeft: Radius.circular(32),
-                                bottomRight: Radius.circular(32),
-                              ),
-                              border: Border(
-                                top: BorderSide(
-                                  color: _isDarkMode
-                                      ? const Color(0xFF4B5563)
-                                      : const Color(0xFFE5E7EB),
-                                ),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    RichText(
-                                      text: TextSpan(
-                                        children: [
-                                          const TextSpan(
-                                            text: '12',
-                                            style: TextStyle(
-                                              color: Color(0xFF39A4E6),
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          TextSpan(
-                                            text: ' Active Categories',
-                                            style: TextStyle(
-                                              color: _isDarkMode
-                                                  ? Colors.grey[300]
-                                                  : const Color(0xFF374151),
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'All report types are fully functional',
-                                      style: TextStyle(
-                                        color: _isDarkMode
-                                            ? Colors.grey[500]
-                                            : Colors.grey[400],
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        Color(0xFF39A4E6),
-                                        Color(0xFF2B8FD9),
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Icon(
-                                    LucideIcons.activity,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                    .animate()
-                    .fadeIn(duration: const Duration(milliseconds: 200))
-                    .scale(
-                      begin: const Offset(0.9, 0.9),
-                      end: const Offset(1, 1),
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOutBack,
+                        ),
+                      ],
                     ),
+                  ),
+                  
+                  // Grid Content
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                      child: GridView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 0.8,
+                        ),
+                        itemCount: reportTypes.length,
+                        itemBuilder: (context, index) {
+                          final type = reportTypes[index];
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() => _showAllReportTypes = false);
+                              // Delayed navigation to allow modal to close smoothly
+                              Future.delayed(const Duration(milliseconds: 200), () {
+                                if (type['navigateTo'] == 'records') {
+                                  setState(() => _showRecords = true);
+                                  return;
+                                }
+                                if (type['quickView'] != null) {
+                                  setState(() {
+                                    _showQuickView = {
+                                      'type': type['quickView'] as String,
+                                      'title': type['label'] as String,
+                                    };
+                                  });
+                                }
+                              });
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: _isDarkMode
+                                    ? Colors.white.withOpacity(0.05)
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: _isDarkMode
+                                      ? const Color(0xFF374151)
+                                      : const Color(0xFFE5E7EB),
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Stack(
+                                children: [
+                                  // Gradient Overlay
+                                  Positioned.fill(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(24),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            (type['color'] as Color).withOpacity(0.05),
+                                            Colors.transparent,
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  // Count Badge
+                                  if ((type['count'] as int) > 0)
+                                    Positioned(
+                                      top: 8,
+                                      right: 8,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: type['color'] as Color,
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          '${type['count']}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  // Icon & Label
+                                  Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: (type['color'] as Color).withOpacity(0.1),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            type['icon'] as IconData,
+                                            color: type['color'] as Color,
+                                            size: 28,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                                          child: Text(
+                                            type['label'] as String,
+                                            textAlign: TextAlign.center,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              color: _isDarkMode ? Colors.grey[200] : Colors.grey[700],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  
+                  // Footer Stats
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(
+                          color: _isDarkMode
+                              ? const Color(0xFF374151)
+                              : const Color(0xFFE5E7EB),
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${reportTypes.length} Active Categories',
+                              style: const TextStyle(
+                                color: Color(0xFF39A4E6), // Blue to match design
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'All report types are fully functional',
+                              style: TextStyle(
+                                color: _isDarkMode ? Colors.grey[400] : Colors.grey[500],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF39A4E6),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF39A4E6).withOpacity(0.4),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            LucideIcons.activity,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
-    ).animate().fadeIn(duration: const Duration(milliseconds: 200));
+    );
   }
 }
+
