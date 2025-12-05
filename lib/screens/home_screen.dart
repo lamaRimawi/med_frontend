@@ -7,6 +7,8 @@ import '../widgets/animated_bubble_background.dart';
 import '../models/user_model.dart';
 import 'medical_record_screen.dart';
 import 'camera_upload_screen.dart';
+import '../models/report_model.dart';
+import '../services/reports_service.dart';
 import 'profile_screen.dart';
 import 'timeline_screen.dart';
 import 'reports_screen.dart';
@@ -48,15 +50,81 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedDate = 11;
   User? _currentUser;
 
-  // Recent reports data (mirrors React structure)
+  // Recent reports data
   List<Map<String, dynamic>> _dates = [];
   List<Map<String, String>> _reports = [];
+  bool _isLoadingReports = true;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
     _initializeDates();
+    _loadReports();
+  }
+
+  Future<void> _loadReports() async {
+    try {
+      // 1. Load from cache first
+      final cached = ReportsService().cachedReports;
+      if (cached != null) {
+        _mapReportsToUi(cached);
+        setState(() => _isLoadingReports = false);
+      }
+
+      // 2. Fetch fresh
+      final reports = await ReportsService().getReports();
+      if (mounted) {
+        _mapReportsToUi(reports);
+        setState(() => _isLoadingReports = false);
+      }
+    } catch (e) {
+      debugPrint('Error loading home reports: $e');
+      if (mounted) setState(() => _isLoadingReports = false);
+    }
+  }
+
+  void _mapReportsToUi(List<Report> reports) {
+    _reports = reports.map((r) {
+      // Parse date
+      DateTime dt;
+      try {
+        dt = DateTime.parse(r.createdAt); 
+      } catch (_) {
+        dt = DateTime.now();
+      }
+      
+      // Attempt to find doctor
+      String doctor = 'Unknown Doctor';
+      final docField = r.additionalFields.firstWhere(
+        (f) => f.fieldName.toLowerCase().contains('doctor') || 
+               f.category.toLowerCase() == 'doctor',
+        orElse: () => AdditionalField(id: -1, fieldName: '', fieldValue: '', category: ''),
+      );
+      if (docField.id != -1) doctor = docField.fieldValue;
+
+      // Determine status
+      final allNormal = r.fields.every((f) => f.isNormal ?? true);
+      final status = allNormal ? 'Normal' : 'Attention';
+
+      // Title - use first field or generic
+      String title = 'Medical Report';
+      if (r.fields.isNotEmpty) {
+        title = r.fields.first.fieldName;
+        // Clean up title if it's too long or specific
+        if (title.length > 20) title = 'Medical Report'; 
+      }
+
+      return {
+        'day': '${dt.day}',
+        'date': '${dt.day} ${_getMonthName(dt.month)} - ${_getDayName(dt.weekday)}',
+        'time': '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}',
+        'title': title,
+        'doctor': doctor,
+        'status': status,
+        'type': 'Lab Results', // Defaulting for now
+      };
+    }).toList();
   }
 
   Future<void> _loadUserData() async {
@@ -80,46 +148,6 @@ class _HomeScreenState extends State<HomeScreen> {
         'label': _getDayLabel(date),
       };
     });
-
-    // Update reports to match today/yesterday
-    _reports = [
-      {
-        'day': '${now.day}',
-        'date': '${now.day} ${_getMonthName(now.month)} - ${_getDayName(now.weekday)} - Today',
-        'time': '09:30',
-        'title': 'Blood Test Report',
-        'doctor': 'Dr. Olivia Turner',
-        'status': 'Normal',
-        'type': 'Lab Results',
-      },
-      {
-        'day': '${now.day}',
-        'date': '${now.day} ${_getMonthName(now.month)} - ${_getDayName(now.weekday)} - Today',
-        'time': '13:10',
-        'title': 'Vitamin D Level Test',
-        'doctor': 'Dr. Amanda Stevens',
-        'status': 'Low',
-        'type': 'Lab Results',
-      },
-      {
-        'day': '${now.subtract(const Duration(days: 1)).day}',
-        'date': '${now.subtract(const Duration(days: 1)).day} ${_getMonthName(now.subtract(const Duration(days: 1)).month)} - ${_getDayName(now.subtract(const Duration(days: 1)).weekday)}',
-        'time': '16:20',
-        'title': 'Chest X-ray',
-        'doctor': 'Dr. Mark Jensen',
-        'status': 'Clear',
-        'type': 'Imaging',
-      },
-      {
-        'day': '${now.subtract(const Duration(days: 2)).day}',
-        'date': '${now.subtract(const Duration(days: 2)).day} ${_getMonthName(now.subtract(const Duration(days: 2)).month)} - ${_getDayName(now.subtract(const Duration(days: 2)).weekday)}',
-        'time': '08:45',
-        'title': 'Prescription Renewal',
-        'doctor': 'Dr. Sara Connor',
-        'status': 'Scheduled',
-        'type': 'Prescriptions',
-      },
-    ];
   }
 
   String _getDayLabel(DateTime date) {
@@ -542,7 +570,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const SizedBox(height: 16),
-
+            
+            if (_isLoadingReports)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(32.0),
+                  child: CircularProgressIndicator(color: Colors.white),
+                ),
+              )
+            else ...[
             // Date selector (Only show if not searching)
             if (!isSearching) ...[
               SizedBox(
@@ -816,6 +852,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                 ],
               ),
+            ],
           ],
         ),
       ),
