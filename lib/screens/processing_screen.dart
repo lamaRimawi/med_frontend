@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:io';
-import 'package:health_track/models/uploaded_file.dart';
+import 'package:mediScan/models/uploaded_file.dart';
 
 class ProcessingScreen extends StatelessWidget {
   final bool isDarkMode;

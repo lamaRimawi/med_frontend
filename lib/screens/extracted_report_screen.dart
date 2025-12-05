@@ -8,7 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'package:health_track/models/extracted_report_data.dart';
+import 'package:mediScan/models/extracted_report_data.dart';
 
 class ExtractedReportScreen extends StatefulWidget {
   final bool isDarkMode;
@@ -301,42 +301,51 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
                     vertical: 12,
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
+                      Expanded(
+                        child: Row(
+                          children: [
                           _roundIconButton(
                             LucideIcons.arrowLeft,
-                            onTap: widget.onBack,
+                            onTap: () {
+                              debugPrint('DEBUG: Back button tapped');
+                              widget.onBack();
+                            },
                           ),
                           const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Medical Report',
-                                style: TextStyle(
-                                  color: widget.isDarkMode
-                                      ? Colors.white
-                                      : Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Medical Report',
+                                  style: TextStyle(
+                                    color: widget.isDarkMode
+                                        ? Colors.white
+                                        : Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '${d.reportType} • ${d.reportDate}',
-                                style: TextStyle(
-                                  color: widget.isDarkMode
-                                      ? Colors.grey
-                                      : Colors.grey.shade700,
-                                  fontSize: 12,
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${d.reportType} • ${d.reportDate}',
+                                  style: TextStyle(
+                                    color: widget.isDarkMode
+                                        ? Colors.grey
+                                        : Colors.grey.shade700,
+                                    fontSize: 12,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                            ],
-                          ),
+                              ],
+                          ), // closes Column
+                          ), // closes inner Expanded
                         ],
                       ),
+                    ),
+                      const SizedBox(width: 8),
                       Row(
                         children: [
                           _roundIconButton(
@@ -352,11 +361,8 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
                           _roundIconButton(
                             LucideIcons.x,
                             onTap: () {
-                              if (widget.onClose != null) {
-                                widget.onClose();
-                              } else {
-                                Navigator.of(context).maybePop();
-                              }
+                              debugPrint('DEBUG: Close button tapped');
+                              widget.onClose();
                             },
                           ),
                         ],
@@ -997,27 +1003,30 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
   }
 
   Widget _roundIconButton(IconData icon, {required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
+    return Material(
+      color: widget.isDarkMode
+          ? const Color(0xFF0F172A)
+          : Colors.grey.shade100,
       borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: widget.isDarkMode
-              ? const Color(0xFF0F172A)
-              : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: widget.isDarkMode
-                ? const Color(0x1FFFFFFF)
-                : Colors.grey.shade300,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: widget.isDarkMode
+                  ? const Color(0x1FFFFFFF)
+                  : Colors.grey.shade300,
+            ),
           ),
-        ),
-        child: Icon(
-          icon,
-          color: widget.isDarkMode ? Colors.grey[300] : Colors.grey.shade700,
-          size: 20,
+          child: Icon(
+            icon,
+            color: widget.isDarkMode ? Colors.grey[300] : Colors.grey.shade700,
+            size: 20,
+          ),
         ),
       ),
     );

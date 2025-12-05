@@ -20,7 +20,7 @@ class VlmService {
     );
 
     print('VlmService: Response status: ${res.statusCode}');
-    print('VlmService: Response body: ${res.body}');
+    // print('VlmService: Response body: ${res.body}');
 
     if (res.statusCode != 201 && res.statusCode != 200) {
       final msg = _safeErr(res);
@@ -44,6 +44,7 @@ class VlmService {
 
     final List<dynamic> entries = (reportData['medical_data'] ?? []) as List<dynamic>;
     
+    print('VlmService: Medical data entries (in report): $entries');
     print('VlmService: Medical data entries count: ${entries.length}');
     
     // WORKAROUND: If medical_data is empty but we have a report_id, fetch the full report
@@ -84,10 +85,12 @@ class VlmService {
     final String doctorNames = (reportData['doctor_names'] ?? '') as String;
 
     final List<dynamic> entries = (reportData['medical_data'] ?? []) as List<dynamic>;
+    print('VlmService: _parseReportData processing ${entries.length} entries: $entries');
 
     final tests = <TestResult>[];
     for (final e in entries) {
       if (e is Map<String, dynamic>) {
+        print('VlmService: Processing entry: $e');
         final name = (e['field_name'] ?? '') as String;
         final value = (e['field_value'] ?? '') as String;
         final unit = (e['field_unit'] ?? '') as String;

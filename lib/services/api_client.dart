@@ -66,7 +66,8 @@ class ApiClient {
         mergedHeaders['Authorization'] = 'Bearer $token';
       }
     }
-    final response = await http.get(_uri(path, query), headers: mergedHeaders);
+    final response = await http.get(_uri(path, query), headers: mergedHeaders)
+        .timeout(const Duration(seconds: 30));
     if (response.statusCode == 401) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('jwt_token');

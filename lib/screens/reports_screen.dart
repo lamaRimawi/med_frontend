@@ -27,25 +27,60 @@ class _ReportsScreenState extends State<ReportsScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchReports();
+    _loadInitialData();
   }
 
-  Future<void> _fetchReports() async {
-    try {
+  Future<void> _loadInitialData() async {
+    // 1. Load from cache immediately
+    final cached = ReportsService().cachedReports;
+    if (cached != null && cached.isNotEmpty) {
       setState(() {
-        _isLoading = true;
+        _reports = cached;
+        _isLoading = false;
         _error = null;
       });
+    }
+
+    // 2. Fetch fresh data
+    await _fetchReports(silent: cached != null && cached.isNotEmpty);
+  }
+
+  Future<void> _fetchReports({bool silent = false}) async {
+    try {
+      if (!silent) {
+        setState(() {
+          _isLoading = true;
+          _error = null;
+        });
+      }
+      
       final reports = await ReportsService().getReports();
-      setState(() {
-        _reports = reports;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _reports = reports;
+          _isLoading = false;
+          _error = null;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        // If we have data, show snackbar instead of full error
+        if (_reports.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(content: Text('Failed to update reports: $e')),
+          );
+          // Ensure loading is false
+          setState(() {
+            _isLoading = false;
+          });
+        } else {
+          // No data, show full error
+          setState(() {
+            _error = e.toString();
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 
@@ -792,7 +827,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           children: [
             Text('Error: $_error', style: const TextStyle(color: Colors.red)),
             ElevatedButton(
-              onPressed: _fetchReports,
+              onPressed: () => _fetchReports(silent: false),
               child: const Text('Retry'),
             ),
           ],

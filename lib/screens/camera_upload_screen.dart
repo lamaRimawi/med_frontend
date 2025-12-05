@@ -15,11 +15,11 @@ import 'processing_screen.dart';
 import 'success_screen.dart';
 import 'extracted_report_screen.dart';
 
-import 'package:health_track/models/extracted_report_data.dart';
+import 'package:mediScan/models/extracted_report_data.dart';
 
-import 'package:health_track/models/uploaded_file.dart';
-import 'package:health_track/config/api_config.dart';
-import 'package:health_track/services/vlm_service.dart';
+import 'package:mediScan/models/uploaded_file.dart';
+import 'package:mediScan/config/api_config.dart';
+import 'package:mediScan/services/vlm_service.dart';
 
 enum ViewMode { camera, review, viewer, processing, success }
 
@@ -588,6 +588,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           onViewExtractedData: extractedData == null
               ? null
               : () {
+                  final data = extractedData!;
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) => ExtractedReportScreen(
@@ -596,7 +597,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                             widget.onClose ??
                             () => Navigator.of(context).maybePop(),
                         onBack: () => Navigator.of(context).maybePop(),
-                        extractedData: extractedData!,
+                        extractedData: data,
                       ),
                     ),
                   );

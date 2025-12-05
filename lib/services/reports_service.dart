@@ -4,27 +4,58 @@ import '../models/report_model.dart';
 import 'api_client.dart';
 
 class ReportsService {
+  // Singleton pattern
+  static final ReportsService _instance = ReportsService._internal();
+  factory ReportsService() => _instance;
+  ReportsService._internal();
+
   final ApiClient _client = ApiClient.instance;
+  
+  // In-memory cache
+  List<Report>? _cachedReports;
+  DateTime? _lastFetchTime;
 
-  Future<List<Report>> getReports() async {
-    try {
-      final response = await _client.get(
-        ApiConfig.reports,
-        auth: true,
-      );
+  List<Report>? get cachedReports => _cachedReports;
 
-      if (response.statusCode == 200) {
-        final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
-        final reportsList = data['reports'] as List<dynamic>;
-        return reportsList
-            .map((e) => Report.fromJson(e as Map<String, dynamic>))
-            .toList();
-      } else {
-        throw Exception('Failed to load reports: ${response.statusCode}');
+  Future<List<Report>> getReports({bool forceRefresh = false}) async {
+    // Return cache if available and not forcing refresh (optional logic, 
+    // but for now we always fetch to be safe, but we expose cache for UI to show instantly)
+    
+    int retries = 3;
+    while (retries > 0) {
+      try {
+        final response = await _client.get(
+          ApiConfig.reports,
+          auth: true,
+        );
+
+        if (response.statusCode == 200) {
+          final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
+          final reportsList = data['reports'] as List<dynamic>;
+          final parsedReports = reportsList
+              .map((e) => Report.fromJson(e as Map<String, dynamic>))
+              .toList();
+          
+          // Update cache
+          _cachedReports = parsedReports;
+          _lastFetchTime = DateTime.now();
+          
+          return parsedReports;
+        } else {
+          throw Exception('Failed to load reports: ${response.statusCode}');
+        }
+      } catch (e) {
+        retries--;
+        if (retries == 0) {
+          // If we have cache even after failure, maybe return it? 
+          // For now, let's just rethrow if all retries fail.
+          throw Exception('Error fetching reports after retries: $e');
+        }
+        // Wait briefly before retrying
+        await Future.delayed(const Duration(seconds: 1));
       }
-    } catch (e) {
-      throw Exception('Error fetching reports: $e');
     }
+    return []; // Should not be reached
   }
 
   Future<Report> getReportDetail(int reportId) async {
