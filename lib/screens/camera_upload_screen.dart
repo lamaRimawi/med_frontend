@@ -443,48 +443,189 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
             viewMode = ViewMode.review;
           });
           
-          // Show duplicate report dialog
+          // Show modern duplicate report dialog
           showDialog(
             context: context,
-            builder: (context) => AlertDialog(
-              title: Row(
-                children: [
-                  Icon(LucideIcons.alertCircle, color: Colors.orange, size: 24),
-                  const SizedBox(width: 12),
-                  const Text('Duplicate Report'),
-                ],
-              ),
-              content: const Text(
-                'This report has already been uploaded to your account. '
-                'Would you like to upload it again as a new entry?',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    setState(() {
-                      viewMode = ViewMode.camera;
-                      capturedItems.clear();
-                    });
-                  },
-                  child: const Text('Cancel'),
+            barrierDismissible: false,
+            builder: (context) => Dialog(
+              backgroundColor: Colors.transparent,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: widget.isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF39A4E6).withOpacity(0.3),
+                      blurRadius: 30,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    // TODO: Add force upload parameter when backend supports it
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Force upload not yet supported. Please contact support.'),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Primary blue header
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFF39A4E6),
+                            const Color(0xFF2B8FD9),
+                          ],
+                        ),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(24),
+                          topRight: Radius.circular(24),
+                        ),
                       ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF39A4E6),
-                  ),
-                  child: const Text('Upload Anyway'),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              LucideIcons.copy,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          const Expanded(
+                            child: Text(
+                              'Duplicate Detected',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    // Content
+                    Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'This report already exists',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'We found an identical report in your account. Would you like to view it instead?',
+                            style: TextStyle(
+                              fontSize: 15,
+                              height: 1.6,
+                              color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[700],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          
+                          // Action buttons
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    setState(() {
+                                      viewMode = ViewMode.camera;
+                                      capturedItems.clear();
+                                    });
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    side: BorderSide(
+                                      color: widget.isDarkMode 
+                                          ? Colors.grey[700]! 
+                                          : Colors.grey[300]!,
+                                      width: 1.5,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Go Back',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    // Navigate to the existing report
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: const Row(
+                                          children: [
+                                            Icon(LucideIcons.fileText, color: Colors.white, size: 20),
+                                            SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                'Navigating to existing report...',
+                                                style: TextStyle(fontWeight: FontWeight.w600),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        backgroundColor: const Color(0xFF39A4E6),
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        duration: const Duration(seconds: 2),
+                                      ),
+                                    );
+                                    
+                                    // Navigate to reports screen
+                                    Navigator.pushNamed(context, '/reports');
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF39A4E6),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    elevation: 2,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  icon: const Icon(LucideIcons.eye, size: 18),
+                                  label: const Text(
+                                    'View Report',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           );
           return;
