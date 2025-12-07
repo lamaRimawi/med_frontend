@@ -381,55 +381,80 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
       processingStatus = 'Preparing documents...';
     });
 
-    // Use streaming service
+    // Backend doesn't support streaming yet, use regular upload with simulated progress
     if (capturedItems.isNotEmpty) {
       debugPrint('Starting extraction for file: ${capturedItems.first.path}');
       
-      VlmService.uploadAndStream(
-        capturedItems.first.path,
-        onProgress: (status, percent) {
-          if (mounted) {
-            setState(() {
-              processingStatus = status;
-              processingProgress = percent;
-            });
+      // Simulate progress while backend processes
+      Timer.periodic(const Duration(milliseconds: 200), (timer) {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
+        
+        setState(() {
+          if (processingProgress < 90) {
+            processingProgress += 3;
+            
+            // Update status based on progress
+            if (processingProgress < 20) {
+              processingStatus = 'Uploading document...';
+            } else if (processingProgress < 40) {
+              processingStatus = 'Analyzing images...';
+            } else if (processingProgress < 60) {
+              processingStatus = 'Extracting text data...';
+            } else if (processingProgress < 80) {
+              processingStatus = 'Processing medical information...';
+            } else {
+              processingStatus = 'Generating report...';
+            }
           }
-        },
-        onComplete: (data) {
+        });
+      });
+      
+      // Call backend
+      VlmService.extractFromImageFile(capturedItems.first.path)
+          .then((result) {
+        debugPrint('Backend extraction successful!');
+        if (!mounted) return;
+        
+        setState(() {
+          extractedData = result;
+          processingProgress = 100;
+          processingStatus = 'Complete!';
+        });
+        
+        // Wait a moment then show success
+        Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
             setState(() {
-              extractedData = data;
-              processingProgress = 100;
               viewMode = ViewMode.success;
             });
           }
-        },
-        onError: (error) {
-          debugPrint('Backend extraction error: $error');
-          if (mounted) {
-            if (error.contains('Unauthorized')) {
-               ScaffoldMessenger.of(context).showSnackBar(
-                 const SnackBar(content: Text('Session expired. Please login again.')),
-               );
-               Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/login',
-                  (route) => false,
-               );
-            } else {
-               ScaffoldMessenger.of(context).showSnackBar(
-                 SnackBar(content: Text('Processing failed: $error')),
-               );
-               // Fallback to mock data or just stay on processing?
-               // For now, let's go back to review to retry
-               setState(() {
-                 viewMode = ViewMode.review;
-                 processingProgress = 0;
-               });
-            }
-          }
-        },
-      );
+        });
+      }).catchError((e) {
+        debugPrint('Backend extraction error: $e');
+        if (!mounted) return;
+        
+        if (e.toString().contains('Unauthorized')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Session expired. Please login again.')),
+          );
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/login',
+            (route) => false,
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Processing failed: $e')),
+          );
+          setState(() {
+            viewMode = ViewMode.review;
+            processingProgress = 0;
+          });
+        }
+      });
     }
   }
 
