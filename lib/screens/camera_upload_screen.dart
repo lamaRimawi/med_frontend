@@ -224,6 +224,11 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
       return;
     }
 
+    if (capturedItems.any((item) => item.type == 'application/pdf')) {
+      _showToast('Cannot add images when a PDF is selected');
+      return;
+    }
+
     setState(() => isCapturing = true);
 
     try {
@@ -257,6 +262,10 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
 
   // Pick images only from gallery
   Future<void> _pickImages() async {
+    if (capturedItems.any((item) => item.type == 'application/pdf')) {
+      _showToast('Cannot add images when a PDF is selected');
+      return;
+    }
     try {
       final List<XFile> images = await _picker.pickMultiImage(
         requestFullMetadata: false,
@@ -285,28 +294,40 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
 
   // Pick PDF files only
   Future<void> _pickFiles() async {
+    // If we already have ANY items (Images or PDF), and we try to pick a PDF...
+    // The requirement says "either images or just ONE pdf".
+    // So if I have images, I can't pick PDF.
+    // If I have PDF, I can't pick another PDF.
+
+    if (capturedItems.isNotEmpty) {
+       // If existing items are images, we can't add PDF.
+       // If existing item is PDF, we can't add another PDF.
+       // So basically if list is not empty, we can't add a PDF.
+       if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(
+             content: Text(
+               'You can only upload one PDF file OR multiple images. Please clear existing items to upload a PDF.',
+             ),
+           ),
+         );
+       }
+       return;
+    }
+
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['pdf', 'doc', 'docx'],
+        allowedExtensions: ['pdf'],
       );
 
       if (result != null && result.files.single.path != null) {
         final file = result.files.single;
         final fileObj = File(file.path!);
 
-        // Check PDF limit
-        if (capturedItems.any((item) => item.type == 'application/pdf')) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Only one document file is allowed. Please remove the existing file first.',
-                ),
-              ),
-            );
-          }
-          return;
+        // Double check (redundant but safe)
+        if (capturedItems.isNotEmpty) {
+           return;
         }
 
         final newItem = UploadedFile(
