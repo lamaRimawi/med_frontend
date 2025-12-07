@@ -14,6 +14,9 @@ class ApiConfig {
   static const String vlmChat = '/vlm/chat';
   static const String userProfile = '/users/profile';
   static const String reports = '/reports';
+  static const String reportsTimeline = '/reports/timeline';
+  static const String reportsStats = '/reports/stats';
+  static const String reportsTrends = '/reports/trends';
 
   // Temporary sample image URL for backend extraction testing
   // Replace with a real, publicly accessible URL of the captured image.

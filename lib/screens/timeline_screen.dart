@@ -3,6 +3,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:ui';
 
+import '../services/timeline_api.dart';
+import '../models/timeline_models.dart';
+
+
 // Medical Record Model
 class MedicalRecord {
   final int id;
@@ -70,9 +74,86 @@ class _TimelineScreenState extends State<TimelineScreen> {
   int? _expandedCard;
   String _searchQuery = '';
   bool _showExportMenu = false;
+  
+  // Backend data
+  List<TimelineReport> _timelineReports = [];
+  TimelineStats? _stats;
+  bool _isLoading = true;
+  String? _errorMessage;
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadTimelineData();
+  }
+  
+  Future<void> _loadTimelineData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    
+    try {
+      final timeline = await TimelineApi.getTimeline();
+      final stats = await TimelineApi.getStats();
+      
+      setState(() {
+        _timelineReports = timeline;
+        _stats = stats;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+  
+  String _formatFullDate(DateTime date) {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    return '${days[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+  
+  String _getCategoryFromType(String type) {
+    final lower = type.toLowerCase();
+    if (lower.contains('lab') || lower.contains('test') || lower.contains('blood')) return 'lab';
+    if (lower.contains('x-ray') || lower.contains('scan') || lower.contains('imaging')) return 'imaging';
+    if (lower.contains('prescription') || lower.contains('medication')) return 'prescription';
+    return 'other';
+  }
 
-  // Dummy Data
-  final List<MedicalRecord> _allRecords = [
+  // Convert backend data to UI format
+  List<MedicalRecord> get _allRecords {
+    if (_isLoading || _timelineReports.isEmpty) return [];
+    
+    return _timelineReports.map((report) {
+      final date = DateTime.parse(report.date);
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      return MedicalRecord(
+        id: report.reportId,
+        date: '${monthNames[date.month - 1]} ${date.day}',
+        time: '',
+        fullDate: _formatFullDate(date),
+        title: report.reportType,
+        type: report.reportType,
+        category: _getCategoryFromType(report.reportType),
+        facility: '',
+        doctor: report.doctorNames ?? '',
+        status: report.summary.abnormalCount > 0 ? 'Review Required' : 'Normal',
+        timestamp: date,
+        notes: report.summary.abnormalCount == 0
+            ? 'All ${report.summary.totalTests} test(s) within normal range.'
+            : '${report.summary.abnormalCount} abnormal: ${report.summary.abnormalFields.join(", ")}',
+        values: null,
+      );
+    }).toList();
+  }
+
+  // Dummy Data (kept for reference, not used)
+  final List<MedicalRecord> _dummyRecords = [
     MedicalRecord(
       id: 1,
       date: 'Nov 28',
