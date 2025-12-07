@@ -596,8 +596,8 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                                       ),
                                     );
                                     
-                                    // Navigate to reports screen
-                                    Navigator.pushNamed(context, '/reports');
+                                    // Pop all screens until we reach home, then the home screen will show reports tab
+                                    Navigator.of(context).popUntil((route) => route.isFirst);
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF39A4E6),
