@@ -436,6 +436,60 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
         debugPrint('Backend extraction error: $e');
         if (!mounted) return;
         
+        // Check for duplicate report
+        if (e.toString().contains('DUPLICATE_REPORT')) {
+          setState(() {
+            processingProgress = 0;
+            viewMode = ViewMode.review;
+          });
+          
+          // Show duplicate report dialog
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Row(
+                children: [
+                  Icon(LucideIcons.alertCircle, color: Colors.orange, size: 24),
+                  const SizedBox(width: 12),
+                  const Text('Duplicate Report'),
+                ],
+              ),
+              content: const Text(
+                'This report has already been uploaded to your account. '
+                'Would you like to upload it again as a new entry?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      viewMode = ViewMode.camera;
+                      capturedItems.clear();
+                    });
+                  },
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    // TODO: Add force upload parameter when backend supports it
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Force upload not yet supported. Please contact support.'),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF39A4E6),
+                  ),
+                  child: const Text('Upload Anyway'),
+                ),
+              ],
+            ),
+          );
+          return;
+        }
+        
         if (e.toString().contains('Unauthorized')) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Session expired. Please login again.')),

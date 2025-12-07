@@ -22,6 +22,12 @@ class VlmService {
     print('VlmService: Response status: ${res.statusCode}');
     // print('VlmService: Response body: ${res.body}');
 
+    // Handle duplicate report (409 Conflict)
+    if (res.statusCode == 409) {
+      final msg = _safeErr(res);
+      throw Exception('DUPLICATE_REPORT: $msg');
+    }
+    
     if (res.statusCode != 201 && res.statusCode != 200) {
       final msg = _safeErr(res);
       throw Exception('Backend error ${res.statusCode}: $msg');
