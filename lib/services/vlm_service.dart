@@ -169,6 +169,81 @@ class VlmService {
     );
   }
 
+  static Future<void> uploadAndStream(
+      String filePath, {
+      required Function(String status, double percent) onProgress,
+      required Function(ExtractedReportData data) onComplete,
+      required Function(String error) onError,
+    }) async {
+    final client = ApiClient.instance;
+    final token = await client.getToken();
+    
+    if (token == null) {
+      onError('Unauthorized: No token found');
+      return;
+    }
+
+    try {
+      var uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.vlmChat}');
+      var request = http.MultipartRequest('POST', uri);
+
+      request.files.add(await http.MultipartFile.fromPath('file', filePath));
+      request.headers['Authorization'] = 'Bearer $token';
+
+      final streamedResponse = await request.send();
+
+      streamedResponse.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(
+        (String line) {
+          if (line.trim().isEmpty) return;
+
+          try {
+            print('VlmStream: $line');
+            final data = jsonDecode(line);
+
+            if (data['type'] == 'progress') {
+              final message = data['message'] as String? ?? 'Processing...';
+              final percent = (data['percent'] as num?)?.toDouble() ?? 0.0;
+              onProgress(message, percent);
+            } else if (data['type'] == 'result') {
+              // Parse the final result using existing logic
+               // Backend returns data nested under 'report' key or 'data' key based on the snippet
+               // The snippet says data['data']['report_id']
+               // Let's assume the structure is similar to the non-streaming one or adapt
+               
+               // Based on user snippet: data['type'] == 'result'
+               // We need to inspect `data['data']`
+               final resultData = data['data'];
+               if (resultData != null) {
+                 final report = _parseReportData(resultData);
+                 onComplete(report);
+               } else {
+                 // Fallback if structure is different
+                 final report = _parseReportData(data);
+                 onComplete(report);
+               }
+            } else if (data['error'] != null) {
+               onError(data['error'].toString());
+            }
+          } catch (e) {
+            print("Error parsing update: $e");
+          }
+        },
+        onError: (error) {
+          print("Network Error: $error");
+          onError(error.toString());
+        },
+        onDone: () {
+          print("Stream closed.");
+        },
+      );
+    } catch (e) {
+      onError(e.toString());
+    }
+  }
+
   static String _safeErr(http.Response res) {
     try {
       final m = ApiClient.decodeJson<Map<String, dynamic>>(res);

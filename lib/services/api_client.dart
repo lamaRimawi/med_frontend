@@ -27,6 +27,7 @@ class ApiClient {
     Object? body,
     Map<String, String>? query,
     bool auth = false,
+    bool skipGlobalLogoutOn401 = false,
   }) async {
     final mergedHeaders = <String, String>{
       'Content-Type': 'application/json',
@@ -40,8 +41,8 @@ class ApiClient {
     }
     final response = await http.post(_uri(path, query), headers: mergedHeaders, body: body);
     
-    // Only throw exception for 401 if this was an authenticated request
-    if (response.statusCode == 401 && auth) {
+    // Only throw exception for 401 if this was an authenticated request AND we don't want to skip global logout
+    if (response.statusCode == 401 && auth && !skipGlobalLogoutOn401) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('jwt_token');
       throw Exception('Unauthorized: Token expired');

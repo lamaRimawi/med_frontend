@@ -381,109 +381,56 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
       processingStatus = 'Preparing documents...';
     });
 
-    final statuses = [
-      'Preparing documents...',
-      'Analyzing images...',
-      'Extracting text data...',
-      'Processing medical information...',
-      'Generating report...',
-      'Finalizing results...',
-    ];
-
-    int currentStatusIndex = 0;
-
-    bool backendCompleted = false;
-    // Kick off backend extraction using a sample image URL for now.
-    // Use the first captured item for extraction
+    // Use streaming service
     if (capturedItems.isNotEmpty) {
       debugPrint('Starting extraction for file: ${capturedItems.first.path}');
-      debugPrint('File type: ${capturedItems.first.type}');
       
-      VlmService.extractFromImageFile(capturedItems.first.path)
-          .then((result) {
-          debugPrint('Backend extraction successful!');
-          debugPrint('Extracted data - Patient: ${result.patientInfo.name}, Report Type: ${result.reportType}');
-          debugPrint('Test results count: ${result.testResults?.length ?? 0}');
-          
-          backendCompleted = true;
-          if (!mounted) return;
-          setState(() {
-            extractedData = result;
-            // If progress is already near completion, finish now
-            if (processingProgress >= 98) {
+      VlmService.uploadAndStream(
+        capturedItems.first.path,
+        onProgress: (status, percent) {
+          if (mounted) {
+            setState(() {
+              processingStatus = status;
+              processingProgress = percent;
+            });
+          }
+        },
+        onComplete: (data) {
+          if (mounted) {
+            setState(() {
+              extractedData = data;
               processingProgress = 100;
-            }
-          });
-        })
-        .catchError((e) {
-          debugPrint('Backend extraction error: $e');
-          debugPrint('Error type: ${e.runtimeType}');
-          
-          backendCompleted = true;
-          if (!mounted) return;
-          
-          if (e.toString().contains('Unauthorized')) {
-             // Token expired, redirect to login
-             debugPrint('Token expired, redirecting to login');
-             ScaffoldMessenger.of(context).showSnackBar(
-               const SnackBar(content: Text('Session expired. Please login again.')),
-             );
-             Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/login',
-                (route) => false,
-             );
-             return;
+              viewMode = ViewMode.success;
+            });
           }
-
-          // Fallback to mock data on error
-          debugPrint('Using mock data as fallback');
-          setState(() {
-            extractedData = _buildMockExtractedData();
-          });
-        });
+        },
+        onError: (error) {
+          debugPrint('Backend extraction error: $error');
+          if (mounted) {
+            if (error.contains('Unauthorized')) {
+               ScaffoldMessenger.of(context).showSnackBar(
+                 const SnackBar(content: Text('Session expired. Please login again.')),
+               );
+               Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/login',
+                  (route) => false,
+               );
+            } else {
+               ScaffoldMessenger.of(context).showSnackBar(
+                 SnackBar(content: Text('Processing failed: $error')),
+               );
+               // Fallback to mock data or just stay on processing?
+               // For now, let's go back to review to retry
+               setState(() {
+                 viewMode = ViewMode.review;
+                 processingProgress = 0;
+               });
+            }
+          }
+        },
+      );
     }
-
-    // Simulate processing/progress bar while backend runs
-    Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-
-      setState(() {
-        // If backend not completed, cap at 98%
-        if (!backendCompleted) {
-          if (processingProgress < 98) {
-            processingProgress += 2;
-          }
-        } else {
-          processingProgress += 2;
-        }
-
-        final statusIndex = (processingProgress / 100 * statuses.length)
-            .floor();
-        if (statusIndex != currentStatusIndex &&
-            statusIndex < statuses.length) {
-          currentStatusIndex = statusIndex;
-          processingStatus = statuses[statusIndex];
-        }
-
-        if (processingProgress >= 100 ||
-            (backendCompleted && processingProgress >= 98)) {
-          timer.cancel();
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted) {
-              setState(() {
-                // Ensure we have data; if backend failed earlier, fallback was set
-                extractedData ??= _buildMockExtractedData();
-                viewMode = ViewMode.success;
-              });
-            }
-          });
-        }
-      });
-    });
   }
 
   ExtractedReportData _buildMockExtractedData() {

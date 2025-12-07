@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart'; // Make sure this is available if needed, or just standard imports
+import '../models/user_model.dart';
 import '../services/auth_api.dart';
 import '../utils/validators.dart';
 
@@ -71,11 +73,14 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
   }
 
   String? _storedPassword;
+  String? _userEmail;
 
   Future<void> _loadStoredPassword() async {
     final prefs = await SharedPreferences.getInstance();
+    final user = await User.loadFromPrefs();
     setState(() {
       _storedPassword = prefs.getString('user_password');
+      _userEmail = user?.email;
     });
   }
 
@@ -112,7 +117,18 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
       */
 
       // Call API to change password
+      if (_userEmail == null) {
+          setState(() => _isLoading = false);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('User email not found. Please login again.')),
+            );
+          }
+          return;
+      }
+
       final (success, message) = await AuthApi.changePassword(
+        email: _userEmail!,
         oldPassword: _currentPasswordController.text,
         newPassword: _newPasswordController.text,
       );

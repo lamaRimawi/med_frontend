@@ -226,6 +226,7 @@ class AuthApi {
   }
 
   static Future<(bool success, String? message)> changePassword({
+    required String email,
     required String oldPassword,
     required String newPassword,
   }) async {
@@ -233,10 +234,12 @@ class AuthApi {
     final res = await client.post(
       ApiConfig.changePassword,
       body: json.encode({
+        'email': email,
         'old_password': oldPassword,
         'new_password': newPassword,
       }),
       auth: true,
+      skipGlobalLogoutOn401: true,
     );
 
     if (res.statusCode == 200) {
