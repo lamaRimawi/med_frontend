@@ -52,6 +52,9 @@ dependencies:
   url_launcher: ^6.3.2
   http: ^1.2.2
   file_picker: ^10.3.7
+  cunning_document_scanner: ^1.2.0
+  pdf: ^3.10.8
+  open_file: ^3.3.2
 
 dev_dependencies:
   flutter_test:

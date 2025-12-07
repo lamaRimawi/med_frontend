@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../services/document_scanner_service.dart';
 
 import '../models/patient_data.dart';
 import '../widgets/medical_background.dart';
@@ -24,6 +25,35 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
   int _weight = 75;
   int _height = 178;
   String _bloodType = "AB+";
+  
+  String? _scanPdfPath;
+  final _scannerService = DocumentScannerService();
+
+  Future<void> _scanDocument() async {
+    final images = await _scannerService.scanDocument();
+    if (images.isNotEmpty) {
+      final pdfPath = await _scannerService.generatePdf(images);
+      if (pdfPath != null) {
+        setState(() {
+          _scanPdfPath = pdfPath;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Document scanned and PDF generated successfully!'),
+              backgroundColor: Color(0xFF10B981),
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  void _viewDocument() {
+    if (_scanPdfPath != null) {
+      _scannerService.openFile(_scanPdfPath!);
+    }
+  }
 
   final List<String> _bloodTypes = const [
     "A+",
@@ -247,6 +277,58 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                             );
                           },
                         ),
+                        const SizedBox(height: 32),
+                        
+                        _buildSectionTitle('Medical Document'),
+                        const SizedBox(height: 12),
+                        Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0F9FF),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: const Color(0xFF39A4E6).withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: InkWell(
+                            onTap: _scanPdfPath == null ? _scanDocument : _viewDocument,
+                            borderRadius: BorderRadius.circular(16),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    _scanPdfPath == null ? LucideIcons.scanLine : LucideIcons.fileCheck,
+                                    size: 32,
+                                    color: const Color(0xFF39A4E6),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    _scanPdfPath == null ? 'Scan Document' : 'View Scanned PDF',
+                                    style: const TextStyle(
+                                      color: Color(0xFF39A4E6),
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  if (_scanPdfPath != null) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Tap to open • Long press to rescan',
+                                      style: TextStyle(
+                                        color: const Color(0xFF39A4E6).withOpacity(0.7),
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            onLongPress: _scanPdfPath != null ? _scanDocument : null,
+                          ),
+                        ),
+
                         const SizedBox(height: 40),
                         SizedBox(
                           width: double.infinity,
