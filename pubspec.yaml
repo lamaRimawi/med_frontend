@@ -55,6 +55,7 @@ dependencies:
   cunning_document_scanner: ^1.2.0
   pdf: ^3.10.8
   open_file: ^3.3.2
+  syncfusion_flutter_pdfviewer: ^31.2.16
 
 dev_dependencies:
   flutter_test:

@@ -10,7 +10,7 @@ class ReportsService {
   ReportsService._internal();
 
   final ApiClient _client = ApiClient.instance;
-  
+
   // In-memory cache
   List<Report>? _cachedReports;
   DateTime? _lastFetchTime;
@@ -18,16 +18,13 @@ class ReportsService {
   List<Report>? get cachedReports => _cachedReports;
 
   Future<List<Report>> getReports({bool forceRefresh = false}) async {
-    // Return cache if available and not forcing refresh (optional logic, 
+    // Return cache if available and not forcing refresh (optional logic,
     // but for now we always fetch to be safe, but we expose cache for UI to show instantly)
-    
+
     int retries = 3;
     while (retries > 0) {
       try {
-        final response = await _client.get(
-          ApiConfig.reports,
-          auth: true,
-        );
+        final response = await _client.get(ApiConfig.reports, auth: true);
 
         if (response.statusCode == 200) {
           final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
@@ -35,11 +32,11 @@ class ReportsService {
           final parsedReports = reportsList
               .map((e) => Report.fromJson(e as Map<String, dynamic>))
               .toList();
-          
+
           // Update cache
           _cachedReports = parsedReports;
           _lastFetchTime = DateTime.now();
-          
+
           return parsedReports;
         } else {
           throw Exception('Failed to load reports: ${response.statusCode}');
@@ -52,7 +49,7 @@ class ReportsService {
 
         retries--;
         if (retries == 0) {
-          // If we have cache even after failure, maybe return it? 
+          // If we have cache even after failure, maybe return it?
           // For now, let's just rethrow if all retries fail.
           throw Exception('Error fetching reports after retries: $e');
         }
@@ -104,8 +101,25 @@ class ReportsService {
       );
 
       if (response.statusCode == 200) {
-        final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
-        return List<String>.from(data['images'] ?? []);
+        final dynamic decoded = json.decode(utf8.decode(response.bodyBytes));
+
+        // Backend returns { "files": [ { "filename": "...", ... }, ... ] }
+        if (decoded is Map<String, dynamic>) {
+          if (decoded.containsKey('files')) {
+            final files = decoded['files'] as List<dynamic>;
+            return files.map((f) => f['filename'] as String).toList();
+          } else if (decoded.containsKey('images')) {
+            // Fallback for older API structure if any
+            return List<String>.from(decoded['images']);
+          }
+        } else if (decoded is List) {
+          return List<String>.from(decoded);
+        }
+
+        return [];
+      } else if (response.statusCode == 404) {
+        // No files found is a valid state, return empty list
+        return [];
       } else {
         throw Exception('Failed to load report images: ${response.statusCode}');
       }

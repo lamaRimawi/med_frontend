@@ -9,6 +9,11 @@ import '../services/reports_service.dart';
 import '../services/api_client.dart';
 import '../config/api_config.dart';
 import 'package:share_plus/share_plus.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
+import 'package:gal/gal.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 class ReportsScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -53,7 +58,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           _error = null;
         });
       }
-      
+
       final reports = await ReportsService().getReports();
       if (mounted) {
         setState(() {
@@ -65,14 +70,18 @@ class _ReportsScreenState extends State<ReportsScreen> {
     } catch (e) {
       if (mounted) {
         if (e.toString().contains('Unauthorized')) {
-           Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-           return;
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/login',
+            (route) => false,
+          );
+          return;
         }
 
         // If we have data, show snackbar instead of full error
         if (_reports.isNotEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(content: Text('Failed to update reports: $e')),
+            SnackBar(content: Text('Failed to update reports: $e')),
           );
           // Ensure loading is false
           setState(() {
@@ -108,7 +117,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   };
 
   bool get _isDarkMode =>
-      ThemeProvider.of(context)?.themeMode == ThemeMode.dark ?? false;
+      ThemeProvider.of(context)?.themeMode == ThemeMode.dark;
 
   final List<String> _reportTypes = [
     "Laboratory",
@@ -175,128 +184,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     });
   }
 
-  Future<void> _handleViewImages(Report report) async {
-    try {
-      // Show loading
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => const Center(child: CircularProgressIndicator()),
-      );
-
-      final images = await ReportsService().getReportImages(report.reportId);
-      
-      if (mounted) {
-        Navigator.pop(context); // Hide loading
-
-        if (images.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No images found for this report')),
-          );
-          return;
-        }
-
-        final token = await ApiClient.instance.getToken();
-        
-        showDialog(
-          context: context,
-          builder: (context) => Dialog(
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(16),
-            child: Stack(
-              children: [
-                Container(
-                  width: double.infinity,
-                  height: 500,
-                  decoration: BoxDecoration(
-                    color: _isDarkMode ? const Color(0xFF1E293B) : Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(
-                          'Report Images (${images.length})',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: _isDarkMode ? Colors.white : Colors.black,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: PageView.builder(
-                          itemCount: images.length,
-                          itemBuilder: (context, index) {
-                            final imageUrl = images[index].startsWith('http') 
-                                ? images[index] 
-                                : '${ApiConfig.baseUrl}${images[index]}';
-                            
-                            return Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 4),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  imageUrl,
-                                  headers: token != null 
-                                      ? {'Authorization': 'Bearer $token'} 
-                                      : null,
-                                  fit: BoxFit.contain,
-                                  loadingBuilder: (ctx, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return Center(
-                                      child: CircularProgressIndicator(
-                                        value: loadingProgress.expectedTotalBytes != null
-                                            ? loadingProgress.cumulativeBytesLoaded /
-                                                loadingProgress.expectedTotalBytes!
-                                            : null,
-                                      ),
-                                    );
-                                  },
-                                  errorBuilder: (ctx, err, stack) => const Center(
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(LucideIcons.alertTriangle, color: Colors.orange, size: 48),
-                                        SizedBox(height: 8),
-                                        Text('Failed to load image', style: TextStyle(color: Colors.grey)),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: IconButton(
-                    icon: const Icon(LucideIcons.x, color: Colors.grey),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.pop(context); // Hide loading
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading images: $e')),
-        );
-      }
-    }
-  }
-
   Future<void> _handleDeleteReport(String id) async {
     try {
       await ReportsService().deleteReport(int.parse(id));
@@ -323,238 +210,229 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
   }
 
-  void _handleViewReport(Report report) {
-    final isDark = _isDarkMode;
-    final title = _getReportTitle(report);
-
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.all(16),
-        child: Container(
-          width: double.infinity,
-          constraints: const BoxConstraints(maxHeight: 600),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              // Header
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(24),
-                    topRight: Radius.circular(24),
-                  ),
-                  border: Border(
-                    bottom: BorderSide(
-                      color: isDark ? const Color(0xFF334155) : Colors.grey[200]!,
-                    ),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF39A4E6).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(LucideIcons.fileText, color: Color(0xFF39A4E6), size: 24),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : const Color(0xFF1E293B),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            report.reportDate,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: isDark ? Colors.grey[400] : Colors.grey[500],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: Icon(LucideIcons.x, color: isDark ? Colors.grey[400] : Colors.grey[400]),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Content
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.all(20),
-                  itemCount: report.fields.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final field = report.fields[index];
-                    final isNormal = field.isNormal ?? true; // Default to true if null
-                    
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF0F172A) : Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isDark ? const Color(0xFF334155) : Colors.grey[100]!,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  field.fieldName,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark ? Colors.white : const Color(0xFF1E293B),
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Text(
-                                      field.fieldValue,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: isDark ? Colors.grey[300] : const Color(0xFF475569),
-                                      ),
-                                    ),
-                                    if (field.fieldUnit != null) ...[
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        field.fieldUnit!,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: isDark ? Colors.grey[500] : Colors.grey[400],
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: isNormal 
-                                  ? const Color(0xFF10B981).withOpacity(0.1)
-                                  : const Color(0xFFF59E0B).withOpacity(0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              isNormal ? LucideIcons.check : LucideIcons.alertTriangle,
-                              size: 16,
-                              color: isNormal ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-              
-              // Footer
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(
-                      color: isDark ? const Color(0xFF334155) : Colors.grey[200]!,
-                    ),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(LucideIcons.check, size: 18),
-                        label: const Text('Done'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF39A4E6),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 0,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+  String _getReportTitle(Report report) {
+    // Priority 1: Check for explicit "Report Type" or "Test Name" fields
+    final titleField = report.fields.firstWhere(
+      (f) =>
+          f.fieldName.toLowerCase().contains('test name') ||
+          f.fieldName.toLowerCase() == 'report type' ||
+          f.fieldName.toLowerCase() == 'study' ||
+          f.fieldName.toLowerCase() == 'diagnosis' ||
+          f.fieldName.toLowerCase().contains('examination'),
+      orElse: () =>
+          ReportField(id: 0, fieldName: '', fieldValue: '', createdAt: ''),
     );
+
+    if (titleField.fieldName.isNotEmpty) {
+      return titleField.fieldValue;
+    }
+
+    // Priority 2: Check additional fields
+    final addTitleField = report.additionalFields.firstWhere(
+      (f) =>
+          f.fieldName.toLowerCase().contains('test name') ||
+          f.fieldName.toLowerCase() == 'report type',
+      orElse: () =>
+          AdditionalField(id: 0, fieldName: '', fieldValue: '', category: ''),
+    );
+
+    if (addTitleField.fieldName.isNotEmpty) {
+      return addTitleField.fieldValue;
+    }
+
+    // Priority 3: Use Date and ID as a fallback instead of the first field
+    // This avoids generic names like "Hemoglobin" if that's just the first parameter
+    return "Medical Report ${report.reportDate}";
+  }
+
+  Future<void> _handleViewReport(Report report) async {
+    try {
+      // Show loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => const Center(child: CircularProgressIndicator()),
+      );
+
+      final images = await ReportsService().getReportImages(report.reportId);
+
+      if (mounted) {
+        Navigator.pop(context); // Hide loading
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                _ModernReportViewer(report: report, images: images),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Hide loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load report details: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _handleShareReport(Report report) async {
-    final buffer = StringBuffer();
-    buffer.writeln('📋 Medical Report: ${_getReportTitle(report)}');
-    buffer.writeln('📅 Date: ${report.reportDate}');
-    buffer.writeln('🏥 Fields Extracted: ${report.totalFields}');
-    buffer.writeln('----------------------------------------');
-    
-    for (var field in report.fields) {
-      buffer.write('• ${field.fieldName}: ${field.fieldValue}');
-      if (field.fieldUnit != null && field.fieldUnit!.isNotEmpty) {
-        buffer.write(' ${field.fieldUnit}');
+    try {
+      // Show loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preparing report for sharing...')),
+      );
+
+      final buffer = StringBuffer();
+      buffer.writeln('📋 Medical Report: ${_getReportTitle(report)}');
+      buffer.writeln('📅 Date: ${report.reportDate}');
+      buffer.writeln('🏥 Fields Extracted: ${report.totalFields}');
+      buffer.writeln('----------------------------------------');
+
+      for (var field in report.fields) {
+        buffer.write('• ${field.fieldName}: ${field.fieldValue}');
+        if (field.fieldUnit != null && field.fieldUnit!.isNotEmpty) {
+          buffer.write(' ${field.fieldUnit}');
+        }
+        buffer.writeln();
       }
-      buffer.writeln();
+
+      buffer.writeln('----------------------------------------');
+      buffer.writeln('Shared from HealthTrack App 📱');
+
+      // Get images
+      final images = await ReportsService().getReportImages(report.reportId);
+      final xFiles = <XFile>[];
+
+      if (images.isNotEmpty) {
+        final token = await ApiClient.instance.getToken();
+        final tempDir = await getTemporaryDirectory();
+
+        for (var i = 0; i < images.length; i++) {
+          final imageUrl = images[i].startsWith('http')
+              ? images[i]
+              : '${ApiConfig.baseUrl}${images[i]}';
+
+          try {
+            final response = await http.get(
+              Uri.parse(imageUrl),
+              headers: token != null
+                  ? {'Authorization': 'Bearer $token'}
+                  : null,
+            );
+
+            if (response.statusCode == 200) {
+              final file = File(
+                '${tempDir.path}/report_${report.reportId}_$i.jpg',
+              );
+              await file.writeAsBytes(response.bodyBytes);
+              xFiles.add(XFile(file.path));
+            }
+          } catch (e) {
+            debugPrint('Error downloading image for share: $e');
+          }
+        }
+      }
+
+      if (xFiles.isNotEmpty) {
+        await Share.shareXFiles(
+          xFiles,
+          text: buffer.toString(),
+          subject: 'Medical Report: ${_getReportTitle(report)}',
+        );
+      } else {
+        await Share.share(
+          buffer.toString(),
+          subject: 'Medical Report: ${_getReportTitle(report)}',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error sharing report: $e')));
+      }
     }
-    
-    buffer.writeln('----------------------------------------');
-    buffer.writeln('Shared from HealthTrack App 📱');
-    
-    await Share.share(
-      buffer.toString(),
-      subject: 'Medical Report: ${_getReportTitle(report)}',
-    );
   }
 
-  void _handleDownloadReport(Report report) {
-    // Show a toast message indicating download action
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Downloading Report #${report.reportId}...'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+  Future<void> _handleDownloadReport(Report report) async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Downloading Report #${report.reportId}...'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      final images = await ReportsService().getReportImages(report.reportId);
+      if (images.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No images to download for this report'),
+            ),
+          );
+        }
+        return;
+      }
+
+      final token = await ApiClient.instance.getToken();
+      final tempDir = await getTemporaryDirectory();
+      int successCount = 0;
+
+      for (var i = 0; i < images.length; i++) {
+        final imageUrl = images[i].startsWith('http')
+            ? images[i]
+            : '${ApiConfig.baseUrl}${images[i]}';
+
+        try {
+          final response = await http.get(
+            Uri.parse(imageUrl),
+            headers: token != null ? {'Authorization': 'Bearer $token'} : null,
+          );
+
+          if (response.statusCode == 200) {
+            final filePath =
+                '${tempDir.path}/report_${report.reportId}_${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
+            final file = File(filePath);
+            await file.writeAsBytes(response.bodyBytes);
+
+            // Save to gallery
+            await Gal.putImage(filePath, album: 'Medical Reports');
+            successCount++;
+          }
+        } catch (e) {
+          debugPrint('Error downloading image: $e');
+        }
+      }
+
+      if (mounted) {
+        if (successCount > 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Successfully saved $successCount images to gallery',
+              ),
+              backgroundColor: const Color(0xFF10B981),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to download images'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error downloading report: $e')));
+      }
+    }
   }
 
   void _resetForm() {
@@ -575,8 +453,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   List<Report> get _filteredReports {
     return _reports.where((report) {
-      final matchesSearch =
-          report.reportDate.toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesSearch = report.reportDate.toLowerCase().contains(
+        _searchQuery.toLowerCase(),
+      );
 
       final matchesFilter = _filterType == "all"; // Simplified for now
 
@@ -613,7 +492,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
           ),
 
           // Animated Background Elements removed
-
 
           // Content
           SafeArea(
@@ -858,7 +736,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: _isDarkMode ? Colors.white : const Color(0xFF111827),
+                      color: _isDarkMode
+                          ? Colors.white
+                          : const Color(0xFF111827),
                     ),
                   ),
                 ],
@@ -875,37 +755,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  String _getReportTitle(Report report) {
-    // Try to find a title from fields
-    final titleField = report.fields.firstWhere(
-      (f) => f.fieldName.toLowerCase().contains('test name') || 
-             f.fieldName.toLowerCase().contains('report type') ||
-             f.fieldName.toLowerCase().contains('study'),
-      orElse: () => ReportField(
-        id: 0, 
-        fieldName: '', 
-        fieldValue: '', 
-        createdAt: ''
-      ),
-    );
-
-    if (titleField.fieldName.isNotEmpty) {
-      return titleField.fieldValue;
-    }
-    
-    // If no specific field, try to guess from the first field if it looks like a title
-    if (report.fields.isNotEmpty) {
-      // Often the first field is the main test name
-      return "Medical Report"; 
-    }
-
-    return "Medical Report";
-  }
-
   Widget _buildReportCard(Report report, int index) {
     final isDark = _isDarkMode;
     final title = _getReportTitle(report);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -956,7 +809,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : const Color(0xFF111827),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF111827),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -979,18 +834,28 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
-
-
 
             Row(
               children: [
-                Expanded(child: _buildOutlinedButton(LucideIcons.eye, 'View Details', () => _handleViewReport(report))),
+                Expanded(
+                  child: _buildOutlinedButton(
+                    LucideIcons.eye,
+                    'View Details',
+                    () => _handleViewReport(report),
+                  ),
+                ),
                 const SizedBox(width: 12),
-                _buildIconOnlyButton(LucideIcons.share2, () => _handleShareReport(report)),
+                _buildIconOnlyButton(
+                  LucideIcons.share2,
+                  () => _handleShareReport(report),
+                ),
                 const SizedBox(width: 12),
-                _buildIconOnlyButton(LucideIcons.download, () => _handleDownloadReport(report)),
+                _buildIconOnlyButton(
+                  LucideIcons.download,
+                  () => _handleDownloadReport(report),
+                ),
               ],
             ),
           ],
@@ -1000,7 +865,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Widget _buildOutlinedButton(IconData icon, String label, VoidCallback onTap) {
-    final isDark = _isDarkMode;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1008,10 +872,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         decoration: BoxDecoration(
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFF39A4E6),
-            width: 1.5,
-          ),
+          border: Border.all(color: const Color(0xFF39A4E6), width: 1.5),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1024,69 +885,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF39A4E6),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(IconData icon, String text) {
-    final isDark = _isDarkMode;
-    return Row(
-      children: [
-        Icon(
-          icon,
-          size: 14,
-          color: isDark ? Colors.grey[500] : Colors.grey[400],
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              color: isDark ? Colors.grey[300] : Colors.grey[600],
-              fontSize: 13,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTextButton(
-    IconData icon,
-    String label,
-    VoidCallback onTap, {
-    bool isDestructive = false,
-  }) {
-    final isDark = _isDarkMode;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF334155) : Colors.grey[100],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: isDark ? Colors.grey[300] : Colors.grey[700],
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.grey[300] : Colors.grey[700],
               ),
             ),
           ],
@@ -1162,421 +960,741 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(
-                          LucideIcons.x,
-                          color: isDark ? Colors.grey[400] : Colors.grey,
-                        ),
-                        onPressed: _resetForm,
+                        icon: const Icon(LucideIcons.x, color: Colors.grey),
+                        onPressed: () => setState(() {
+                          _showAddForm = false;
+                        }),
                       ),
                     ],
                   ),
                   const SizedBox(height: 24),
-                  _buildDropdownField('Report Type *', _typeController, 'type'),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    'Report Date *',
-                    _dateController,
-                    'YYYY-MM-DD',
-                    'date',
-                    isDate: true,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    'Doctor Name *',
-                    _doctorController,
-                    'e.g., Dr. Sarah Wilson',
-                    'doctor',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    'Hospital/Clinic *',
-                    _hospitalController,
-                    'e.g., City Medical Center',
-                    'hospital',
-                  ),
-                  const SizedBox(height: 24),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? const Color(0xFF1E3A5F)
-                          : const Color(0xFFEFF6FF),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isDark
-                            ? const Color(0xFF3B82F6)
-                            : const Color(0xFFDBEAFE),
-                      ),
-                    ),
-                    child: Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'Note: ',
-                            style: TextStyle(
-                              color: const Color(0xFF39A4E6),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                          TextSpan(
-                            text:
-                                'You can upload the actual report file after saving this information.',
-                            style: TextStyle(
-                              color: isDark
-                                  ? Colors.grey[300]
-                                  : const Color(0xFF4B5563),
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
+                  Text(
+                    'Report Details',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF111827),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                          onPressed: _resetForm,
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                              side: BorderSide(
-                                color: isDark
-                                    ? const Color(0xFF475569)
-                                    : Colors.grey[200]!,
-                                width: 2,
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _typeController,
+                    label: 'Report Type',
+                    hint: 'Enter report type',
+                    errorText: _validationErrors['type'],
+                    isRequired: true,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _dateController,
+                    label: 'Date',
+                    hint: 'Select report date',
+                    errorText: _validationErrors['date'],
+                    isRequired: true,
+                    readOnly: true,
+                    onTap: () async {
+                      final selectedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2101),
+                        builder: (context, child) {
+                          return Theme(
+                            data: ThemeData.light().copyWith(
+                              primaryColor: const Color(0xFF39A4E6),
+
+                              colorScheme: ColorScheme.light(
+                                primary: const Color(0xFF39A4E6),
+                              ),
+                              buttonTheme: const ButtonThemeData(
+                                textTheme: ButtonTextTheme.primary,
                               ),
                             ),
-                          ),
-                          child: Text(
-                            'Cancel',
-                            style: TextStyle(
-                              color: isDark
-                                  ? Colors.grey[400]
-                                  : Colors.grey[600],
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                            child: child!,
+                          );
+                        },
+                      );
+
+                      if (selectedDate != null) {
+                        setState(() {
+                          _dateController.text =
+                              '${selectedDate.day.toString().padLeft(2, '0')}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.year}';
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _doctorController,
+                    label: 'Doctor\'s Name',
+                    hint: 'Enter doctor\'s name',
+                    errorText: _validationErrors['doctor'],
+                    isRequired: true,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _hospitalController,
+                    label: 'Hospital/Clinic Name',
+                    hint: 'Enter hospital or clinic name',
+                    errorText: _validationErrors['hospital'],
+                    isRequired: true,
+                  ),
+                  const SizedBox(height: 24),
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        if (_validateReport()) {
+                          _handleAddReport();
+                        }
+                      },
+                      icon: const Icon(LucideIcons.plus, size: 18),
+                      label: const Text('Add Report'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF39A4E6),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
+                        elevation: 0,
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: _handleAddReport,
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: const Color(0xFF39A4E6),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            elevation: 4,
-                          ),
-                          child: const Text(
-                            'Add Report',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ).animate().scale(duration: 300.ms, curve: Curves.easeOutBack),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildTextField(
-    String label,
-    TextEditingController controller,
-    String hint,
-    String errorKey, {
-    bool isDate = false,
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    String? errorText,
+    bool isRequired = false,
+    bool readOnly = false,
+    GestureTapCallback? onTap,
   }) {
     final isDark = _isDarkMode;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF334155) : Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? const Color(0xFF475569) : Colors.grey[300]!,
+          width: 1.5,
+        ),
+      ),
+      child: TextField(
+        controller: controller,
+        readOnly: readOnly,
+        onTap: onTap,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          errorText: errorText,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 16,
+            horizontal: 20,
+          ),
+          labelStyle: TextStyle(
+            color: isDark ? Colors.grey[300] : Colors.grey[700],
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: isDark ? Colors.grey[300] : const Color(0xFF374151),
           ),
-        ),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: isDate
-              ? () async {
-                  final date = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime.now(),
-                  );
-                  if (date != null) {
-                    controller.text =
-                        "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-                  }
-                }
-              : null,
-          child: AbsorbPointer(
-            absorbing: isDate,
-            child: TextField(
-              controller: controller,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
-              decoration: InputDecoration(
-                hintText: hint,
-                hintStyle: TextStyle(
-                  color: isDark ? Colors.grey[500] : Colors.grey[400],
-                ),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF334155) : Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: _validationErrors[errorKey]!.isNotEmpty
-                        ? Colors.red[400]!
-                        : isDark
-                        ? const Color(0xFF475569)
-                        : Colors.grey[200]!,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: _validationErrors[errorKey]!.isNotEmpty
-                        ? Colors.red[400]!
-                        : isDark
-                        ? const Color(0xFF475569)
-                        : Colors.grey[200]!,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: _validationErrors[errorKey]!.isNotEmpty
-                        ? Colors.red[400]!
-                        : const Color(0xFF39A4E6),
-                    width: 2,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        if (_validationErrors[errorKey]!.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              _validationErrors[errorKey]!,
-              style: TextStyle(color: Colors.red[500], fontSize: 12),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildDropdownField(
-    String label,
-    TextEditingController controller,
-    String errorKey,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
+          hintStyle: TextStyle(
+            color: isDark ? Colors.grey[400] : Colors.grey[500],
             fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF374151),
           ),
         ),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: controller.text.isEmpty ? null : controller.text,
-          items: _reportTypes.map((type) {
-            return DropdownMenuItem(value: type, child: Text(type));
-          }).toList(),
-          onChanged: (value) {
-            if (value != null) {
-              controller.text = value;
-            }
-          },
-          decoration: InputDecoration(
-            hintText: 'Select report type',
-            hintStyle: TextStyle(color: Colors.grey[400]),
-            filled: true,
-            fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _validationErrors[errorKey]!.isNotEmpty
-                    ? Colors.red[400]!
-                    : Colors.grey[200]!,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _validationErrors[errorKey]!.isNotEmpty
-                    ? Colors.red[400]!
-                    : Colors.grey[200]!,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _validationErrors[errorKey]!.isNotEmpty
-                    ? Colors.red[400]!
-                    : const Color(0xFF39A4E6),
-                width: 2,
-              ),
-            ),
-          ),
+        style: TextStyle(
+          color: isDark ? Colors.white : const Color(0xFF111827),
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
         ),
-        if (_validationErrors[errorKey]!.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              _validationErrors[errorKey]!,
-              style: TextStyle(color: Colors.red[500], fontSize: 12),
-            ),
-          ),
-      ],
+      ),
     );
   }
 }
 
-class _AnimatedBackground extends StatelessWidget {
-  const _AnimatedBackground();
+class _ModernReportViewer extends StatefulWidget {
+  final Report report;
+  final List<String> images;
+
+  const _ModernReportViewer({
+    required this.report,
+    required this.images,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<_ModernReportViewer> createState() => _ModernReportViewerState();
+}
+
+class _ModernReportViewerState extends State<_ModernReportViewer>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  int _currentImageIndex = 0;
+
+  // Cache for downloaded files (index -> path)
+  final Map<int, String> _localFilePaths = {};
+  final Map<int, bool> _isDownloading = {};
+  final Map<int, String> _downloadErrors = {};
+  final Map<int, bool> _isPdfMap = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    if (widget.images.isNotEmpty) {
+      _loadFile(0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  bool _isPdf(String filename) {
+    return filename.toLowerCase().endsWith('.pdf');
+  }
+
+  Future<void> _loadFile(int index) async {
+    if (_localFilePaths.containsKey(index) || _isDownloading[index] == true)
+      return;
+
+    setState(() {
+      _isDownloading[index] = true;
+      _downloadErrors.remove(index);
+    });
+
+    try {
+      final url =
+          '${ApiConfig.baseUrl}${ApiConfig.reports}/${widget.report.reportId}/images/${index + 1}';
+      final token = await ApiClient.instance.getToken();
+
+      final request = http.Request('GET', Uri.parse(url));
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+      request.headers['Connection'] = 'close';
+
+      final response = await request.send();
+
+      if (response.statusCode == 200) {
+        final dir = await getTemporaryDirectory();
+        final filename = widget.images[index];
+
+        // Determine type from header or filename
+        bool isPdf = _isPdf(filename);
+        final contentType = response.headers['content-type'];
+        if (contentType != null) {
+          if (contentType.toLowerCase().contains('application/pdf')) {
+            isPdf = true;
+          } else if (contentType.toLowerCase().contains('image/')) {
+            isPdf = false;
+          }
+        }
+
+        final extension = isPdf ? 'pdf' : 'jpg';
+        final file = File(
+          '${dir.path}/report_${widget.report.reportId}_${index}_${DateTime.now().millisecondsSinceEpoch}.$extension',
+        );
+
+        final sink = file.openWrite();
+        await response.stream.pipe(sink);
+        await sink.close();
+
+        // Verify file size
+        final stat = await file.stat();
+        if (stat.size == 0) {
+          throw Exception('Downloaded file is empty');
+        }
+
+        if (mounted) {
+          setState(() {
+            _localFilePaths[index] = file.path;
+            _isPdfMap[index] = isPdf;
+            _isDownloading[index] = false;
+          });
+        }
+      } else {
+        throw Exception('Failed to download file: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isDownloading[index] = false;
+          _downloadErrors[index] = e.toString();
+        });
+      }
+    }
+  }
+
+  String _getFieldValue(String key) {
+    final field = widget.report.fields.firstWhere(
+      (f) => f.fieldName.toLowerCase().contains(key.toLowerCase()),
+      orElse: () =>
+          ReportField(id: 0, fieldName: '', fieldValue: '', createdAt: ''),
+    );
+    if (field.fieldName.isNotEmpty) return field.fieldValue;
+
+    final addField = widget.report.additionalFields.firstWhere(
+      (f) => f.fieldName.toLowerCase().contains(key.toLowerCase()),
+      orElse: () =>
+          AdditionalField(id: 0, fieldName: '', fieldValue: '', category: ''),
+    );
+    return addField.fieldName.isNotEmpty ? addField.fieldValue : 'N/A';
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final images = widget.images;
+
+    final validFields = widget.report.fields
+        .where(
+          (f) =>
+              f.fieldValue.trim().isNotEmpty &&
+              f.fieldValue.toLowerCase() != 'n/a' &&
+              f.fieldValue.toLowerCase() != 'null',
+        )
+        .toList();
+
+    return Scaffold(
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            LucideIcons.arrowLeft,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Report Details',
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: const Color(0xFF39A4E6),
+          unselectedLabelColor: Colors.grey,
+          indicatorColor: const Color(0xFF39A4E6),
+          tabs: const [
+            Tab(text: 'Files'),
+            Tab(text: 'Extracted Data'),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          images.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        LucideIcons.imageOff,
+                        size: 64,
+                        color: Colors.grey[300],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No files available',
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[400] : Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : _buildFileViewer(isDark),
+
+          ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _buildSection(context, 'Report Info', [
+                _buildInfoTile(
+                  context,
+                  'Type',
+                  _getFieldValue('type') == 'N/A'
+                      ? 'Medical Report'
+                      : _getFieldValue('type'),
+                ),
+                _buildInfoTile(context, 'Date', widget.report.reportDate),
+                _buildInfoTile(context, 'Doctor', _getFieldValue('doctor')),
+                _buildInfoTile(context, 'Hospital', _getFieldValue('hospital')),
+              ]),
+              const SizedBox(height: 24),
+              if (validFields.isNotEmpty)
+                _buildSection(
+                  context,
+                  'Extracted Fields',
+                  validFields
+                      .map((field) => _buildFieldTile(context, field))
+                      .toList(),
+                )
+              else
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      children: [
+                        Icon(
+                          LucideIcons.fileSearch,
+                          size: 48,
+                          color: Colors.grey[300],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No extracted data available',
+                          style: TextStyle(
+                            color: isDark ? Colors.grey[400] : Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFileViewer(bool isDark) {
+    final images = widget.images;
+
+    return Column(
       children: [
-        // Floating Medical Icons
-        ..._buildFloatingIcons(context),
+        Expanded(
+          child: PageView.builder(
+            itemCount: images.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentImageIndex = index;
+                _loadFile(index);
+              });
+            },
+            itemBuilder: (context, index) {
+              final isDownloading = _isDownloading[index] ?? false;
+              final error = _downloadErrors[index];
+              final localPath = _localFilePaths[index];
+              final isPdf = _isPdfMap[index] ?? _isPdf(images[index]);
+
+              if (isDownloading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (error != null) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        LucideIcons.alertTriangle,
+                        color: Colors.red,
+                        size: 48,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Failed to load file',
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: () => _loadFile(index),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              if (localPath == null) {
+                _loadFile(index);
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (isPdf) {
+                return _PdfViewerPage(filePath: localPath, isDark: isDark);
+              }
+
+              return InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Center(
+                  child: Image.file(
+                    File(localPath),
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Center(
+                        child: Text('Error displaying image'),
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        if (images.length > 1)
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                images.length,
+                (index) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentImageIndex == index
+                        ? const Color(0xFF39A4E6)
+                        : Colors.grey[300],
+                  ),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
 
-  List<Widget> _buildFloatingIcons(BuildContext context) {
-    final icons = [
-      {
-        'icon': LucideIcons.stethoscope,
-        'x': 0.2,
-        'y': 0.1,
-        'delay': 0.0,
-        'duration': 20.0,
-      },
-      {
-        'icon': LucideIcons.syringe,
-        'x': 0.7,
-        'y': 0.2,
-        'delay': 2.0,
-        'duration': 25.0,
-      },
-      {
-        'icon': LucideIcons.pill,
-        'x': 0.85,
-        'y': 0.6,
-        'delay': 4.0,
-        'duration': 22.0,
-      },
-      {
-        'icon': LucideIcons.heart,
-        'x': 0.1,
-        'y': 0.7,
-        'delay': 1.0,
-        'duration': 28.0,
-      },
-      {
-        'icon': LucideIcons.activity,
-        'x': 0.5,
-        'y': 0.8,
-        'delay': 3.0,
-        'duration': 24.0,
-      },
-      {
-        'icon': LucideIcons.thermometer,
-        'x': 0.3,
-        'y': 0.4,
-        'delay': 5.0,
-        'duration': 26.0,
-      },
-      {
-        'icon': LucideIcons.clipboard,
-        'x': 0.9,
-        'y': 0.3,
-        'delay': 2.5,
-        'duration': 23.0,
-      },
-      {
-        'icon': LucideIcons.testTube,
-        'x': 0.15,
-        'y': 0.5,
-        'delay': 4.5,
-        'duration': 27.0,
-      },
-    ];
+  Widget _buildSection(
+    BuildContext context,
+    String title,
+    List<Widget> children,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : const Color(0xFF1E293B),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? const Color(0xFF334155) : Colors.grey[200]!,
+            ),
+          ),
+          child: Column(children: children),
+        ),
+      ],
+    );
+  }
 
-    return icons.map((data) {
-      final icon = data['icon'] as IconData;
-      final x = data['x'] as double;
-      final y = data['y'] as double;
-      final delay = data['delay'] as double;
-      final duration = data['duration'] as double;
+  Widget _buildInfoTile(BuildContext context, String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: isDark ? Colors.grey[400] : Colors.grey[500],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: isDark ? Colors.white : const Color(0xFF1E293B),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-      return Positioned(
-        left: MediaQuery.of(context).size.width * x,
-        top: MediaQuery.of(context).size.height * y,
-        child:
-            Icon(
-                  icon,
-                  size: 48,
-                  color: const Color(0xFF39A4E6).withOpacity(0.08),
-                )
-                .animate(onPlay: (c) => c.repeat())
-                .moveY(
-                  begin: 0,
-                  end: -30,
-                  duration: duration.seconds,
-                  curve: Curves.easeInOut,
-                )
-                .then(delay: delay.seconds)
-                .moveY(
-                  begin: -30,
-                  end: 0,
-                  duration: duration.seconds,
-                  curve: Curves.easeInOut,
-                )
-                .rotate(begin: 0, end: 0.05, duration: (duration * 0.5).seconds)
-                .then()
-                .rotate(
-                  begin: 0.05,
-                  end: -0.05,
-                  duration: (duration * 0.5).seconds,
+  Widget _buildFieldTile(BuildContext context, ReportField field) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? const Color(0xFF334155) : Colors.grey[100]!,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  field.fieldName,
+                  style: TextStyle(
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    fontSize: 14,
+                  ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  field.fieldValue,
+                  style: TextStyle(
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (field.isNormal != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: field.isNormal!
+                    ? Colors.green.withOpacity(0.1)
+                    : Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                field.isNormal! ? 'Normal' : 'Abnormal',
+                style: TextStyle(
+                  color: field.isNormal! ? Colors.green : Colors.red,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PdfViewerPage extends StatefulWidget {
+  final String filePath;
+  final bool isDark;
+
+  const _PdfViewerPage({required this.filePath, required this.isDark, Key? key})
+    : super(key: key);
+
+  @override
+  State<_PdfViewerPage> createState() => _PdfViewerPageState();
+}
+
+class _PdfViewerPageState extends State<_PdfViewerPage> {
+  int _totalPages = 0;
+  int _currentPage = 0;
+  bool _ready = false;
+  String _errorMessage = '';
+
+  @override
+  Widget build(BuildContext context) {
+    if (_errorMessage.isNotEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(LucideIcons.alertTriangle, color: Colors.red, size: 48),
+            const SizedBox(height: 16),
+            Text(
+              'Error loading PDF',
+              style: TextStyle(
+                color: widget.isDark ? Colors.white : Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                _errorMessage,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: widget.isDark ? Colors.grey[400] : Colors.grey[600],
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
       );
-    }).toList();
+    }
+
+    return Stack(
+      children: [
+        SfPdfViewer.file(
+          File(widget.filePath),
+          scrollDirection: PdfScrollDirection.horizontal,
+          pageLayoutMode: PdfPageLayoutMode.single,
+          onDocumentLoaded: (PdfDocumentLoadedDetails details) {
+            setState(() {
+              _totalPages = details.document.pages.count;
+              _ready = true;
+            });
+          },
+          onDocumentLoadFailed: (PdfDocumentLoadFailedDetails details) {
+            setState(() {
+              _errorMessage = details.error;
+            });
+          },
+          onPageChanged: (PdfPageChangedDetails details) {
+            setState(() {
+              _currentPage = details.newPageNumber - 1;
+            });
+          },
+        ),
+        if (_ready)
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'Page ${_currentPage + 1} of $_totalPages',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }
