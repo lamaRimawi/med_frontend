@@ -54,7 +54,7 @@ class ReportsService {
           throw Exception('Error fetching reports after retries: $e');
         }
         // Wait briefly before retrying
-        await Future.delayed(const Duration(seconds: 1));
+        await Future.delayed(const Duration(seconds: 2));
       }
     }
     return []; // Should not be reached
@@ -128,6 +128,24 @@ class ReportsService {
       }
     } catch (e) {
       throw Exception('Error fetching report images: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getTimeline() async {
+    try {
+      final response = await _client.get(
+        '${ApiConfig.reports}/timeline',
+        auth: true,
+      );
+
+      if (response.statusCode == 200) {
+        final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
+        return List<Map<String, dynamic>>.from(data['timeline']);
+      } else {
+        throw Exception('Failed to load timeline: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching timeline: $e');
     }
   }
 }
