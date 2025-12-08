@@ -4,6 +4,14 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:ui';
 import '../widgets/theme_toggle.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:gal/gal.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:file_saver/file_saver.dart';
+import 'package:http/http.dart' as http;
 
 import '../models/report_model.dart';
 import '../services/reports_service.dart';
@@ -12,11 +20,6 @@ import '../config/api_config.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
-import 'package:http/http.dart' as http;
-import 'package:gal/gal.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
 
 class ReportsScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -290,24 +293,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         const SnackBar(content: Text('Preparing report for sharing...')),
       );
 
-      final buffer = StringBuffer();
-      buffer.writeln('📋 Medical Report: ${_getReportTitle(report)}');
-      buffer.writeln('📅 Date: ${report.reportDate}');
-      buffer.writeln('🏥 Fields Extracted: ${report.totalFields}');
-      buffer.writeln('----------------------------------------');
-
-      for (var field in report.fields) {
-        buffer.write('• ${field.fieldName}: ${field.fieldValue}');
-        if (field.fieldUnit != null && field.fieldUnit!.isNotEmpty) {
-          buffer.write(' ${field.fieldUnit}');
-        }
-        buffer.writeln();
-      }
-
-      buffer.writeln('----------------------------------------');
-      buffer.writeln('Shared from HealthTrack App 📱');
-
-      // Get images
+      // Get images first
       final images = await ReportsService().getReportImages(report.reportId);
       final xFiles = <XFile>[];
 
@@ -319,6 +305,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
           final imageMap = images[i];
           final backendIndex = imageMap['index'] as int?;
           final fileIndex = backendIndex ?? (i + 1);
+
+          // Determine extension
+          String filename =
+              imageMap['filename'] as String? ??
+              'report_${report.reportId}_$i.jpg';
+          String extension = 'jpg';
+          if (filename.contains('.')) {
+            extension = filename.split('.').last.toLowerCase();
+          }
 
           final imageUrl =
               '${ApiConfig.baseUrl}${ApiConfig.reports}/${report.reportId}/images/$fileIndex';
@@ -332,11 +327,23 @@ class _ReportsScreenState extends State<ReportsScreen> {
             );
 
             if (response.statusCode == 200) {
-              final file = File(
-                '${tempDir.path}/report_${report.reportId}_$i.jpg',
-              );
+              // Check content type for better extension handling
+              final contentType = response.headers['content-type'];
+              if (contentType != null) {
+                if (contentType.contains('pdf'))
+                  extension = 'pdf';
+                else if (contentType.contains('png'))
+                  extension = 'png';
+                else if (contentType.contains('jpeg') ||
+                    contentType.contains('jpg'))
+                  extension = 'jpg';
+              }
+
+              final filePath =
+                  '${tempDir.path}/report_${report.reportId}_$i.$extension';
+              final file = File(filePath);
               await file.writeAsBytes(response.bodyBytes);
-              xFiles.add(XFile(file.path));
+              xFiles.add(XFile(file.path, mimeType: contentType));
             }
           } catch (e) {
             debugPrint('Error downloading image for share: $e');
@@ -344,13 +351,41 @@ class _ReportsScreenState extends State<ReportsScreen> {
         }
       }
 
+      // If no images found or download failed, generate PDF
+      if (xFiles.isEmpty) {
+        try {
+          final pdfFile = await _generatePdf(report);
+          xFiles.add(XFile(pdfFile.path, mimeType: 'application/pdf'));
+        } catch (e) {
+          debugPrint('Error generating PDF: $e');
+        }
+      }
+
       if (xFiles.isNotEmpty) {
+        // Share files with minimal text
         await Share.shareXFiles(
           xFiles,
-          text: buffer.toString(),
           subject: 'Medical Report: ${_getReportTitle(report)}',
         );
       } else {
+        // Fallback to text sharing if absolutely everything fails
+        final buffer = StringBuffer();
+        buffer.writeln('📋 Medical Report: ${_getReportTitle(report)}');
+        buffer.writeln('📅 Date: ${report.reportDate}');
+        buffer.writeln('🏥 Fields Extracted: ${report.totalFields}');
+        buffer.writeln('----------------------------------------');
+
+        for (var field in report.fields) {
+          buffer.write('• ${field.fieldName}: ${field.fieldValue}');
+          if (field.fieldUnit != null && field.fieldUnit!.isNotEmpty) {
+            buffer.write(' ${field.fieldUnit}');
+          }
+          buffer.writeln();
+        }
+
+        buffer.writeln('----------------------------------------');
+        buffer.writeln('Shared from HealthTrack App 📱');
+
         await Share.share(
           buffer.toString(),
           subject: 'Medical Report: ${_getReportTitle(report)}',
@@ -367,73 +402,213 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Future<void> _handleDownloadReport(Report report) async {
     try {
+      // Request storage permission first
+      if (Platform.isAndroid) {
+        final androidInfo = await DeviceInfoPlugin().androidInfo;
+        if (androidInfo.version.sdkInt <= 32) {
+          var status = await Permission.storage.status;
+          if (!status.isGranted) {
+            status = await Permission.storage.request();
+          }
+        } else {
+          // Android 13+
+          var photosStatus = await Permission.photos.status;
+          if (!photosStatus.isGranted) {
+            await Permission.photos.request();
+          }
+        }
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Downloading Report #${report.reportId}...'),
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 1),
         ),
       );
 
       final images = await ReportsService().getReportImages(report.reportId);
       if (images.isEmpty) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No images to download for this report'),
-            ),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('No files to download')));
         }
         return;
       }
 
       final token = await ApiClient.instance.getToken();
       final tempDir = await getTemporaryDirectory();
+
       int successCount = 0;
+      int failCount = 0;
 
       for (var i = 0; i < images.length; i++) {
-        final imageMap = images[i];
-        final backendIndex = imageMap['index'] as int?;
-        final fileIndex = backendIndex ?? (i + 1);
-
-        final imageUrl =
-            '${ApiConfig.baseUrl}${ApiConfig.reports}/${report.reportId}/images/$fileIndex';
-
         try {
+          final imageMap = images[i];
+          final backendIndex = imageMap['index'] as int?;
+          final fileIndex = backendIndex ?? (i + 1);
+
+          final imageUrl =
+              '${ApiConfig.baseUrl}${ApiConfig.reports}/${report.reportId}/images/$fileIndex';
+
           final response = await http.get(
             Uri.parse(imageUrl),
             headers: token != null ? {'Authorization': 'Bearer $token'} : null,
           );
 
           if (response.statusCode == 200) {
-            final filePath =
-                '${tempDir.path}/report_${report.reportId}_${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
+            // Determine extension from Content-Type
+            String extension = 'jpg';
+            final contentType = response.headers['content-type'];
+            bool isPdf = false;
+
+            if (contentType != null) {
+              if (contentType.contains('pdf')) {
+                extension = 'pdf';
+                isPdf = true;
+              } else if (contentType.contains('png')) {
+                extension = 'png';
+              } else if (contentType.contains('jpeg') ||
+                  contentType.contains('jpg')) {
+                extension = 'jpg';
+              }
+            }
+
+            // Construct filename
+            String filename =
+                imageMap['filename'] as String? ??
+                'report_${report.reportId}_$i';
+            // Remove existing extension if present to avoid double extension
+            if (filename.toLowerCase().endsWith('.$extension')) {
+              filename = filename.substring(
+                0,
+                filename.length - (extension.length + 1),
+              );
+            }
+            // Sanitize
+            filename = filename.replaceAll(RegExp(r'[^\w\s\.-]'), '_');
+            final saveFilename = '$filename.$extension';
+
+            final filePath = '${tempDir.path}/$saveFilename';
             final file = File(filePath);
             await file.writeAsBytes(response.bodyBytes);
 
-            // Save to gallery
-            await Gal.putImage(filePath, album: 'Medical Reports');
-            successCount++;
+            bool saved = false;
+
+            // 1. Try Gallery (Images only)
+            String? lastError;
+            if (!isPdf) {
+              try {
+                await Gal.putImage(filePath, album: 'Medical Reports');
+                saved = true;
+              } catch (e) {
+                lastError = 'Gallery: $e';
+                debugPrint('Gallery save failed: $e');
+              }
+            }
+
+            // 2. If not saved to gallery (PDF or failed), try FileSaver
+            if (!saved) {
+              try {
+                MimeType mime = MimeType.other;
+                if (isPdf)
+                  mime = MimeType.pdf;
+                else if (extension == 'png')
+                  mime = MimeType.png;
+                else if (extension == 'jpg' || extension == 'jpeg')
+                  mime = MimeType.jpeg;
+
+                await FileSaver.instance.saveFile(
+                  name: filename,
+                  bytes: response.bodyBytes,
+                  ext: extension,
+                  mimeType: mime,
+                );
+                saved = true;
+              } catch (e) {
+                lastError = 'FileSaver: $e';
+                debugPrint('FileSaver failed: $e');
+              }
+            }
+
+            // 3. If still not saved and on Android, try manual copy as last resort
+            if (!saved && Platform.isAndroid) {
+              try {
+                final downloadDir = Directory('/storage/emulated/0/Download');
+                if (!await downloadDir.exists()) {
+                  // This might fail on Android 11+
+                  try {
+                    await downloadDir.create(recursive: true);
+                  } catch (_) {}
+                }
+
+                if (await downloadDir.exists()) {
+                  final newPath = '${downloadDir.path}/$saveFilename';
+                  String uniquePath = newPath;
+                  int counter = 1;
+                  while (await File(uniquePath).exists()) {
+                    uniquePath =
+                        '${downloadDir.path}/${filename}_$counter.$extension';
+                    counter++;
+                  }
+
+                  await file.copy(uniquePath);
+                  saved = true;
+                } else {
+                  lastError = 'Download folder not accessible';
+                }
+              } catch (e) {
+                lastError = 'Manual copy: $e';
+                debugPrint('Download folder save failed: $e');
+              }
+            }
+
+            if (saved) {
+              successCount++;
+            } else {
+              failCount++;
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Failed to save $filename: $lastError'),
+                  ),
+                );
+              }
+            }
+          } else {
+            failCount++;
           }
         } catch (e) {
-          debugPrint('Error downloading image: $e');
+          debugPrint('Download error: $e');
+          failCount++;
         }
       }
 
       if (mounted) {
         if (successCount > 0) {
+          String message = 'Saved $successCount files successfully';
+          if (failCount > 0) {
+            message += ' ($failCount failed)';
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                'Successfully saved $successCount images to gallery',
-              ),
+              content: Text(message),
               backgroundColor: const Color(0xFF10B981),
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to download images'),
+            SnackBar(
+              content: Text(
+                'Failed to save files. Please try Sharing instead.',
+              ),
               backgroundColor: Colors.red,
+              action: SnackBarAction(
+                label: 'Share',
+                textColor: Colors.white,
+                onPressed: () => _handleShareReport(report),
+              ),
             ),
           );
         }
@@ -442,7 +617,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error downloading report: $e')));
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -1131,6 +1306,222 @@ class _ReportsScreenState extends State<ReportsScreen> {
       ),
     );
   }
+
+  String? _getFieldValue(String key, [Report? report]) {
+    // If report is provided, use it. Otherwise, we can't access widget.report here because this method is in State class but widget.report is not available in all contexts or we need to be careful.
+    // Actually, in _ReportsScreenState, we don't have widget.report. We have _reports list.
+    // But wait, _getFieldValue was used in _ModernReportViewer which has widget.report.
+    // I moved these methods to _ReportsScreenState, but they were originally in _ModernReportViewer or I am confusing contexts.
+
+    // Ah, I see. I am adding these methods to _ReportsScreenState, but _ReportsScreenState doesn't have a single 'report' property.
+    // It has a list of reports.
+    // But report argument MUST be provided when calling from _ReportsScreenState context (like in _generatePdf).
+
+    if (report == null) return null;
+
+    // Try to find in fields
+    try {
+      final field = report.fields.firstWhere(
+        (f) => f.fieldName.toLowerCase().contains(key.toLowerCase()),
+        orElse: () =>
+            ReportField(id: 0, fieldName: '', fieldValue: '', createdAt: ''),
+      );
+      if (field.fieldName.isNotEmpty &&
+          field.fieldValue.toLowerCase() != 'n/a' &&
+          field.fieldValue.toLowerCase() != 'null' &&
+          field.fieldValue.trim().isNotEmpty) {
+        return field.fieldValue;
+      }
+    } catch (_) {}
+
+    // Try to find in additional fields
+    try {
+      final addField = report.additionalFields.firstWhere(
+        (f) => f.fieldName.toLowerCase().contains(key.toLowerCase()),
+        orElse: () =>
+            AdditionalField(id: 0, fieldName: '', fieldValue: '', category: ''),
+      );
+      if (addField.fieldName.isNotEmpty &&
+          addField.fieldValue.toLowerCase() != 'n/a' &&
+          addField.fieldValue.toLowerCase() != 'null' &&
+          addField.fieldValue.trim().isNotEmpty) {
+        return addField.fieldValue;
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  String? _getSmartReportType([Report? report]) {
+    // List of keys to look for in priority order
+    final keys = [
+      'report type',
+      'test name',
+      'study',
+      'examination',
+      'investigation',
+      'diagnosis',
+      'title',
+    ];
+
+    for (final key in keys) {
+      final val = _getFieldValue(key, report);
+      if (val != null) return val;
+    }
+
+    return null;
+  }
+
+  String _formatFieldName(String name) {
+    if (name.isEmpty) return name;
+    // Split by underscore or space
+    final words = name.replaceAll('_', ' ').split(' ');
+    return words
+        .map((word) {
+          if (word.isEmpty) return '';
+          // Handle special cases like WBC, RBC, MCV, etc.
+          final upperWord = word.toUpperCase();
+          if ([
+            'WBC',
+            'RBC',
+            'MCV',
+            'MCH',
+            'MCHC',
+            'HGB',
+            'HCT',
+            'BMI',
+            'BP',
+          ].contains(upperWord)) {
+            return upperWord;
+          }
+          return word[0].toUpperCase() + word.substring(1).toLowerCase();
+        })
+        .join(' ');
+  }
+
+  Future<File> _generatePdf(Report report) async {
+    final pdf = pw.Document();
+
+    // Filter fields like in the UI
+    final validFields = report.fields.where((f) {
+      return f.fieldValue.trim().isNotEmpty &&
+          f.fieldValue.toLowerCase() != 'n/a' &&
+          f.fieldValue.toLowerCase() != 'null' &&
+          f.fieldValue.toLowerCase() != 'none';
+    }).toList();
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Header(
+                level: 0,
+                child: pw.Text(
+                  'Medical Report',
+                  style: pw.TextStyle(
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 20),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('Date: ${report.reportDate}'),
+                  pw.Text('ID: #${report.reportId}'),
+                ],
+              ),
+              pw.SizedBox(height: 10),
+              pw.Text(
+                'Type: ${_getSmartReportType(report) ?? "General Report"}',
+              ),
+              if (_getFieldValue('doctor', report) != null)
+                pw.Text('Doctor: ${_getFieldValue('doctor', report)}'),
+              if (_getFieldValue('hospital', report) != null)
+                pw.Text('Hospital: ${_getFieldValue('hospital', report)}'),
+
+              pw.Divider(),
+              pw.SizedBox(height: 20),
+
+              if (validFields.isNotEmpty) ...[
+                pw.Text(
+                  'Extracted Data',
+                  style: pw.TextStyle(
+                    fontSize: 18,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 10),
+                pw.Table.fromTextArray(
+                  context: context,
+                  headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                  headerDecoration: const pw.BoxDecoration(
+                    color: PdfColors.grey300,
+                  ),
+                  rowDecoration: const pw.BoxDecoration(
+                    border: pw.Border(
+                      bottom: pw.BorderSide(color: PdfColors.grey100),
+                    ),
+                  ),
+                  data: <List<String>>[
+                    <String>['Field', 'Value', 'Unit', 'Status'],
+                    ...validFields.map(
+                      (field) => [
+                        _formatFieldName(field.fieldName),
+                        field.fieldValue,
+                        field.fieldUnit ?? '',
+                        field.isNormal == true
+                            ? 'Normal'
+                            : (field.isNormal == false ? 'Abnormal' : '-'),
+                      ],
+                    ),
+                  ],
+                  cellAlignments: {
+                    0: pw.Alignment.centerLeft,
+                    1: pw.Alignment.centerLeft,
+                    2: pw.Alignment.centerLeft,
+                    3: pw.Alignment.center,
+                  },
+                ),
+              ] else
+                pw.Text('No extracted data available.'),
+
+              pw.Spacer(),
+              pw.Divider(),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text(
+                    'Generated by HealthTrack',
+                    style: const pw.TextStyle(
+                      color: PdfColors.grey,
+                      fontSize: 10,
+                    ),
+                  ),
+                  pw.Text(
+                    DateTime.now().toString().split('.')[0],
+                    style: const pw.TextStyle(
+                      color: PdfColors.grey,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    final output = await getTemporaryDirectory();
+    final file = File('${output.path}/report_${report.reportId}_generated.pdf');
+    await file.writeAsBytes(await pdf.save());
+    return file;
+  }
 }
 
 class _ModernReportViewer extends StatefulWidget {
@@ -1518,6 +1909,7 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
                       'Failed to load file',
                       style: TextStyle(
                         color: isDark ? Colors.white : Colors.black,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
