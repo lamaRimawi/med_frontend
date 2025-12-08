@@ -1181,7 +1181,8 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
     });
 
     int retryCount = 0;
-    const maxRetries = 3;
+    // Increased retries to prevent premature error display
+    const maxRetries = 5;
 
     while (retryCount < maxRetries) {
       try {
@@ -1195,7 +1196,10 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
         }
         request.headers['Connection'] = 'close';
 
-        final response = await request.send();
+        // Add timeout to prevent hanging
+        final response = await request.send().timeout(
+          const Duration(seconds: 15),
+        );
 
         if (response.statusCode == 200) {
           final dir = await getTemporaryDirectory();
@@ -1239,6 +1243,7 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
           throw Exception('Failed to download file: ${response.statusCode}');
         }
       } catch (e) {
+        debugPrint('Error downloading file (attempt ${retryCount + 1}): $e');
         retryCount++;
         if (retryCount >= maxRetries) {
           if (mounted) {
@@ -1248,7 +1253,8 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
             });
           }
         } else {
-          await Future.delayed(Duration(milliseconds: 500 * retryCount));
+          // Wait before retrying (exponential backoff)
+          await Future.delayed(Duration(milliseconds: 1000 * retryCount));
         }
       }
     }
