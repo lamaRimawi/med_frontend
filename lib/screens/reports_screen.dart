@@ -15,6 +15,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:gal/gal.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 
 class ReportsScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -315,15 +317,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
         for (var i = 0; i < images.length; i++) {
           final imageMap = images[i];
-          final fileId = imageMap['id'];
-          String imageUrl;
-          if (fileId != null) {
-            imageUrl =
-                '${ApiConfig.baseUrl}${ApiConfig.reports}/${report.reportId}/images/$fileId';
-          } else {
-            imageUrl =
-                '${ApiConfig.baseUrl}${ApiConfig.reports}/${report.reportId}/images/${i + 1}';
-          }
+          final backendIndex = imageMap['index'] as int?;
+          final fileIndex = backendIndex ?? (i + 1);
+
+          final imageUrl =
+              '${ApiConfig.baseUrl}${ApiConfig.reports}/${report.reportId}/images/$fileIndex';
 
           try {
             final response = await http.get(
@@ -394,15 +392,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
       for (var i = 0; i < images.length; i++) {
         final imageMap = images[i];
-        final fileId = imageMap['id'];
-        String imageUrl;
-        if (fileId != null) {
-          imageUrl =
-              '${ApiConfig.baseUrl}${ApiConfig.reports}/${report.reportId}/images/$fileId';
-        } else {
-          imageUrl =
-              '${ApiConfig.baseUrl}${ApiConfig.reports}/${report.reportId}/images/${i + 1}';
-        }
+        final backendIndex = imageMap['index'] as int?;
+        final fileIndex = backendIndex ?? (i + 1);
+
+        final imageUrl =
+            '${ApiConfig.baseUrl}${ApiConfig.reports}/${report.reportId}/images/$fileIndex';
 
         try {
           final response = await http.get(
@@ -1165,14 +1159,118 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
   final Map<int, String> _downloadErrors = {};
   final Map<int, bool> _isPdfMap = {};
 
+  bool _isGeneratingPdf = false;
+  String? _generatedPdfPath;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _pageController = PageController(initialPage: 0);
-    if (widget.images.isNotEmpty) {
+
+    if (widget.images.length > 1 && !_hasPdf()) {
+      _generatePdf();
+    } else if (widget.images.isNotEmpty) {
       _loadFile(0);
     }
+  }
+
+  bool _hasPdf() {
+    return widget.images.any((img) => _isPdf(img['filename'] as String? ?? ''));
+  }
+
+  Future<void> _generatePdf() async {
+    setState(() {
+      _isGeneratingPdf = true;
+    });
+
+    try {
+      final pdf = pw.Document();
+
+      for (int i = 0; i < widget.images.length; i++) {
+        final file = await _downloadImageToFile(i);
+        final image = pw.MemoryImage(file.readAsBytesSync());
+        pdf.addPage(
+          pw.Page(
+            build: (pw.Context context) {
+              return pw.Center(child: pw.Image(image));
+            },
+          ),
+        );
+      }
+
+      final tempDir = await getTemporaryDirectory();
+      final output = File(
+        '${tempDir.path}/merged_report_${widget.report.reportId}.pdf',
+      );
+      await output.writeAsBytes(await pdf.save());
+
+      if (mounted) {
+        setState(() {
+          _generatedPdfPath = output.path;
+          _isGeneratingPdf = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error generating PDF: $e');
+      if (mounted) {
+        setState(() {
+          _isGeneratingPdf = false;
+          // Fallback to normal loading
+          _loadFile(0);
+        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to merge images: $e')));
+      }
+    }
+  }
+
+  Future<File> _downloadImageToFile(int index) async {
+    int retryCount = 0;
+    const maxRetries = 5;
+
+    while (retryCount < maxRetries) {
+      try {
+        final imageMap = widget.images[index];
+        final backendIndex = imageMap['index'] as int?;
+        final fileIndex = backendIndex ?? (index + 1);
+
+        final url =
+            '${ApiConfig.baseUrl}${ApiConfig.reports}/${widget.report.reportId}/images/$fileIndex';
+        final token = await ApiClient.instance.getToken();
+
+        final request = http.Request('GET', Uri.parse(url));
+        if (token != null) {
+          request.headers['Authorization'] = 'Bearer $token';
+        }
+        request.headers['Connection'] = 'close';
+
+        final response = await request.send().timeout(
+          const Duration(seconds: 15),
+        );
+
+        if (response.statusCode == 200) {
+          final dir = await getTemporaryDirectory();
+          final file = File(
+            '${dir.path}/temp_img_${widget.report.reportId}_${index}_${DateTime.now().millisecondsSinceEpoch}.jpg',
+          );
+
+          final sink = file.openWrite();
+          await response.stream.pipe(sink);
+          await sink.close();
+
+          return file;
+        } else {
+          throw Exception('Failed to download file: ${response.statusCode}');
+        }
+      } catch (e) {
+        retryCount++;
+        if (retryCount >= maxRetries) rethrow;
+        await Future.delayed(Duration(milliseconds: 1000 * retryCount));
+      }
+    }
+    throw Exception('Failed to download image after retries');
   }
 
   @override
@@ -1202,23 +1300,12 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
     while (retryCount < maxRetries) {
       try {
         final imageMap = widget.images[index];
-        final filename = imageMap['filename'] as String? ?? 'unknown';
-        // Try to use ID if available, otherwise fallback to index + 1
-        // If the backend supports filename, we could use that too, but 404 suggests otherwise.
-        // If we have an ID, use it.
-        final fileId = imageMap['id'];
+        // Use the index from the backend if available, otherwise fallback to list index + 1
+        final backendIndex = imageMap['index'] as int?;
+        final fileIndex = backendIndex ?? (index + 1);
 
-        String url;
-        if (fileId != null) {
-          url =
-              '${ApiConfig.baseUrl}${ApiConfig.reports}/${widget.report.reportId}/images/$fileId';
-        } else {
-          // Fallback: try index + 1. If that fails (wrong image), we might need to try filename as query param?
-          // But let's stick to index + 1 for now if no ID, as that's what we had before (even if buggy).
-          // Or maybe the filename IS the ID if it's just a number?
-          url =
-              '${ApiConfig.baseUrl}${ApiConfig.reports}/${widget.report.reportId}/images/${index + 1}';
-        }
+        final url =
+            '${ApiConfig.baseUrl}${ApiConfig.reports}/${widget.report.reportId}/images/$fileIndex';
 
         final token = await ApiClient.instance.getToken();
 
@@ -1235,7 +1322,7 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
 
         if (response.statusCode == 200) {
           final dir = await getTemporaryDirectory();
-          // filename is already defined above
+          final filename = imageMap['filename'] as String? ?? 'file_$fileIndex';
 
           // Determine type from header or filename
           bool isPdf = _isPdf(filename);
@@ -1433,6 +1520,23 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
   }
 
   Widget _buildFileViewer(bool isDark) {
+    if (_isGeneratingPdf) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Merging images into PDF...'),
+          ],
+        ),
+      );
+    }
+
+    if (_generatedPdfPath != null) {
+      return _PdfViewerPage(filePath: _generatedPdfPath!, isDark: isDark);
+    }
+
     final images = widget.images;
 
     return Stack(

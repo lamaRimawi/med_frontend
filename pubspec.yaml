@@ -53,7 +53,7 @@ dependencies:
   http: ^1.2.2
   file_picker: ^10.3.7
   cunning_document_scanner: ^1.2.0
-  pdf: ^3.10.8
+  pdf: ^3.11.3
   open_file: ^3.3.2
   syncfusion_flutter_pdfviewer: ^31.2.16
 
