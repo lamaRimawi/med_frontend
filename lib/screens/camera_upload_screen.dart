@@ -779,12 +779,23 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                   final data = extractedData!;
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => ExtractedReportScreen(
+                      builder: (navContext) => ExtractedReportScreen(
                         isDarkMode: widget.isDarkMode,
-                        onClose:
-                            widget.onClose ??
-                            () => Navigator.of(context).maybePop(),
-                        onBack: () => Navigator.of(context).maybePop(),
+                        onClose: () {
+                          // Pop the ExtractedReportScreen
+                          Navigator.of(navContext).pop();
+                          // Then execute the parent's onClose if provided
+                          if (widget.onClose != null) {
+                            widget.onClose!();
+                          } else {
+                            // Pop the camera upload screen as well
+                            Navigator.of(context).maybePop();
+                          }
+                        },
+                        onBack: () {
+                          // Just pop the ExtractedReportScreen to go back to success screen
+                          Navigator.of(navContext).pop();
+                        },
                         extractedData: data,
                       ),
                     ),
