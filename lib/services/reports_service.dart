@@ -93,7 +93,7 @@ class ReportsService {
     }
   }
 
-  Future<List<String>> getReportImages(int reportId) async {
+  Future<List<Map<String, dynamic>>> getReportImages(int reportId) async {
     try {
       final response = await _client.get(
         '${ApiConfig.reports}/$reportId/images',
@@ -103,17 +103,20 @@ class ReportsService {
       if (response.statusCode == 200) {
         final dynamic decoded = json.decode(utf8.decode(response.bodyBytes));
 
-        // Backend returns { "files": [ { "filename": "...", ... }, ... ] }
+        // Backend returns { "files": [ { "filename": "...", "id": ... }, ... ] }
         if (decoded is Map<String, dynamic>) {
           if (decoded.containsKey('files')) {
             final files = decoded['files'] as List<dynamic>;
-            return files.map((f) => f['filename'] as String).toList();
+            return files.map((f) => f as Map<String, dynamic>).toList();
           } else if (decoded.containsKey('images')) {
             // Fallback for older API structure if any
-            return List<String>.from(decoded['images']);
+            // Convert string list to map list for consistency
+            final images = List<String>.from(decoded['images']);
+            return images.map((img) => {'filename': img}).toList();
           }
         } else if (decoded is List) {
-          return List<String>.from(decoded);
+          // Fallback if it returns a list of strings
+          return decoded.map((img) => {'filename': img.toString()}).toList();
         }
 
         return [];

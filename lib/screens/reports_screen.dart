@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:ui';
 import '../widgets/theme_toggle.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../models/report_model.dart';
 import '../services/reports_service.dart';
@@ -313,9 +314,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
         final tempDir = await getTemporaryDirectory();
 
         for (var i = 0; i < images.length; i++) {
-          final imageUrl = images[i].startsWith('http')
-              ? images[i]
-              : '${ApiConfig.baseUrl}${images[i]}';
+          final imageMap = images[i];
+          final fileId = imageMap['id'];
+          String imageUrl;
+          if (fileId != null) {
+            imageUrl =
+                '${ApiConfig.baseUrl}${ApiConfig.reports}/${report.reportId}/images/$fileId';
+          } else {
+            imageUrl =
+                '${ApiConfig.baseUrl}${ApiConfig.reports}/${report.reportId}/images/${i + 1}';
+          }
 
           try {
             final response = await http.get(
@@ -385,9 +393,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
       int successCount = 0;
 
       for (var i = 0; i < images.length; i++) {
-        final imageUrl = images[i].startsWith('http')
-            ? images[i]
-            : '${ApiConfig.baseUrl}${images[i]}';
+        final imageMap = images[i];
+        final fileId = imageMap['id'];
+        String imageUrl;
+        if (fileId != null) {
+          imageUrl =
+              '${ApiConfig.baseUrl}${ApiConfig.reports}/${report.reportId}/images/$fileId';
+        } else {
+          imageUrl =
+              '${ApiConfig.baseUrl}${ApiConfig.reports}/${report.reportId}/images/${i + 1}';
+        }
 
         try {
           final response = await http.get(
@@ -1126,7 +1141,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
 class _ModernReportViewer extends StatefulWidget {
   final Report report;
-  final List<String> images;
+  final List<Map<String, dynamic>> images;
 
   const _ModernReportViewer({
     required this.report,
@@ -1142,7 +1157,7 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late PageController _pageController;
-  int _currentImageIndex = 0;
+  int _currentIndex = 0;
 
   // Cache for downloaded files (index -> path)
   final Map<int, String> _localFilePaths = {};
@@ -1186,8 +1201,25 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
 
     while (retryCount < maxRetries) {
       try {
-        final url =
-            '${ApiConfig.baseUrl}${ApiConfig.reports}/${widget.report.reportId}/images/${index + 1}';
+        final imageMap = widget.images[index];
+        final filename = imageMap['filename'] as String? ?? 'unknown';
+        // Try to use ID if available, otherwise fallback to index + 1
+        // If the backend supports filename, we could use that too, but 404 suggests otherwise.
+        // If we have an ID, use it.
+        final fileId = imageMap['id'];
+
+        String url;
+        if (fileId != null) {
+          url =
+              '${ApiConfig.baseUrl}${ApiConfig.reports}/${widget.report.reportId}/images/$fileId';
+        } else {
+          // Fallback: try index + 1. If that fails (wrong image), we might need to try filename as query param?
+          // But let's stick to index + 1 for now if no ID, as that's what we had before (even if buggy).
+          // Or maybe the filename IS the ID if it's just a number?
+          url =
+              '${ApiConfig.baseUrl}${ApiConfig.reports}/${widget.report.reportId}/images/${index + 1}';
+        }
+
         final token = await ApiClient.instance.getToken();
 
         final request = http.Request('GET', Uri.parse(url));
@@ -1203,7 +1235,7 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
 
         if (response.statusCode == 200) {
           final dir = await getTemporaryDirectory();
-          final filename = widget.images[index];
+          // filename is already defined above
 
           // Determine type from header or filename
           bool isPdf = _isPdf(filename);
@@ -1410,7 +1442,7 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
           itemCount: images.length,
           onPageChanged: (index) {
             setState(() {
-              _currentImageIndex = index;
+              _currentIndex = index;
               _loadFile(index);
             });
           },
@@ -1418,7 +1450,9 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
             final isDownloading = _isDownloading[index] ?? false;
             final error = _downloadErrors[index];
             final localPath = _localFilePaths[index];
-            final isPdf = _isPdfMap[index] ?? _isPdf(images[index]);
+            final imageMap = images[index];
+            final filename = imageMap['filename'] as String? ?? '';
+            final isPdf = _isPdfMap[index] ?? _isPdf(filename);
 
             if (isDownloading) {
               return const Center(child: CircularProgressIndicator());
@@ -1479,36 +1513,30 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
             );
           },
         ),
-        if (images.length > 1)
+        if (images.length > 1 &&
+            !(_isPdfMap[_currentIndex] ??
+                _isPdf(images[_currentIndex]['filename'] as String? ?? '')))
           Positioned(
-            top: 16,
+            bottom: 20,
             left: 0,
             right: 0,
             child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+              child: SmoothPageIndicator(
+                controller: _pageController,
+                count: images.length,
+                effect: WormEffect(
+                  dotHeight: 8,
+                  dotWidth: 8,
+                  activeDotColor: const Color(0xFF39A4E6),
+                  dotColor: isDark ? Colors.grey[700]! : Colors.grey[300]!,
                 ),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      LucideIcons.files,
-                      size: 14,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'File ${_currentImageIndex + 1} of ${images.length}',
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
-                    ),
-                  ],
-                ),
+                onDotClicked: (index) {
+                  _pageController.animateToPage(
+                    index,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
               ),
             ),
           ),
