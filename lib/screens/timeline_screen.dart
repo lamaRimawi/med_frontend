@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:share_plus/share_plus.dart';
 import 'dart:ui';
 
 import '../services/timeline_api.dart';
 import '../models/timeline_models.dart';
+import '../services/pdf_generator.dart';
 
+import 'package:mediScan/screens/extracted_report_screen.dart';
 
 // Medical Record Model
 class MedicalRecord {
@@ -22,6 +26,7 @@ class MedicalRecord {
   final DateTime timestamp;
   final String notes;
   final List<RecordValue>? values;
+  final List<String> abnormalFields;
 
   MedicalRecord({
     required this.id,
@@ -37,6 +42,7 @@ class MedicalRecord {
     required this.timestamp,
     required this.notes,
     this.values,
+    this.abnormalFields = const [],
   });
 }
 
@@ -74,32 +80,29 @@ class _TimelineScreenState extends State<TimelineScreen> {
   int? _expandedCard;
   String _searchQuery = '';
   bool _showExportMenu = false;
-  
+
   // Backend data
   List<TimelineReport> _timelineReports = [];
-  TimelineStats? _stats;
   bool _isLoading = true;
   String? _errorMessage;
-  
+
   @override
   void initState() {
     super.initState();
     _loadTimelineData();
   }
-  
+
   Future<void> _loadTimelineData() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
-    
+
     try {
       final timeline = await TimelineApi.getTimeline();
-      final stats = await TimelineApi.getStats();
-      
+
       setState(() {
         _timelineReports = timeline;
-        _stats = stats;
         _isLoading = false;
       });
     } catch (e) {
@@ -109,29 +112,70 @@ class _TimelineScreenState extends State<TimelineScreen> {
       });
     }
   }
-  
+
   String _formatFullDate(DateTime date) {
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const days = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
     return '${days[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}, ${date.year}';
   }
-  
+
   String _getCategoryFromType(String type) {
     final lower = type.toLowerCase();
-    if (lower.contains('lab') || lower.contains('test') || lower.contains('blood')) return 'lab';
-    if (lower.contains('x-ray') || lower.contains('scan') || lower.contains('imaging')) return 'imaging';
-    if (lower.contains('prescription') || lower.contains('medication')) return 'prescription';
+    if (lower.contains('lab') ||
+        lower.contains('test') ||
+        lower.contains('blood'))
+      return 'lab';
+    if (lower.contains('x-ray') ||
+        lower.contains('scan') ||
+        lower.contains('imaging'))
+      return 'imaging';
+    if (lower.contains('prescription') || lower.contains('medication'))
+      return 'prescription';
     return 'other';
   }
 
   // Convert backend data to UI format
   List<MedicalRecord> get _allRecords {
     if (_isLoading || _timelineReports.isEmpty) return [];
-    
+
     return _timelineReports.map((report) {
       final date = DateTime.parse(report.date);
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      
+      const monthNames = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
+
       return MedicalRecord(
         id: report.reportId,
         date: '${monthNames[date.month - 1]} ${date.day}',
@@ -148,220 +192,13 @@ class _TimelineScreenState extends State<TimelineScreen> {
             ? 'All ${report.summary.totalTests} test(s) within normal range.'
             : '${report.summary.abnormalCount} abnormal: ${report.summary.abnormalFields.join(", ")}',
         values: null,
+        abnormalFields: report.summary.abnormalFields,
       );
     }).toList();
   }
 
-  // Dummy Data (kept for reference, not used)
-  final List<MedicalRecord> _dummyRecords = [
-    MedicalRecord(
-      id: 1,
-      date: 'Nov 28',
-      time: '10:30 AM',
-      fullDate: 'Thursday, November 28, 2025',
-      title: 'Complete Blood Count',
-      type: 'Lab Test',
-      category: 'lab',
-      facility: 'Quest Diagnostics',
-      doctor: 'Dr. Sarah Johnson',
-      status: 'Normal',
-      timestamp: DateTime(2025, 11, 28, 10, 30),
-      notes: 'All values within normal range. Continue current medication.',
-      values: [
-        RecordValue(label: 'WBC', value: '7.5', unit: 'K/μL', status: 'normal'),
-        RecordValue(label: 'RBC', value: '4.8', unit: 'M/μL', status: 'normal'),
-        RecordValue(
-          label: 'Hemoglobin',
-          value: '14.2',
-          unit: 'g/dL',
-          status: 'normal',
-        ),
-        RecordValue(
-          label: 'Platelets',
-          value: '250',
-          unit: 'K/μL',
-          status: 'normal',
-        ),
-      ],
-    ),
-    MedicalRecord(
-      id: 2,
-      date: 'Nov 26',
-      time: '02:15 PM',
-      fullDate: 'Tuesday, November 26, 2025',
-      title: 'X-Ray Chest PA & Lateral',
-      type: 'Imaging',
-      category: 'imaging',
-      facility: 'Regional Radiology Center',
-      doctor: 'Dr. Michael Chen',
-      status: 'Clear',
-      timestamp: DateTime(2025, 11, 26, 14, 15),
-      notes:
-          'No abnormalities detected. Lung fields are clear with no signs of infection or masses.',
-    ),
-    MedicalRecord(
-      id: 3,
-      date: 'Nov 25',
-      time: '09:00 AM',
-      fullDate: 'Monday, November 25, 2025',
-      title: 'Lisinopril 10mg',
-      type: 'Prescription',
-      category: 'prescription',
-      facility: 'City Medical Clinic',
-      doctor: 'Dr. Emily Rodriguez',
-      status: 'Active',
-      timestamp: DateTime(2025, 11, 25, 9, 0),
-      notes:
-          'Take once daily in the morning for blood pressure management. 30 day supply with 2 refills.',
-    ),
-    MedicalRecord(
-      id: 4,
-      date: 'Nov 24',
-      time: '08:30 AM',
-      fullDate: 'Sunday, November 24, 2025',
-      title: 'Lipid Panel',
-      type: 'Lab Test',
-      category: 'lab',
-      facility: 'LabCorp',
-      doctor: 'Dr. Sarah Johnson',
-      status: 'Review Required',
-      timestamp: DateTime(2025, 11, 24, 8, 30),
-      notes:
-          'Total cholesterol slightly elevated. Recommend dietary changes and follow-up in 3 months.',
-      values: [
-        RecordValue(
-          label: 'Total Cholesterol',
-          value: '210',
-          unit: 'mg/dL',
-          status: 'high',
-        ),
-        RecordValue(label: 'LDL', value: '135', unit: 'mg/dL', status: 'high'),
-        RecordValue(label: 'HDL', value: '55', unit: 'mg/dL', status: 'normal'),
-        RecordValue(
-          label: 'Triglycerides',
-          value: '140',
-          unit: 'mg/dL',
-          status: 'normal',
-        ),
-      ],
-    ),
-    MedicalRecord(
-      id: 5,
-      date: 'Nov 20',
-      time: '03:00 PM',
-      fullDate: 'Wednesday, November 20, 2025',
-      title: 'MRI Brain with Contrast',
-      type: 'Imaging',
-      category: 'imaging',
-      facility: 'Advanced Imaging Center',
-      doctor: 'Dr. Michael Chen',
-      status: 'Normal',
-      timestamp: DateTime(2025, 11, 20, 15, 0),
-      notes:
-          'All brain structures appear normal. No evidence of lesions, masses, or abnormal enhancement.',
-    ),
-    MedicalRecord(
-      id: 6,
-      date: 'Nov 18',
-      time: '11:00 AM',
-      fullDate: 'Monday, November 18, 2025',
-      title: 'Tissue Biopsy Analysis',
-      type: 'Pathology',
-      category: 'pathology',
-      facility: 'City Pathology Lab',
-      doctor: 'Dr. James Wilson',
-      status: 'Benign',
-      timestamp: DateTime(2025, 11, 18, 11, 0),
-      notes:
-          'Microscopic examination shows benign tissue. No malignant cells detected. No further action required.',
-    ),
-    MedicalRecord(
-      id: 7,
-      date: 'Nov 15',
-      time: '07:30 AM',
-      fullDate: 'Friday, November 15, 2025',
-      title: 'Fasting Blood Glucose',
-      type: 'Lab Test',
-      category: 'lab',
-      facility: 'Quest Diagnostics',
-      doctor: 'Dr. Sarah Johnson',
-      status: 'Normal',
-      timestamp: DateTime(2025, 11, 15, 7, 30),
-      notes:
-          'Fasting glucose within normal range. Continue current management plan.',
-      values: [
-        RecordValue(
-          label: 'Glucose (Fasting)',
-          value: '95',
-          unit: 'mg/dL',
-          status: 'normal',
-        ),
-        RecordValue(label: 'HbA1c', value: '5.4', unit: '%', status: 'normal'),
-      ],
-    ),
-    MedicalRecord(
-      id: 8,
-      date: 'Nov 12',
-      time: '10:00 AM',
-      fullDate: 'Tuesday, November 12, 2025',
-      title: 'Metformin 500mg',
-      type: 'Prescription',
-      category: 'prescription',
-      facility: 'City Medical Clinic',
-      doctor: 'Dr. Emily Rodriguez',
-      status: 'Active',
-      timestamp: DateTime(2025, 11, 12, 10, 0),
-      notes:
-          'Take twice daily with meals for blood sugar management. 90 day supply with 3 refills available.',
-    ),
-    MedicalRecord(
-      id: 9,
-      date: 'Nov 08',
-      time: '01:45 PM',
-      fullDate: 'Friday, November 8, 2025',
-      title: 'Thyroid Function Test',
-      type: 'Lab Test',
-      category: 'lab',
-      facility: 'LabCorp',
-      doctor: 'Dr. Sarah Johnson',
-      status: 'Normal',
-      timestamp: DateTime(2025, 11, 8, 13, 45),
-      notes:
-          'TSH and T4 levels are within normal range. No thyroid dysfunction detected.',
-      values: [
-        RecordValue(
-          label: 'TSH',
-          value: '2.1',
-          unit: 'mIU/L',
-          status: 'normal',
-        ),
-        RecordValue(
-          label: 'Free T4',
-          value: '1.3',
-          unit: 'ng/dL',
-          status: 'normal',
-        ),
-      ],
-    ),
-    MedicalRecord(
-      id: 10,
-      date: 'Nov 05',
-      time: '11:30 AM',
-      fullDate: 'Tuesday, November 5, 2025',
-      title: 'Ultrasound Abdomen',
-      type: 'Imaging',
-      category: 'imaging',
-      facility: 'Regional Radiology Center',
-      doctor: 'Dr. Michael Chen',
-      status: 'Normal',
-      timestamp: DateTime(2025, 11, 5, 11, 30),
-      notes:
-          'Abdominal organs appear normal in size and structure. No masses or abnormalities detected.',
-    ),
-  ];
-
   List<MedicalRecord> get _filteredRecords {
-    final now = DateTime(2025, 11, 30); // Mock current date as per React code
+    final now = DateTime.now();
 
     // Filter by time period
     var records = _allRecords.where((r) {
@@ -427,6 +264,66 @@ class _TimelineScreenState extends State<TimelineScreen> {
           .where((r) => r.category == 'pathology')
           .length,
     };
+  }
+
+  void _shareReport(MedicalRecord record) async {
+    try {
+      // Show loading feedback
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Generating report PDF...')),
+        );
+      }
+
+      final reportData = await TimelineApi.getReport(record.id);
+      final file = await PdfGenerator.generateReportPdf(reportData);
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text:
+            'Medical Report - ${reportData.patientInfo.name} - ${reportData.reportDate}',
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error sharing report: $e')));
+      }
+    }
+  }
+
+  void _showReportDetails(BuildContext context, MedicalRecord record) async {
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final reportData = await TimelineApi.getReport(record.id);
+      if (context.mounted) {
+        Navigator.pop(context); // Dismiss loading
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ExtractedReportScreen(
+              isDarkMode: widget.isDarkMode,
+              onClose: () {}, // Not needed for this flow
+              onBack: () => Navigator.pop(context),
+              extractedData: reportData,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context); // Dismiss loading
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading report: $e')));
+      }
+    }
   }
 
   @override
@@ -558,7 +455,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
                               Text(
                                 '${_filteredRecords.length} ${_filteredRecords.length == 1 ? 'record' : 'records'}',
                                 style: TextStyle(
-                                    fontSize: 12, color: subTextColor),
+                                  fontSize: 12,
+                                  color: subTextColor,
+                                ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ],
@@ -609,9 +508,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           _expandedCard = null;
                         }),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 8,
-                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? const Color(0xFF39A4E6)
@@ -833,7 +730,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       ),
                       const SizedBox(width: 6),
                       Container(
-                        constraints: const BoxConstraints(minWidth: 20, minHeight: 16),
+                        constraints: const BoxConstraints(
+                          minWidth: 20,
+                          minHeight: 16,
+                        ),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 6,
                           vertical: 2,
@@ -874,6 +774,41 @@ class _TimelineScreenState extends State<TimelineScreen> {
     Color? subTextColor,
     Color borderColor,
   ) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(LucideIcons.alertCircle, size: 48, color: Colors.red),
+            const SizedBox(height: 16),
+            Text(
+              'Error loading timeline',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _errorMessage!,
+              style: TextStyle(color: subTextColor),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadTimelineData,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
     final records = _filteredRecords;
 
     if (records.isEmpty) {
@@ -1179,97 +1114,66 @@ class _TimelineScreenState extends State<TimelineScreen> {
                               ),
 
                               // Quick Info
-                              const SizedBox(height: 16),
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: isDark
-                                      ? Colors.grey[800]!.withOpacity(0.3)
-                                      : Colors.grey[50],
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            LucideIcons.mapPin,
-                                            size: 14,
-                                            color: subTextColor,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Facility',
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                    color: subTextColor,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  record.facility,
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: textColor,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ],
+                              if (record.doctor.isNotEmpty &&
+                                  ![
+                                    'unknown',
+                                    'not specified',
+                                    'none',
+                                  ].contains(record.doctor.toLowerCase())) ...[
+                                const SizedBox(height: 16),
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? Colors.grey[800]!.withOpacity(0.3)
+                                        : Colors.grey[50],
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              LucideIcons.activity,
+                                              size: 14,
+                                              color: subTextColor,
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            LucideIcons.activity,
-                                            size: 14,
-                                            color: subTextColor,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Doctor',
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                    color: subTextColor,
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'Doctor',
+                                                    style: TextStyle(
+                                                      fontSize: 10,
+                                                      color: subTextColor,
+                                                    ),
                                                   ),
-                                                ),
-                                                Text(
-                                                  record.doctor,
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: textColor,
-                                                    fontWeight: FontWeight.w500,
+                                                  Text(
+                                                    record.doctor,
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: textColor,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                   ),
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ],
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
+                              ],
 
                               // Expanded Content
                               AnimatedSize(
@@ -1341,12 +1245,15 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                                         ),
                                                         child: FittedBox(
                                                           fit: BoxFit.scaleDown,
-                                                          alignment: Alignment.centerLeft,
+                                                          alignment: Alignment
+                                                              .centerLeft,
                                                           child: Column(
                                                             crossAxisAlignment:
                                                                 CrossAxisAlignment
                                                                     .start,
-                                                            mainAxisSize: MainAxisSize.min,
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .min,
                                                             children: [
                                                               Text(
                                                                 val.label,
@@ -1357,7 +1264,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                                                 ),
                                                               ),
                                                               Row(
-                                                                mainAxisSize: MainAxisSize.min,
+                                                                mainAxisSize:
+                                                                    MainAxisSize
+                                                                        .min,
                                                                 children: [
                                                                   Text(
                                                                     val.value,
@@ -1423,37 +1332,72 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                             const SizedBox(height: 16),
                                           ],
 
-                                          // Notes
+                                          // Trend Chart
+                                          if (record
+                                              .abnormalFields
+                                              .isNotEmpty) ...[
+                                            _TrendChart(
+                                              fieldNames: record.abnormalFields,
+                                              isDark: isDark,
+                                            ),
+                                            const SizedBox(height: 16),
+                                          ],
+
+                                          // Summary
                                           Container(
                                             padding: const EdgeInsets.all(16),
                                             decoration: BoxDecoration(
                                               color: isDark
                                                   ? Colors.grey[800]!
                                                         .withOpacity(0.3)
-                                                  : Colors.grey[50],
+                                                  : Colors.blue.withOpacity(
+                                                      0.05,
+                                                    ),
                                               borderRadius:
                                                   BorderRadius.circular(16),
+                                              border: Border.all(
+                                                color: isDark
+                                                    ? Colors.transparent
+                                                    : Colors.blue.withOpacity(
+                                                        0.1,
+                                                      ),
+                                              ),
                                             ),
                                             child: Column(
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                Text(
-                                                  'Clinical Notes',
-                                                  style: TextStyle(
-                                                    fontSize: 13,
-                                                    color: subTextColor,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
+                                                Row(
+                                                  children: [
+                                                    Icon(
+                                                      LucideIcons.fileText,
+                                                      size: 14,
+                                                      color: const Color(
+                                                        0xFF39A4E6,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                      'Report Summary',
+                                                      style: TextStyle(
+                                                        fontSize: 13,
+                                                        color: const Color(
+                                                          0xFF39A4E6,
+                                                        ),
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                                 const SizedBox(height: 8),
                                                 Text(
                                                   record.notes,
                                                   style: TextStyle(
-                                                    fontSize: 13,
+                                                    fontSize: 14,
                                                     color: isDark
                                                         ? Colors.grey[300]
-                                                        : Colors.grey[700],
+                                                        : Colors.grey[800],
                                                     height: 1.5,
                                                   ),
                                                 ),
@@ -1468,7 +1412,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                             children: [
                                               Expanded(
                                                 child: GestureDetector(
-                                                  onTap: () {}, // Placeholder
+                                                  onTap: () =>
+                                                      _showReportDetails(
+                                                        context,
+                                                        record,
+                                                      ),
                                                   child: Container(
                                                     padding:
                                                         const EdgeInsets.symmetric(
@@ -1526,7 +1474,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                               ),
                                               const SizedBox(width: 12),
                                               GestureDetector(
-                                                onTap: () {}, // Placeholder
+                                                onTap: () =>
+                                                    _shareReport(record),
                                                 child: Container(
                                                   padding: const EdgeInsets.all(
                                                     12,
@@ -1720,5 +1669,176 @@ class _TimelineScreenState extends State<TimelineScreen> {
       default:
         return {'bg': Colors.grey, 'text': Colors.grey, 'icon': '•'};
     }
+  }
+}
+
+class _TrendChart extends StatefulWidget {
+  final List<String> fieldNames;
+  final bool isDark;
+
+  const _TrendChart({required this.fieldNames, required this.isDark});
+
+  @override
+  State<_TrendChart> createState() => _TrendChartState();
+}
+
+class _TrendChartState extends State<_TrendChart> {
+  late Future<HealthTrends> _trendsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _trendsFuture = TimelineApi.getTrends(widget.fieldNames);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<HealthTrends>(
+      future: _trendsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        }
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const SizedBox.shrink();
+        }
+
+        final trends = snapshot.data!.trends;
+        if (trends.isEmpty) return const SizedBox.shrink();
+
+        // Just show the first field's trend for now to keep it simple
+        final firstField = trends.keys.first;
+        final points = trends[firstField]!;
+
+        // Sort points by date
+        points.sort(
+          (a, b) => DateTime.parse(a.date).compareTo(DateTime.parse(b.date)),
+        );
+
+        if (points.length < 2) return const SizedBox.shrink();
+
+        return Container(
+          height: 200,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: widget.isDark
+                ? Colors.grey[800]!.withOpacity(0.3)
+                : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: widget.isDark ? Colors.grey[700]! : Colors.grey[200]!,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Trend: $firstField',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: widget.isDark ? Colors.white : Colors.black,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: LineChart(
+                  LineChartData(
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                      horizontalInterval: 1,
+                      getDrawingHorizontalLine: (value) {
+                        return FlLine(
+                          color: widget.isDark
+                              ? Colors.grey[800]
+                              : Colors.grey[200],
+                          strokeWidth: 1,
+                        );
+                      },
+                    ),
+                    titlesData: const FlTitlesData(show: false),
+                    borderData: FlBorderData(show: false),
+                    lineTouchData: LineTouchData(
+                      touchTooltipData: LineTouchTooltipData(
+                        getTooltipColor: (touchedSpot) => widget.isDark
+                            ? const Color(0xFF1A1D26)
+                            : Colors.white,
+                        tooltipBorder: BorderSide(
+                          color: widget.isDark
+                              ? Colors.grey[700]!
+                              : Colors.grey[200]!,
+                        ),
+                        getTooltipItems: (touchedSpots) {
+                          return touchedSpots.map((LineBarSpot touchedSpot) {
+                            return LineTooltipItem(
+                              '${touchedSpot.y}',
+                              TextStyle(
+                                color: widget.isDark
+                                    ? Colors.white
+                                    : Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            );
+                          }).toList();
+                        },
+                      ),
+                    ),
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: points.asMap().entries.map((e) {
+                          final val = e.value.numericValue ?? 0.0;
+                          return FlSpot(e.key.toDouble(), val);
+                        }).toList(),
+                        isCurved: true,
+                        curveSmoothness: 0.35,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF39A4E6), Color(0xFF2B8DD4)],
+                        ),
+                        barWidth: 3,
+                        isStrokeCapRound: true,
+                        dotData: FlDotData(
+                          show: true,
+                          getDotPainter: (spot, percent, barData, index) {
+                            return FlDotCirclePainter(
+                              radius: 4,
+                              color: widget.isDark
+                                  ? const Color(0xFF1A1D26)
+                                  : Colors.white,
+                              strokeWidth: 2,
+                              strokeColor: const Color(0xFF39A4E6),
+                            );
+                          },
+                        ),
+                        belowBarData: BarAreaData(
+                          show: true,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              const Color(0xFF39A4E6).withOpacity(0.2),
+                              const Color(0xFF39A4E6).withOpacity(0.0),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
