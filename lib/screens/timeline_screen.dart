@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'dart:ui';
 
 import '../services/timeline_api.dart';
+import 'package:mediScan/models/extracted_report_data.dart';
 import '../models/timeline_models.dart';
 import '../services/pdf_generator.dart';
 
@@ -27,6 +28,7 @@ class MedicalRecord {
   final String notes;
   final List<RecordValue>? values;
   final List<String> abnormalFields;
+  final List<String> availableTestFields;
 
   MedicalRecord({
     required this.id,
@@ -43,6 +45,7 @@ class MedicalRecord {
     required this.notes,
     this.values,
     this.abnormalFields = const [],
+    this.availableTestFields = const [],
   });
 }
 
@@ -86,6 +89,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
   bool _isLoading = true;
   String? _errorMessage;
 
+  final Map<int, ExtractedReportData> _reportDetailsCache = {};
+
   @override
   void initState() {
     super.initState();
@@ -105,11 +110,31 @@ class _TimelineScreenState extends State<TimelineScreen> {
         _timelineReports = timeline;
         _isLoading = false;
       });
+
+      // Fetch details for all reports to populate the chart
+      for (var report in timeline) {
+        _fetchReportDetails(report.reportId);
+      }
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _fetchReportDetails(int reportId) async {
+    if (_reportDetailsCache.containsKey(reportId)) return;
+
+    try {
+      final details = await TimelineApi.getReport(reportId);
+      if (mounted) {
+        setState(() {
+          _reportDetailsCache[reportId] = details;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching report details: $e');
     }
   }
 
@@ -191,8 +216,20 @@ class _TimelineScreenState extends State<TimelineScreen> {
         notes: report.summary.abnormalCount == 0
             ? 'All ${report.summary.totalTests} test(s) within normal range.'
             : '${report.summary.abnormalCount} abnormal: ${report.summary.abnormalFields.join(", ")}',
-        values: null,
+        values: _reportDetailsCache[report.reportId]?.testResults?.map((t) {
+          return RecordValue(
+            label: t.name,
+            value: t.value,
+            unit: t.unit,
+            status: t.status,
+          );
+        }).toList(),
         abnormalFields: report.summary.abnormalFields,
+        availableTestFields:
+            _reportDetailsCache[report.reportId]?.testResults
+                ?.map((t) => t.name)
+                .toList() ??
+            [],
       );
     }).toList();
   }
@@ -1334,10 +1371,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
                                           // Trend Chart
                                           if (record
-                                              .abnormalFields
+                                              .availableTestFields
                                               .isNotEmpty) ...[
-                                            _TrendChart(
-                                              fieldNames: record.abnormalFields,
+                                            _SmartTrendChart(
+                                              fieldNames:
+                                                  record.availableTestFields,
                                               isDark: isDark,
                                             ),
                                             const SizedBox(height: 16),
@@ -1672,86 +1710,158 @@ class _TimelineScreenState extends State<TimelineScreen> {
   }
 }
 
-class _TrendChart extends StatefulWidget {
+class _SmartTrendChart extends StatefulWidget {
   final List<String> fieldNames;
   final bool isDark;
 
-  const _TrendChart({required this.fieldNames, required this.isDark});
+  const _SmartTrendChart({required this.fieldNames, required this.isDark});
 
   @override
-  State<_TrendChart> createState() => _TrendChartState();
+  State<_SmartTrendChart> createState() => _SmartTrendChartState();
 }
 
-class _TrendChartState extends State<_TrendChart> {
-  late Future<HealthTrends> _trendsFuture;
+class _SmartTrendChartState extends State<_SmartTrendChart> {
+  late String _selectedField;
+  Future<HealthTrends>? _trendsFuture;
 
   @override
   void initState() {
     super.initState();
-    _trendsFuture = TimelineApi.getTrends(widget.fieldNames);
+    // Default to first field or Hemoglobin if available
+    _selectedField = widget.fieldNames.firstWhere(
+      (f) => f.toLowerCase().contains('hemoglobin'),
+      orElse: () => widget.fieldNames.first,
+    );
+    _loadTrend();
+  }
+
+  void _loadTrend() {
+    setState(() {
+      _trendsFuture = TimelineApi.getTrends([_selectedField]);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<HealthTrends>(
-      future: _trendsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-          );
-        }
-        if (snapshot.hasError || !snapshot.hasData) {
-          return const SizedBox.shrink();
-        }
-
-        final trends = snapshot.data!.trends;
-        if (trends.isEmpty) return const SizedBox.shrink();
-
-        // Just show the first field's trend for now to keep it simple
-        final firstField = trends.keys.first;
-        final points = trends[firstField]!;
-
-        // Sort points by date
-        points.sort(
-          (a, b) => DateTime.parse(a.date).compareTo(DateTime.parse(b.date)),
-        );
-
-        if (points.length < 2) return const SizedBox.shrink();
-
-        return Container(
-          height: 200,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: widget.isDark
-                ? Colors.grey[800]!.withOpacity(0.3)
-                : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: widget.isDark ? Colors.grey[700]! : Colors.grey[200]!,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: widget.isDark
+            ? Colors.grey[800]!.withOpacity(0.3)
+            : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: widget.isDark ? Colors.grey[700]! : Colors.grey[200]!,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Trend: $firstField',
+                'Health Trends',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: widget.isDark ? Colors.white : Colors.black,
                 ),
               ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: LineChart(
+              const SizedBox(width: 12),
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: widget.isDark ? Colors.grey[700] : Colors.grey[100],
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: DropdownButton<String>(
+                    value: _selectedField,
+                    underline: const SizedBox(),
+                    isDense: true,
+                    isExpanded: true,
+                    icon: Icon(
+                      LucideIcons.chevronDown,
+                      size: 16,
+                      color: widget.isDark ? Colors.white : Colors.black,
+                    ),
+                    dropdownColor: widget.isDark
+                        ? const Color(0xFF1A1D26)
+                        : Colors.white,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: widget.isDark ? Colors.white : Colors.black,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    items: widget.fieldNames.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value, overflow: TextOverflow.ellipsis),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      if (newValue != null && newValue != _selectedField) {
+                        setState(() {
+                          _selectedField = newValue;
+                          _loadTrend();
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 200,
+            child: FutureBuilder<HealthTrends>(
+              future: _trendsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  );
+                }
+                if (snapshot.hasError || !snapshot.hasData) {
+                  return Center(
+                    child: Text(
+                      'No trend data available',
+                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                    ),
+                  );
+                }
+
+                final trends = snapshot.data!.trends;
+                if (trends.isEmpty || !trends.containsKey(_selectedField)) {
+                  return Center(
+                    child: Text(
+                      'Not enough data points',
+                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                    ),
+                  );
+                }
+
+                final points = trends[_selectedField]!;
+                points.sort(
+                  (a, b) =>
+                      DateTime.parse(a.date).compareTo(DateTime.parse(b.date)),
+                );
+
+                if (points.length < 2) {
+                  return Center(
+                    child: Text(
+                      'Need at least 2 records to show trend',
+                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                    ),
+                  );
+                }
+
+                return LineChart(
                   LineChartData(
                     gridData: FlGridData(
                       show: true,
@@ -1766,7 +1876,43 @@ class _TrendChartState extends State<_TrendChart> {
                         );
                       },
                     ),
-                    titlesData: const FlTitlesData(show: false),
+                    titlesData: FlTitlesData(
+                      show: true,
+                      rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (value, meta) {
+                            if (value.toInt() >= 0 &&
+                                value.toInt() < points.length) {
+                              final date = DateTime.parse(
+                                points[value.toInt()].date,
+                              );
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Text(
+                                  '${date.month}/${date.day}',
+                                  style: TextStyle(
+                                    color: Colors.grey[500],
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              );
+                            }
+                            return const Text('');
+                          },
+                          interval: 1,
+                        ),
+                      ),
+                      leftTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                    ),
                     borderData: FlBorderData(show: false),
                     lineTouchData: LineTouchData(
                       touchTooltipData: LineTouchTooltipData(
@@ -1833,12 +1979,12 @@ class _TrendChartState extends State<_TrendChart> {
                       ),
                     ],
                   ),
-                ),
-              ),
-            ],
+                );
+              },
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }
