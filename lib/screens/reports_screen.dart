@@ -1141,6 +1141,7 @@ class _ModernReportViewer extends StatefulWidget {
 class _ModernReportViewerState extends State<_ModernReportViewer>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  late PageController _pageController;
   int _currentImageIndex = 0;
 
   // Cache for downloaded files (index -> path)
@@ -1153,6 +1154,7 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _pageController = PageController(initialPage: 0);
     if (widget.images.isNotEmpty) {
       _loadFile(0);
     }
@@ -1161,6 +1163,7 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
   @override
   void dispose() {
     _tabController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -1394,151 +1397,113 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
   Widget _buildFileViewer(bool isDark) {
     final images = widget.images;
 
-    return Column(
+    return Stack(
       children: [
-        Expanded(
-          child: PageView.builder(
-            physics:
-                const NeverScrollableScrollPhysics(), // Disable swipe to avoid conflict with PDF
-            itemCount: images.length,
-            onPageChanged: (index) {
-              setState(() {
-                _currentImageIndex = index;
-                _loadFile(index);
-              });
-            },
-            itemBuilder: (context, index) {
-              // Only show the current page to avoid loading others unnecessarily
-              if (index != _currentImageIndex) return const SizedBox.shrink();
+        PageView.builder(
+          controller: _pageController,
+          itemCount: images.length,
+          onPageChanged: (index) {
+            setState(() {
+              _currentImageIndex = index;
+              _loadFile(index);
+            });
+          },
+          itemBuilder: (context, index) {
+            final isDownloading = _isDownloading[index] ?? false;
+            final error = _downloadErrors[index];
+            final localPath = _localFilePaths[index];
+            final isPdf = _isPdfMap[index] ?? _isPdf(images[index]);
 
-              final isDownloading = _isDownloading[index] ?? false;
-              final error = _downloadErrors[index];
-              final localPath = _localFilePaths[index];
-              final isPdf = _isPdfMap[index] ?? _isPdf(images[index]);
+            if (isDownloading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-              if (isDownloading) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (error != null) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        LucideIcons.alertTriangle,
-                        color: Colors.red,
-                        size: 48,
+            if (error != null) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      LucideIcons.alertTriangle,
+                      color: Colors.red,
+                      size: 48,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Failed to load file',
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black,
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Failed to load file',
-                        style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextButton(
-                        onPressed: () => _loadFile(index),
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              if (localPath == null) {
-                _loadFile(index);
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (isPdf) {
-                return _PdfViewerPage(filePath: localPath, isDark: isDark);
-              }
-
-              return InteractiveViewer(
-                minScale: 0.5,
-                maxScale: 4.0,
-                child: Center(
-                  child: Image.file(
-                    File(localPath),
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Center(
-                        child: Text('Error displaying image'),
-                      );
-                    },
-                  ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () => _loadFile(index),
+                      child: const Text('Retry'),
+                    ),
+                  ],
                 ),
               );
-            },
-          ),
+            }
+
+            if (localPath == null) {
+              // Trigger load if not already loading
+              if (_isDownloading[index] != true &&
+                  _downloadErrors[index] == null) {
+                _loadFile(index);
+              }
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (isPdf) {
+              return _PdfViewerPage(filePath: localPath, isDark: isDark);
+            }
+
+            return InteractiveViewer(
+              minScale: 0.5,
+              maxScale: 4.0,
+              child: Center(
+                child: Image.file(
+                  File(localPath),
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(child: Text('Error displaying image'));
+                  },
+                ),
+              ),
+            );
+          },
         ),
         if (images.length > 1)
-          Container(
-            height: 80,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: images.length,
-              itemBuilder: (context, index) {
-                final isSelected = _currentImageIndex == index;
-                final isPdf = _isPdfMap[index] ?? _isPdf(images[index]);
-
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _currentImageIndex = index;
-                      _loadFile(index);
-                    });
-                  },
-                  child: Container(
-                    width: 60,
-                    margin: const EdgeInsets.only(right: 12),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(0xFF39A4E6).withOpacity(0.1)
-                          : (isDark
-                                ? const Color(0xFF334155)
-                                : Colors.grey[100]),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected
-                            ? const Color(0xFF39A4E6)
-                            : Colors.transparent,
-                        width: 2,
-                      ),
+          Positioned(
+            top: 16,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      LucideIcons.files,
+                      size: 14,
+                      color: Colors.white,
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          isPdf ? LucideIcons.fileText : LucideIcons.image,
-                          size: 24,
-                          color: isSelected
-                              ? const Color(0xFF39A4E6)
-                              : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${index + 1}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: isSelected
-                                ? const Color(0xFF39A4E6)
-                                : (isDark
-                                      ? Colors.grey[400]
-                                      : Colors.grey[600]),
-                          ),
-                        ),
-                      ],
+                    const SizedBox(width: 8),
+                    Text(
+                      'File ${_currentImageIndex + 1} of ${images.length}',
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
                     ),
-                  ),
-                );
-              },
+                  ],
+                ),
+              ),
             ),
           ),
       ],
