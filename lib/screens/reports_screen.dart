@@ -1171,8 +1171,6 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
     }
   }
 
-
-
   @override
   void dispose() {
     _tabController.dispose();
@@ -1279,20 +1277,85 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
     }
   }
 
-  String _getFieldValue(String key) {
-    final field = widget.report.fields.firstWhere(
-      (f) => f.fieldName.toLowerCase().contains(key.toLowerCase()),
-      orElse: () =>
-          ReportField(id: 0, fieldName: '', fieldValue: '', createdAt: ''),
-    );
-    if (field.fieldName.isNotEmpty) return field.fieldValue;
+  String? _getFieldValue(String key) {
+    // Try to find in fields
+    try {
+      final field = widget.report.fields.firstWhere(
+        (f) => f.fieldName.toLowerCase().contains(key.toLowerCase()),
+        orElse: () =>
+            ReportField(id: 0, fieldName: '', fieldValue: '', createdAt: ''),
+      );
+      if (field.fieldName.isNotEmpty &&
+          field.fieldValue.toLowerCase() != 'n/a' &&
+          field.fieldValue.toLowerCase() != 'null' &&
+          field.fieldValue.trim().isNotEmpty) {
+        return field.fieldValue;
+      }
+    } catch (_) {}
 
-    final addField = widget.report.additionalFields.firstWhere(
-      (f) => f.fieldName.toLowerCase().contains(key.toLowerCase()),
-      orElse: () =>
-          AdditionalField(id: 0, fieldName: '', fieldValue: '', category: ''),
-    );
-    return addField.fieldName.isNotEmpty ? addField.fieldValue : 'N/A';
+    // Try to find in additional fields
+    try {
+      final addField = widget.report.additionalFields.firstWhere(
+        (f) => f.fieldName.toLowerCase().contains(key.toLowerCase()),
+        orElse: () =>
+            AdditionalField(id: 0, fieldName: '', fieldValue: '', category: ''),
+      );
+      if (addField.fieldName.isNotEmpty &&
+          addField.fieldValue.toLowerCase() != 'n/a' &&
+          addField.fieldValue.toLowerCase() != 'null' &&
+          addField.fieldValue.trim().isNotEmpty) {
+        return addField.fieldValue;
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  String? _getSmartReportType() {
+    // List of keys to look for in priority order
+    final keys = [
+      'report type',
+      'test name',
+      'study',
+      'examination',
+      'investigation',
+      'diagnosis',
+      'title',
+    ];
+
+    for (final key in keys) {
+      final val = _getFieldValue(key);
+      if (val != null) return val;
+    }
+
+    return null;
+  }
+
+  String _formatFieldName(String name) {
+    if (name.isEmpty) return name;
+    // Split by underscore or space
+    final words = name.replaceAll('_', ' ').split(' ');
+    return words
+        .map((word) {
+          if (word.isEmpty) return '';
+          // Handle special cases like WBC, RBC, MCV, etc.
+          final upperWord = word.toUpperCase();
+          if ([
+            'WBC',
+            'RBC',
+            'MCV',
+            'MCH',
+            'MCHC',
+            'HGB',
+            'HCT',
+            'BMI',
+            'BP',
+          ].contains(upperWord)) {
+            return upperWord;
+          }
+          return word[0].toUpperCase() + word.substring(1).toLowerCase();
+        })
+        .join(' ');
   }
 
   @override
@@ -1305,7 +1368,8 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
           (f) =>
               f.fieldValue.trim().isNotEmpty &&
               f.fieldValue.toLowerCase() != 'n/a' &&
-              f.fieldValue.toLowerCase() != 'null',
+              f.fieldValue.toLowerCase() != 'null' &&
+              f.fieldValue.toLowerCase() != 'none',
         )
         .toList();
 
@@ -1370,13 +1434,7 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
             padding: const EdgeInsets.all(16),
             children: [
               _buildSection(context, 'Report Info', [
-                _buildInfoTile(
-                  context,
-                  'Type',
-                  _getFieldValue('type') == 'N/A'
-                      ? 'Medical Report'
-                      : _getFieldValue('type'),
-                ),
+                _buildInfoTile(context, 'Type', _getSmartReportType()),
                 _buildInfoTile(context, 'Date', widget.report.reportDate),
                 _buildInfoTile(context, 'Doctor', _getFieldValue('doctor')),
                 _buildInfoTile(context, 'Hospital', _getFieldValue('hospital')),
@@ -1556,6 +1614,13 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
             border: Border.all(
               color: isDark ? const Color(0xFF334155) : Colors.grey[200]!,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(children: children),
         ),
@@ -1563,7 +1628,14 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
     );
   }
 
-  Widget _buildInfoTile(BuildContext context, String label, String value) {
+  Widget _buildInfoTile(BuildContext context, String label, String? value) {
+    if (value == null ||
+        value.isEmpty ||
+        value.toLowerCase() == 'n/a' ||
+        value.toLowerCase() == 'null') {
+      return const SizedBox.shrink();
+    }
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -1577,11 +1649,14 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
               fontWeight: FontWeight.w500,
             ),
           ),
-          Text(
-            value,
-            style: TextStyle(
-              color: isDark ? Colors.white : const Color(0xFF1E293B),
-              fontWeight: FontWeight.w600,
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -1591,6 +1666,8 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
 
   Widget _buildFieldTile(BuildContext context, ReportField field) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final formattedName = _formatFieldName(field.fieldName);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1601,26 +1678,46 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
         ),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  field.fieldName,
+                  formattedName,
                   style: TextStyle(
                     color: isDark ? Colors.grey[400] : Colors.grey[600],
                     fontSize: 14,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  field.fieldValue,
-                  style: TextStyle(
-                    color: isDark ? Colors.white : const Color(0xFF1E293B),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                const SizedBox(height: 8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      field.fieldValue,
+                      style: TextStyle(
+                        color: isDark ? Colors.white : const Color(0xFF1E293B),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (field.fieldUnit != null &&
+                        field.fieldUnit!.isNotEmpty) ...[
+                      const SizedBox(width: 4),
+                      Text(
+                        field.fieldUnit!,
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[500] : Colors.grey[400],
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
@@ -1630,14 +1727,33 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: field.isNormal!
-                    ? Colors.green.withOpacity(0.1)
-                    : Colors.red.withOpacity(0.1),
+                    ? (isDark
+                          ? const Color(0xFF064E3B)
+                          : const Color(0xFFDCFCE7))
+                    : (isDark
+                          ? const Color(0xFF7F1D1D)
+                          : const Color(0xFFFEE2E2)),
                 borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: field.isNormal!
+                      ? (isDark
+                            ? const Color(0xFF059669)
+                            : const Color(0xFF86EFAC))
+                      : (isDark
+                            ? const Color(0xFFDC2626)
+                            : const Color(0xFFFCA5A5)),
+                ),
               ),
               child: Text(
                 field.isNormal! ? 'Normal' : 'Abnormal',
                 style: TextStyle(
-                  color: field.isNormal! ? Colors.green : Colors.red,
+                  color: field.isNormal!
+                      ? (isDark
+                            ? const Color(0xFF34D399)
+                            : const Color(0xFF166534))
+                      : (isDark
+                            ? const Color(0xFFF87171)
+                            : const Color(0xFF991B1B)),
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
