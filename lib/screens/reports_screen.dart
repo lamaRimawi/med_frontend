@@ -218,7 +218,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
           f.fieldName.toLowerCase() == 'report type' ||
           f.fieldName.toLowerCase() == 'study' ||
           f.fieldName.toLowerCase() == 'diagnosis' ||
-          f.fieldName.toLowerCase().contains('examination'),
+          f.fieldName.toLowerCase().contains('examination') ||
+          f.fieldName.toLowerCase().contains('investigation') ||
+          f.fieldName.toLowerCase() == 'title' ||
+          f.fieldName.toLowerCase() == 'name',
       orElse: () =>
           ReportField(id: 0, fieldName: '', fieldValue: '', createdAt: ''),
     );
@@ -231,7 +234,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final addTitleField = report.additionalFields.firstWhere(
       (f) =>
           f.fieldName.toLowerCase().contains('test name') ||
-          f.fieldName.toLowerCase() == 'report type',
+          f.fieldName.toLowerCase() == 'report type' ||
+          f.fieldName.toLowerCase() == 'title',
       orElse: () =>
           AdditionalField(id: 0, fieldName: '', fieldValue: '', category: ''),
     );
@@ -240,8 +244,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       return addTitleField.fieldValue;
     }
 
-    // Priority 3: Use Date and ID as a fallback instead of the first field
-    // This avoids generic names like "Hemoglobin" if that's just the first parameter
+    // Priority 3: Use Date and ID as a fallback
     return "Medical Report ${report.reportDate}";
   }
 
@@ -1174,65 +1177,76 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
       _downloadErrors.remove(index);
     });
 
-    try {
-      final url =
-          '${ApiConfig.baseUrl}${ApiConfig.reports}/${widget.report.reportId}/images/${index + 1}';
-      final token = await ApiClient.instance.getToken();
+    int retryCount = 0;
+    const maxRetries = 3;
 
-      final request = http.Request('GET', Uri.parse(url));
-      if (token != null) {
-        request.headers['Authorization'] = 'Bearer $token';
-      }
-      request.headers['Connection'] = 'close';
+    while (retryCount < maxRetries) {
+      try {
+        final url =
+            '${ApiConfig.baseUrl}${ApiConfig.reports}/${widget.report.reportId}/images/${index + 1}';
+        final token = await ApiClient.instance.getToken();
 
-      final response = await request.send();
+        final request = http.Request('GET', Uri.parse(url));
+        if (token != null) {
+          request.headers['Authorization'] = 'Bearer $token';
+        }
+        request.headers['Connection'] = 'close';
 
-      if (response.statusCode == 200) {
-        final dir = await getTemporaryDirectory();
-        final filename = widget.images[index];
+        final response = await request.send();
 
-        // Determine type from header or filename
-        bool isPdf = _isPdf(filename);
-        final contentType = response.headers['content-type'];
-        if (contentType != null) {
-          if (contentType.toLowerCase().contains('application/pdf')) {
-            isPdf = true;
-          } else if (contentType.toLowerCase().contains('image/')) {
-            isPdf = false;
+        if (response.statusCode == 200) {
+          final dir = await getTemporaryDirectory();
+          final filename = widget.images[index];
+
+          // Determine type from header or filename
+          bool isPdf = _isPdf(filename);
+          final contentType = response.headers['content-type'];
+          if (contentType != null) {
+            if (contentType.toLowerCase().contains('application/pdf')) {
+              isPdf = true;
+            } else if (contentType.toLowerCase().contains('image/')) {
+              isPdf = false;
+            }
           }
+
+          final extension = isPdf ? 'pdf' : 'jpg';
+          final file = File(
+            '${dir.path}/report_${widget.report.reportId}_${index}_${DateTime.now().millisecondsSinceEpoch}.$extension',
+          );
+
+          final sink = file.openWrite();
+          await response.stream.pipe(sink);
+          await sink.close();
+
+          // Verify file size
+          final stat = await file.stat();
+          if (stat.size == 0) {
+            throw Exception('Downloaded file is empty');
+          }
+
+          if (mounted) {
+            setState(() {
+              _localFilePaths[index] = file.path;
+              _isPdfMap[index] = isPdf;
+              _isDownloading[index] = false;
+            });
+          }
+          return; // Success
+        } else {
+          throw Exception('Failed to download file: ${response.statusCode}');
         }
-
-        final extension = isPdf ? 'pdf' : 'jpg';
-        final file = File(
-          '${dir.path}/report_${widget.report.reportId}_${index}_${DateTime.now().millisecondsSinceEpoch}.$extension',
-        );
-
-        final sink = file.openWrite();
-        await response.stream.pipe(sink);
-        await sink.close();
-
-        // Verify file size
-        final stat = await file.stat();
-        if (stat.size == 0) {
-          throw Exception('Downloaded file is empty');
+      } catch (e) {
+        retryCount++;
+        if (retryCount >= maxRetries) {
+          if (mounted) {
+            setState(() {
+              _isDownloading[index] = false;
+              _downloadErrors[index] = e.toString();
+            });
+          }
+        } else {
+          await Future.delayed(Duration(milliseconds: 500 * retryCount));
         }
-
-        if (mounted) {
-          setState(() {
-            _localFilePaths[index] = file.path;
-            _isPdfMap[index] = isPdf;
-            _isDownloading[index] = false;
-          });
-        }
-      } else {
-        throw Exception('Failed to download file: ${response.statusCode}');
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isDownloading[index] = false;
-          _downloadErrors[index] = e.toString();
-        });
       }
     }
   }
@@ -1384,6 +1398,8 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
       children: [
         Expanded(
           child: PageView.builder(
+            physics:
+                const NeverScrollableScrollPhysics(), // Disable swipe to avoid conflict with PDF
             itemCount: images.length,
             onPageChanged: (index) {
               setState(() {
@@ -1392,6 +1408,9 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
               });
             },
             itemBuilder: (context, index) {
+              // Only show the current page to avoid loading others unnecessarily
+              if (index != _currentImageIndex) return const SizedBox.shrink();
+
               final isDownloading = _isDownloading[index] ?? false;
               final error = _downloadErrors[index];
               final localPath = _localFilePaths[index];
@@ -1457,24 +1476,69 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
         ),
         if (images.length > 1)
           Container(
-            padding: const EdgeInsets.all(16),
+            height: 80,
+            padding: const EdgeInsets.symmetric(vertical: 12),
             color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                images.length,
-                (index) => Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _currentImageIndex == index
-                        ? const Color(0xFF39A4E6)
-                        : Colors.grey[300],
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: images.length,
+              itemBuilder: (context, index) {
+                final isSelected = _currentImageIndex == index;
+                final isPdf = _isPdfMap[index] ?? _isPdf(images[index]);
+
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _currentImageIndex = index;
+                      _loadFile(index);
+                    });
+                  },
+                  child: Container(
+                    width: 60,
+                    margin: const EdgeInsets.only(right: 12),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFF39A4E6).withOpacity(0.1)
+                          : (isDark
+                                ? const Color(0xFF334155)
+                                : Colors.grey[100]),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected
+                            ? const Color(0xFF39A4E6)
+                            : Colors.transparent,
+                        width: 2,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          isPdf ? LucideIcons.fileText : LucideIcons.image,
+                          size: 24,
+                          color: isSelected
+                              ? const Color(0xFF39A4E6)
+                              : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${index + 1}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected
+                                ? const Color(0xFF39A4E6)
+                                : (isDark
+                                      ? Colors.grey[400]
+                                      : Colors.grey[600]),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
       ],
@@ -1653,8 +1717,8 @@ class _PdfViewerPageState extends State<_PdfViewerPage> {
       children: [
         SfPdfViewer.file(
           File(widget.filePath),
-          scrollDirection: PdfScrollDirection.horizontal,
-          pageLayoutMode: PdfPageLayoutMode.single,
+          scrollDirection: PdfScrollDirection.vertical,
+          pageLayoutMode: PdfPageLayoutMode.continuous,
           onDocumentLoaded: (PdfDocumentLoadedDetails details) {
             setState(() {
               _totalPages = details.document.pages.count;
@@ -1674,22 +1738,20 @@ class _PdfViewerPageState extends State<_PdfViewerPage> {
         ),
         if (_ready)
           Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  'Page ${_currentPage + 1} of $_totalPages',
-                  style: const TextStyle(color: Colors.white),
+            top: 20,
+            right: 20,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                '${_currentPage + 1} / $_totalPages',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
                 ),
               ),
             ),
