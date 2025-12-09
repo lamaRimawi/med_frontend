@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
@@ -28,11 +29,12 @@ class UserService {
     }
   }
 
-  Future<void> updateUserProfile(Map<String, dynamic> data) async {
+  Future<void> updateUserProfile(Map<String, String> data, {File? imageFile}) async {
     try {
-      final response = await _client.put(
+      final response = await _client.putMultipart(
         ApiConfig.userProfile,
-        body: json.encode(data),
+        fields: data,
+        filePath: imageFile?.path,
         auth: true,
       );
 

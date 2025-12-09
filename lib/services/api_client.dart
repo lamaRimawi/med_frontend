@@ -170,6 +170,40 @@ class ApiClient {
     return response;
   }
 
+  Future<http.Response> putMultipart(
+    String path, {
+    String? filePath,
+    Map<String, String>? fields,
+    bool auth = false,
+  }) async {
+    final request = http.MultipartRequest('PUT', _uri(path));
+
+    if (auth) {
+      final token = await _getToken();
+      if (token != null && token.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+    }
+
+    if (fields != null) {
+      request.fields.addAll(fields);
+    }
+
+    if (filePath != null) {
+      request.files.add(await http.MultipartFile.fromPath('profile_image', filePath));
+    }
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 401) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('jwt_token');
+      throw Exception('Unauthorized: Token expired');
+    }
+    return response;
+  }
+
   Future<http.Response> postMultipartMultiple(
     String path, {
     required List<String> filePaths,

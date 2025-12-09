@@ -9,6 +9,7 @@ class User {
   final String? gender;
   final String? medicalHistory;
   final String? allergies;
+  final String? profileImageUrl;
 
   User({
     required this.firstName,
@@ -19,6 +20,7 @@ class User {
     this.gender,
     this.medicalHistory,
     this.allergies,
+    this.profileImageUrl,
   });
 
   String get fullName => '$firstName $lastName';
@@ -33,6 +35,7 @@ class User {
       gender: json['gender']?.toString(),
       medicalHistory: json['medical_history']?.toString(),
       allergies: json['allergies']?.toString(),
+      profileImageUrl: json['profile_image_url']?.toString(),
     );
   }
 
@@ -46,6 +49,7 @@ class User {
       'gender': gender,
       'medical_history': medicalHistory,
       'allergies': allergies,
+      'profile_image_url': profileImageUrl,
     };
   }
 
@@ -65,6 +69,9 @@ class User {
     }
     if (user.allergies != null) {
       await prefs.setString('user_allergies', user.allergies!);
+    }
+    if (user.profileImageUrl != null) {
+      await prefs.setString('user_profile_image_url', user.profileImageUrl!);
     }
   }
 
@@ -91,6 +98,7 @@ class User {
         gender: prefs.getString('user_gender'),
         medicalHistory: prefs.getString('user_medical_history'),
         allergies: prefs.getString('user_allergies'),
+        profileImageUrl: prefs.getString('user_profile_image_url'),
       );
     }
     return null;
@@ -107,5 +115,7 @@ class User {
     await prefs.remove('user_gender');
     await prefs.remove('user_medical_history');
     await prefs.remove('user_allergies');
+    await prefs.remove('user_profile_image_url');
   }
 }
+
