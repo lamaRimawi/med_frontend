@@ -256,7 +256,7 @@ class VlmService {
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen(
-        (String line) {
+        (String line) async {
           if (line.trim().isEmpty) return;
 
           try {
@@ -275,6 +275,32 @@ class VlmService {
               final message = data['message'] as String? ?? 'Processing...';
               final percent = (data['percent'] as num?)?.toDouble() ?? 0.0;
               onProgress(message, percent);
+              
+              // Check if this is the final completion message
+              if (percent >= 100 && data.containsKey('report_id')) {
+                print('VlmStream: Completion detected with report_id: ${data['report_id']}');
+                // Fetch the full report using the report_id
+                try {
+                  final reportId = data['report_id'] as int;
+                  final client = ApiClient.instance;
+                  final detailRes = await client.get(
+                    '${ApiConfig.reports}/$reportId',
+                    auth: true,
+                  );
+                  
+                  if (detailRes.statusCode == 200) {
+                    final detailData = ApiClient.decodeJson<Map<String, dynamic>>(detailRes);
+                    final fullReport = detailData['report'] as Map<String, dynamic>? ?? detailData;
+                    final report = _parseReportData(fullReport);
+                    onComplete(report);
+                  } else {
+                    onError('Failed to fetch report details');
+                  }
+                } catch (e) {
+                  print('Error fetching report: $e');
+                  onError('Failed to load report: $e');
+                }
+              }
             } else if (data['type'] == 'result') {
                final resultData = data['data'];
                if (resultData != null) {
