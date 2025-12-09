@@ -44,11 +44,12 @@ class UserService {
     }
   }
 
-  Future<void> deleteAccount() async {
+  Future<void> deleteAccount(String password) async {
     try {
       final response = await _client.delete(
         ApiConfig.deleteAccount,
         auth: true,
+        body: json.encode({'password': password}),
       );
 
       if (response.statusCode != 200) {

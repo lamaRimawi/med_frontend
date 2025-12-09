@@ -114,6 +114,7 @@ class ApiClient {
     String path, {
     Map<String, String>? headers,
     Map<String, String>? query,
+    Object? body,
     bool auth = false,
   }) async {
     final mergedHeaders = <String, String>{
@@ -127,7 +128,7 @@ class ApiClient {
       }
     }
     final response = await http
-        .delete(_uri(path, query), headers: mergedHeaders)
+        .delete(_uri(path, query), headers: mergedHeaders, body: body)
         .timeout(const Duration(seconds: 60));
     if (response.statusCode == 401) {
       final prefs = await SharedPreferences.getInstance();

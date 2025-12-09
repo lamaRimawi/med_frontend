@@ -10,6 +10,7 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   void _showDeleteAccountDialog(BuildContext context, bool isDark) {
+    final passwordController = TextEditingController();
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -61,12 +62,44 @@ class SettingsScreen extends StatelessWidget {
                 
                 // Description
                 Text(
-                  'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.',
+                  'Please enter your password to confirm account deletion. This action cannot be undone.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
                     color: isDark ? Colors.grey[400] : Colors.grey[600],
                     height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Password Field
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF0F172A) : Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF334155) : Colors.grey[200]!,
+                    ),
+                  ),
+                  child: TextField(
+                    controller: passwordController,
+                    obscureText: true,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'Enter your password',
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.grey[500] : Colors.grey[400],
+                      ),
+                      icon: Icon(
+                        LucideIcons.lock,
+                        size: 20,
+                        color: isDark ? Colors.grey[500] : Colors.grey[400],
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 28),
@@ -108,6 +141,17 @@ class SettingsScreen extends StatelessWidget {
                         height: 50,
                         child: ElevatedButton(
                           onPressed: () async {
+                            final password = passwordController.text;
+                            if (password.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Please enter your password'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              return;
+                            }
+
                             Navigator.pop(dialogContext);
                             
                             // Show loading indicator
@@ -120,7 +164,7 @@ class SettingsScreen extends StatelessWidget {
                             );
 
                             try {
-                              await UserService().deleteAccount();
+                              await UserService().deleteAccount(password);
                               await AuthApi.logout();
 
                               if (context.mounted) {

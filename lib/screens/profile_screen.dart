@@ -947,12 +947,8 @@ class _ProfileScreenState extends State<ProfileScreen>
 
                         const SizedBox(height: 20),
 
-                        _buildLabel('GENDER'),
-                        _buildTextField(
-                          LucideIcons.user,
-                          _profileData['gender'],
-                          (val) => setState(() => _profileData['gender'] = val),
-                        ),
+                        // Gender field removed as requested
+
                         const SizedBox(height: 20),
 
                         // Medical History and Allergies removed as requested
