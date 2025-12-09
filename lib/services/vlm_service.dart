@@ -98,7 +98,25 @@ class VlmService {
     final String reportDate = (reportData['report_date'] ?? '') as String;
     final String doctorNames = (reportData['doctor_names'] ?? '') as String;
 
-    final List<dynamic> entries = (reportData['medical_data'] ?? []) as List<dynamic>;
+    print('VlmService: _parseReportData keys: ${reportData.keys}');
+    
+    // Support multiple keys for the data list
+    List<dynamic> entries = [];
+    if (reportData['medical_data'] != null) {
+      entries = (reportData['medical_data'] as List<dynamic>);
+    } else if (reportData['fields'] != null) {
+      entries = (reportData['fields'] as List<dynamic>);
+    } else if (reportData['results'] != null) {
+      entries = (reportData['results'] as List<dynamic>);
+    } else if (reportData['tests'] != null) {
+      entries = (reportData['tests'] as List<dynamic>);
+    } else if (reportData['data'] != null && reportData['data'] is List) {
+      entries = (reportData['data'] as List<dynamic>);
+    } else if (reportData.containsKey('0')) {
+       // Handle case where it might be an indexed map (rare but possible in some phps)
+       // entries = reportData.values.toList();
+    }
+    
     print('VlmService: _parseReportData processing ${entries.length} entries: $entries');
 
     final tests = <TestResult>[];
@@ -284,19 +302,28 @@ class VlmService {
                 // Fetch the full report using the report_id
                 try {
                   final reportId = data['report_id'] as int;
+                  print('VlmStream: Fetching full report details for ID: $reportId');
+                  
                   final client = ApiClient.instance;
                   final detailRes = await client.get(
                     '${ApiConfig.reports}/$reportId',
                     auth: true,
                   );
                   
+                  print('VlmStream: Fetch status: ${detailRes.statusCode}');
+                  
                   if (detailRes.statusCode == 200) {
                     final detailData = ApiClient.decodeJson<Map<String, dynamic>>(detailRes);
+                    // Handle wrapped response { "report": { ... } } or flat { ... }
                     final fullReport = detailData['report'] as Map<String, dynamic>? ?? detailData;
+                    
+                    print('VlmStream: Report keys: ${fullReport.keys.toList()}');
+                    
+                    // Parsing with fallbacks
                     final report = _parseReportData(fullReport);
                     onComplete(report);
                   } else {
-                    onError('Failed to fetch report details');
+                    onError('Failed to fetch report details: ${detailRes.statusCode}');
                   }
                 } catch (e) {
                   print('Error fetching report: $e');
