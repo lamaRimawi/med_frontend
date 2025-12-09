@@ -9,7 +9,6 @@ class Report {
   final String? patientName;
   final int? patientAge;
   final String? patientGender;
-  final String? reportType;
 
   Report({
     required this.reportId,
@@ -22,7 +21,6 @@ class Report {
     this.patientName,
     this.patientAge,
     this.patientGender,
-    this.reportType,
   });
 
   factory Report.fromJson(Map<String, dynamic> json) {
@@ -47,7 +45,6 @@ class Report {
           ? int.tryParse(json['patient_age'].toString())
           : null,
       patientGender: json['patient_gender'] as String?,
-      reportType: json['report_type'] as String?,
     );
   }
 }
