@@ -14,6 +14,8 @@ import 'dart:ui'; // For ImageFilter
 import 'processing_screen.dart';
 import 'success_screen.dart';
 import 'extracted_report_screen.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:file_saver/file_saver.dart';
 
 import 'package:mediScan/models/extracted_report_data.dart';
 
@@ -64,16 +66,112 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
 
   @override
   void dispose() {
-    // cameraController?.dispose();
     _toastTimer?.cancel();
     super.dispose();
   }
 
-
+  Future<void> _showErrorDialog(String title, String message) async {
+    return showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 300),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: widget.isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: widget.isDarkMode 
+                      ? const Color(0xFF7F1D1D) 
+                      : const Color(0xFFFEE2E2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  LucideIcons.alertTriangle,
+                  color: Color(0xFFEF4444),
+                  size: 28,
+                ),
+              ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
+              
+              const SizedBox(height: 16),
+              
+              // Title
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.2, end: 0),
+              
+              const SizedBox(height: 8),
+              
+              // Message
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.5,
+                  color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0),
+              
+              const SizedBox(height: 20),
+              
+              // Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFF4757),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Understand',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2, end: 0),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   Future<void> _launchScanner() async {
     if (capturedItems.any((item) => item.type == 'application/pdf')) {
-      _showToast('Cannot add images when a PDF is selected');
+      _showErrorDialog(
+        'Invalid Selection',
+        'Cannot add images when a PDF is selected. Please remove the PDF first.',
+      );
       return;
     }
 
@@ -100,9 +198,6 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
         });
       }
       
-      // If we captured something, we might want to switch to review mode or stay to capture more?
-      // Usually scanners allow batch, so we might have multiple.
-      // Let's show a toast.
       if (pictures.isNotEmpty) {
         _showToast('Added ${pictures.length} pages');
       }
@@ -116,7 +211,10 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
   // Pick images only from gallery
   Future<void> _pickImages() async {
     if (capturedItems.any((item) => item.type == 'application/pdf')) {
-      _showToast('Cannot add images when a PDF is selected');
+      _showErrorDialog(
+        'Invalid Selection',
+        'Cannot add images when a PDF is selected. Please remove the PDF first.',
+      );
       return;
     }
     try {
@@ -147,24 +245,11 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
 
   // Pick PDF files only
   Future<void> _pickFiles() async {
-    // If we already have ANY items (Images or PDF), and we try to pick a PDF...
-    // The requirement says "either images or just ONE pdf".
-    // So if I have images, I can't pick PDF.
-    // If I have PDF, I can't pick another PDF.
-
     if (capturedItems.isNotEmpty) {
-       // If existing items are images, we can't add PDF.
-       // If existing item is PDF, we can't add another PDF.
-       // So basically if list is not empty, we can't add a PDF.
-       if (mounted) {
-         ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(
-             content: Text(
-               'You can only upload one PDF file OR multiple images. Please clear existing items to upload a PDF.',
-             ),
-           ),
-         );
-       }
+       _showErrorDialog(
+         'Invalid Selection',
+         'You can only upload one PDF file OR multiple images. Please clear existing items to upload a PDF.',
+       );
        return;
     }
 
@@ -210,285 +295,245 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
     });
   }
 
-
-
   void _handleProcess() {
     setState(() {
       viewMode = ViewMode.processing;
       processingProgress = 0;
-      processingStatus = 'Preparing documents...';
+      processingStatus = 'Initializing...';
     });
 
-    // Backend doesn't support streaming yet, use regular upload with simulated progress
     if (capturedItems.isNotEmpty) {
-      debugPrint('Starting extraction for file: ${capturedItems.first.path}');
+      debugPrint('Starting processing with streaming for ${capturedItems.length} files');
       
-      // Simulate progress while backend processes
-      Timer.periodic(const Duration(milliseconds: 200), (timer) {
-        if (!mounted) {
-          timer.cancel();
-          return;
-        }
-        
-        setState(() {
-          if (processingProgress < 90) {
-            processingProgress += 3;
-            
-            // Update status based on progress
-            if (processingProgress < 20) {
-              processingStatus = 'Uploading document...';
-            } else if (processingProgress < 40) {
-              processingStatus = 'Analyzing images...';
-            } else if (processingProgress < 60) {
-              processingStatus = 'Extracting text data...';
-            } else if (processingProgress < 80) {
-              processingStatus = 'Processing medical information...';
-            } else {
-              processingStatus = 'Generating report...';
-            }
-          }
-        });
-      });
-      
-      // Call backend
-      VlmService.extractFromImages(capturedItems.map((e) => e.path).toList())
-          .then((result) {
-        debugPrint('Backend extraction successful!');
-        if (!mounted) return;
-        
-        setState(() {
-          extractedData = result;
-          processingProgress = 100;
-          processingStatus = 'Complete!';
-        });
-        
-        // Wait a moment then show success
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) {
-            setState(() {
-              viewMode = ViewMode.success;
-            });
-          }
-        });
-      }).catchError((e) {
-        debugPrint('Backend extraction error: $e');
-        if (!mounted) return;
-        
-        // Check for duplicate report
-        if (e.toString().contains('DUPLICATE_REPORT')) {
+      VlmService.extractFromImagesStreamed(
+        capturedItems.map((e) => e.path).toList(),
+        onProgress: (status, percent) {
+          if (!mounted) return;
           setState(() {
-            processingProgress = 0;
-            viewMode = ViewMode.review;
+            processingStatus = status;
+            // Update progress from backend
+            if (percent > processingProgress) {
+               processingProgress = percent;
+            }
+          });
+        },
+        onComplete: (data) {
+          debugPrint('Backend extraction successful!');
+          if (!mounted) return;
+          
+          setState(() {
+            extractedData = data;
+            processingProgress = 100;
+            processingStatus = 'Complete!';
           });
           
-          // Show modern duplicate report dialog
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => Dialog(
-              backgroundColor: Colors.transparent,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: widget.isDarkMode ? const Color(0xFF1E293B) : Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF39A4E6).withOpacity(0.3),
-                      blurRadius: 30,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Primary blue header
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            const Color(0xFF39A4E6),
-                            const Color(0xFF2B8FD9),
-                          ],
-                        ),
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(24),
-                          topRight: Radius.circular(24),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              LucideIcons.copy,
-                              color: Colors.white,
-                              size: 28,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          const Expanded(
-                            child: Text(
-                              'Duplicate Detected',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    
-                    // Content
-                    Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'This report already exists',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'We found an identical report in your account. Would you like to view it instead?',
-                            style: TextStyle(
-                              fontSize: 15,
-                              height: 1.6,
-                              color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[700],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          
-                          // Action buttons
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    setState(() {
-                                      viewMode = ViewMode.camera;
-                                      capturedItems.clear();
-                                    });
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                    side: BorderSide(
-                                      color: widget.isDarkMode 
-                                          ? Colors.grey[700]! 
-                                          : Colors.grey[300]!,
-                                      width: 1.5,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Go Back',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    // Navigate to the existing report
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: const Row(
-                                          children: [
-                                            Icon(LucideIcons.fileText, color: Colors.white, size: 20),
-                                            SizedBox(width: 12),
-                                            Expanded(
-                                              child: Text(
-                                                'Navigating to existing report...',
-                                                style: TextStyle(fontWeight: FontWeight.w600),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        backgroundColor: const Color(0xFF39A4E6),
-                                        behavior: SnackBarBehavior.floating,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        duration: const Duration(seconds: 2),
-                                      ),
-                                    );
-                                    
-                                    // Pop all screens until we reach home, then the home screen will show reports tab
-                                    Navigator.of(context).popUntil((route) => route.isFirst);
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF39A4E6),
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                    elevation: 2,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  icon: const Icon(LucideIcons.eye, size: 18),
-                                  label: const Text(
-                                    'View Report',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-          return;
-        }
-        
-        if (e.toString().contains('Unauthorized')) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Session expired. Please login again.')),
-          );
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            '/login',
-            (route) => false,
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Processing failed: $e')),
-          );
-          setState(() {
-            viewMode = ViewMode.review;
-            processingProgress = 0;
+          // Wait a moment then show success
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              setState(() {
+                viewMode = ViewMode.success;
+              });
+            }
           });
-        }
-      });
+        },
+        onError: (error) {
+          debugPrint('Backend extraction error: $error');
+          if (!mounted) return;
+          
+          if (error.contains('DUPLICATE_REPORT')) {
+            // Try to extract report ID from error message
+            int? reportId;
+            try {
+              final errorStr = error;
+              final match = RegExp(r'report_id["\s:]+(\d+)').firstMatch(errorStr);
+              if (match != null) {
+                reportId = int.tryParse(match.group(1)!);
+              }
+            } catch (_) {}
+            
+            setState(() {
+              processingProgress = 0;
+              viewMode = ViewMode.review;
+            });
+            _showDuplicateReportDialog(reportId);
+            return;
+          }
+          
+          if (error.contains('Unauthorized')) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Session expired. Please login again.')),
+            );
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/login',
+              (route) => false,
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Processing failed: $error')),
+            );
+            setState(() {
+              viewMode = ViewMode.review;
+              processingProgress = 0;
+            });
+          }
+        },
+      );
     }
+  }
+
+  void _showDuplicateReportDialog(int? reportId) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 340),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: widget.isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: widget.isDarkMode 
+                      ? const Color(0xFF065F46) // Dark green
+                      : const Color(0xFFD1FAE5), // Light green
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  LucideIcons.checkCircle2,
+                  color: Color(0xFF10B981), // Green
+                  size: 32,
+                ),
+              ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
+              
+              const SizedBox(height: 20),
+              
+              // Title
+              const Text(
+                'Already Analyzed',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.2, end: 0),
+              
+              const SizedBox(height: 12),
+              
+              // Message
+              Text(
+                'This report has been processed and analyzed before. View the existing analysis instead of processing again.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.5,
+                  color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0),
+              
+              const SizedBox(height: 24),
+              
+              // Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        setState(() {
+                          viewMode = ViewMode.camera;
+                          capturedItems.clear();
+                        });
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: BorderSide(
+                          color: widget.isDarkMode 
+                              ? Colors.grey[700]! 
+                              : Colors.grey[300]!,
+                          width: 1.5,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: widget.isDarkMode ? Colors.grey[300] : Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        
+                        if (reportId != null) {
+                          // Navigate to the extracted report screen with the report ID
+                          Navigator.pushNamed(
+                            context,
+                            '/extracted-report',
+                            arguments: reportId,
+                          );
+                        } else {
+                          // Fallback: go to reports list
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Opening reports list...'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                          Navigator.of(context).popUntil((route) => route.isFirst);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF10B981), // Green
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      icon: const Icon(LucideIcons.eye, size: 16),
+                      label: const Text(
+                        'View Analysis',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2, end: 0),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   ExtractedReportData _buildMockExtractedData() {
@@ -663,7 +708,13 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
             children: [
               IconButton(
                 icon: const Icon(LucideIcons.x, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                  if (widget.onClose != null) {
+                    widget.onClose!();
+                  } else {
+                    Navigator.pop(context);
+                  }
+                },
               ),
               // Empty Container to balance the row if needed, or other icons
               const SizedBox(width: 48),
@@ -711,6 +762,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
       right: 0,
       child: Center(
         child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 40),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
             color: Colors.black.withOpacity(0.8),
@@ -732,12 +784,16 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                 color: Color(0xFF39A4E6),
                 size: 20,
               ),
-              const SizedBox(width: 8),
-              Text(
-                messageToast!,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
+              const SizedBox(width: 12),
+              Flexible(
+                child: Text(
+                  messageToast!,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -1022,6 +1078,12 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
   }
 
   Widget _buildReviewScreen() {
+    // Check if any item is a PDF
+    final isPdf = capturedItems.any((item) => 
+        item.type == 'application/pdf' || 
+        item.name.toLowerCase().endsWith('.pdf')
+    );
+
     return Scaffold(
       backgroundColor: widget.isDarkMode
           ? const Color(0xFF0F172A)
@@ -1043,12 +1105,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.download, color: Color(0xFF39A4E6)),
-            onPressed: _saveAllFiles,
-          ),
-        ],
+
       ),
       body: Column(
         children: [
@@ -1061,8 +1118,12 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                 mainAxisSpacing: 16,
                 childAspectRatio: 0.75,
               ),
-              itemCount: capturedItems.length + 1,
+              // If PDF, don't show the "Add More" button (length + 0)
+              // If Image, show "Add More" (length + 1)
+              itemCount: capturedItems.length + (isPdf ? 0 : 1),
               itemBuilder: (context, index) {
+                // Determine if this is the "Add More" slot
+                // Only possible if !isPdf, so index == capturedItems.length is safe
                 if (index == capturedItems.length) {
                   // Add More Card
                   return GestureDetector(
@@ -1279,40 +1340,36 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.download),
-            onPressed: () => _saveFile(item),
-          ),
-        ],
       ),
       body: Stack(
         children: [
           Center(
             child: item.type.startsWith('image/')
                 ? Image.file(File(item.path))
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        LucideIcons.fileText,
-                        size: 64,
-                        color: Color(0xFF39A4E6),
+                : (item.type == 'application/pdf' || item.type.endsWith('pdf'))
+                    ? SfPdfViewer.file(File(item.path))
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            LucideIcons.fileText,
+                            size: 64,
+                            color: Color(0xFF39A4E6),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            item.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                            ),
+                          ),
+                          Text(
+                            _formatFileSize(item.size),
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        item.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                        ),
-                      ),
-                      Text(
-                        _formatFileSize(item.size),
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-                    ],
-                  ),
           ),
           Positioned(
             bottom: 0,
@@ -1355,64 +1412,5 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
         ],
       ),
     );
-  }
-
-  // ... Helper methods for saving files ...
-  Future<void> _saveFile(UploadedFile file) async {
-    try {
-      if (file.type.startsWith('image/')) {
-        final hasAccess = await Gal.hasAccess();
-        if (!hasAccess) await Gal.requestAccess();
-        await Gal.putImage(file.path);
-        _showToast('Saved to Gallery');
-      } else {
-        await Share.shareXFiles([XFile(file.path)], text: 'Save ${file.name}');
-      }
-    } catch (e) {
-      debugPrint('Error saving file: $e');
-      _showToast('Error saving file');
-    }
-  }
-
-  Future<void> _saveAllFiles() async {
-    if (capturedItems.isEmpty) return;
-
-    int successCount = 0;
-    List<XFile> filesToShare = [];
-
-    try {
-      for (var i = 0; i < capturedItems.length; i++) {
-        var file = capturedItems[i];
-        if (file.type.startsWith('image/')) {
-          try {
-            final hasAccess = await Gal.hasAccess();
-            if (!hasAccess) await Gal.requestAccess();
-            await Gal.putImage(file.path);
-            successCount++;
-          } catch (e) {
-            filesToShare.add(XFile(file.path));
-          }
-        } else {
-          filesToShare.add(XFile(file.path));
-        }
-        if (i < capturedItems.length - 1) {
-          await Future.delayed(const Duration(milliseconds: 500));
-        }
-      }
-
-      if (filesToShare.isNotEmpty) {
-        await Share.shareXFiles(
-          filesToShare,
-          text: 'Save ${filesToShare.length} files',
-        );
-      }
-
-      if (successCount > 0) {
-        _showToast('Saved $successCount images to Gallery');
-      }
-    } catch (e) {
-      debugPrint('Error saving files: $e');
-      _showToast('Error saving files');
-    }
   }
 }

@@ -380,14 +380,6 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
                               }
                             },
                           ),
-                          const SizedBox(width: 8),
-                          _roundIconButton(
-                            LucideIcons.x,
-                            onTap: () {
-                              debugPrint('DEBUG: Close button tapped');
-                              widget.onClose();
-                            },
-                          ),
                         ],
                       ),
                     ],
@@ -404,7 +396,6 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
                           id: 'patient',
                           leadingIcon: LucideIcons.user,
                           title: 'Patient Information',
-                          subtitle: d.patientInfo.name,
                           content: Column(
                             children: [
                               _infoRow('Full Name', d.patientInfo.name),

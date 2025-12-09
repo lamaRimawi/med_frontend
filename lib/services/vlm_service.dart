@@ -24,8 +24,16 @@ class VlmService {
 
     // Handle duplicate report (409 Conflict)
     if (res.statusCode == 409) {
-      final msg = _safeErr(res);
-      throw Exception('DUPLICATE_REPORT: $msg');
+      try {
+        final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+        final reportId = data['report_id'] ?? data['existing_report_id'];
+        final msg = _safeErr(res);
+        throw Exception('DUPLICATE_REPORT: $msg (report_id: $reportId)');
+      } catch (e) {
+        if (e.toString().contains('DUPLICATE_REPORT')) rethrow;
+        final msg = _safeErr(res);
+        throw Exception('DUPLICATE_REPORT: $msg');
+      }
     }
     
     if (res.statusCode != 201 && res.statusCode != 200) {
@@ -210,6 +218,20 @@ class VlmService {
       required Function(ExtractedReportData data) onComplete,
       required Function(String error) onError,
     }) async {
+    await extractFromImagesStreamed(
+      [filePath],
+      onProgress: onProgress,
+      onComplete: onComplete,
+      onError: onError,
+    );
+  }
+
+  static Future<void> extractFromImagesStreamed(
+      List<String> filePaths, {
+      required Function(String status, double percent) onProgress,
+      required Function(ExtractedReportData data) onComplete,
+      required Function(String error) onError,
+    }) async {
     final client = ApiClient.instance;
     final token = await client.getToken();
     
@@ -222,7 +244,10 @@ class VlmService {
       var uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.vlmChat}');
       var request = http.MultipartRequest('POST', uri);
 
-      request.files.add(await http.MultipartFile.fromPath('file', filePath));
+      for (var path in filePaths) {
+        request.files.add(await http.MultipartFile.fromPath('file', path));
+      }
+      
       request.headers['Authorization'] = 'Bearer $token';
 
       final streamedResponse = await request.send();
@@ -236,26 +261,26 @@ class VlmService {
 
           try {
             print('VlmStream: $line');
-            final data = jsonDecode(line);
+            
+            // Handle SSE format: strip "data: " prefix if present
+            String jsonStr = line;
+            if (line.startsWith('data: ')) {
+              jsonStr = line.substring(6); // Remove "data: " prefix
+            }
+            
+            final data = jsonDecode(jsonStr);
 
-            if (data['type'] == 'progress') {
+            // Handle progress updates (with or without 'type' field)
+            if (data['type'] == 'progress' || data.containsKey('percent')) {
               final message = data['message'] as String? ?? 'Processing...';
               final percent = (data['percent'] as num?)?.toDouble() ?? 0.0;
               onProgress(message, percent);
             } else if (data['type'] == 'result') {
-              // Parse the final result using existing logic
-               // Backend returns data nested under 'report' key or 'data' key based on the snippet
-               // The snippet says data['data']['report_id']
-               // Let's assume the structure is similar to the non-streaming one or adapt
-               
-               // Based on user snippet: data['type'] == 'result'
-               // We need to inspect `data['data']`
                final resultData = data['data'];
                if (resultData != null) {
                  final report = _parseReportData(resultData);
                  onComplete(report);
                } else {
-                 // Fallback if structure is different
                  final report = _parseReportData(data);
                  onComplete(report);
                }
@@ -263,15 +288,15 @@ class VlmService {
                onError(data['error'].toString());
             }
           } catch (e) {
-            print("Error parsing update: $e");
+            print('Error parsing update: $e');
           }
         },
         onError: (error) {
-          print("Network Error: $error");
+          print('Network Error: $error');
           onError(error.toString());
         },
         onDone: () {
-          print("Stream closed.");
+          print('Stream closed.');
         },
       );
     } catch (e) {
