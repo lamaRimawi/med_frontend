@@ -358,54 +358,6 @@ class _SuccessScreenState extends State<SuccessScreen> {
             ),
           ),
         ).animate().fadeIn(delay: 400.ms),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => widget.setViewMode('review'),
-                icon: const Icon(LucideIcons.eye),
-                label: const Text('View Files'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  foregroundColor: widget.isDarkMode
-                      ? Colors.white
-                      : Colors.black,
-                  side: BorderSide(
-                    color: widget.isDarkMode
-                        ? Colors.white.withOpacity(0.2)
-                        : Colors.grey.withOpacity(0.3),
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => setState(() => isShareModalOpen = true),
-                icon: const Icon(LucideIcons.share2),
-                label: const Text('Share'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  foregroundColor: widget.isDarkMode
-                      ? Colors.white
-                      : Colors.black,
-                  side: BorderSide(
-                    color: widget.isDarkMode
-                        ? Colors.white.withOpacity(0.2)
-                        : Colors.grey.withOpacity(0.3),
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ).animate().fadeIn(delay: 500.ms),
       ],
     );
   }
