@@ -155,9 +155,27 @@ class _ProfileScreenState extends State<ProfileScreen>
     setState(() {
       _profileData['name'] = user.fullName;
       _profileData['email'] = user.email;
-      _profileData['phone'] = user.phoneNumber
-          .replaceFirst(RegExp(r'^\+[0-9]+'), '')
-          .trim();
+
+      // Improved Phone Parsing
+      String fullPhone = user.phoneNumber;
+      String phoneBody = fullPhone;
+      String prefix = '+962'; // Default fallback
+
+      // Regex to find country code (e.g. +962) and the rest
+      // Matches + followed by 1-4 digits, then optionally space, then the rest
+      final match = RegExp(r'^(\+\d{1,4})[\s-]*(.*)$').firstMatch(fullPhone);
+      
+      if (match != null) {
+        prefix = match.group(1) ?? '+962';
+        phoneBody = match.group(2) ?? '';
+      } else {
+         // Fallback cleaning if no + found
+         phoneBody = fullPhone.replaceFirst(RegExp(r'^\+'), '').trim();
+      }
+
+      _profileData['phonePrefix'] = prefix;
+      _profileData['phone'] = phoneBody.replaceAll(' ', '').trim();
+
       _profileData['dateOfBirth'] = user.dateOfBirth;
       _profileData['gender'] = user.gender ?? '';
       _profileData['medicalHistory'] = user.medicalHistory ?? '';
