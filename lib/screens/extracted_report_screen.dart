@@ -305,46 +305,46 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
                       Expanded(
                         child: Row(
                           children: [
-                          _roundIconButton(
-                            LucideIcons.arrowLeft,
-                            onTap: () {
-                              debugPrint('DEBUG: Back button tapped');
-                              widget.onBack();
-                            },
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Medical Report',
-                                  style: TextStyle(
-                                    color: widget.isDarkMode
-                                        ? Colors.white
-                                        : Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
+                            _roundIconButton(
+                              LucideIcons.arrowLeft,
+                              onTap: () {
+                                debugPrint('DEBUG: Back button tapped');
+                                widget.onBack();
+                              },
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Medical Report',
+                                    style: TextStyle(
+                                      color: widget.isDarkMode
+                                          ? Colors.white
+                                          : Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '${d.reportType} • ${d.reportDate}',
-                                  style: TextStyle(
-                                    color: widget.isDarkMode
-                                        ? Colors.grey
-                                        : Colors.grey.shade700,
-                                    fontSize: 12,
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${d.reportType} • ${d.reportDate}',
+                                    style: TextStyle(
+                                      color: widget.isDarkMode
+                                          ? Colors.grey
+                                          : Colors.grey.shade700,
+                                      fontSize: 12,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                          ), // closes Column
-                          ), // closes inner Expanded
-                        ],
+                                ],
+                              ), // closes Column
+                            ), // closes inner Expanded
+                          ],
+                        ),
                       ),
-                    ),
                       const SizedBox(width: 8),
                       Row(
                         children: [
@@ -420,7 +420,12 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
                           ),
                         ),
 
-                        if (d.doctorInfo != null)
+                        if (d.doctorInfo != null &&
+                            ![
+                              'unknown',
+                              'not specified',
+                              'none',
+                            ].contains(d.doctorInfo!.name.toLowerCase()))
                           _plainCard(
                             icon: LucideIcons.stethoscope,
                             title: 'Doctor Information',
@@ -683,7 +688,12 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
                             ),
                           ),
 
-                        if (d.diagnosis != null)
+                        if (d.diagnosis != null &&
+                            ![
+                              'unknown',
+                              'not specified',
+                              'none',
+                            ].contains(d.diagnosis!.toLowerCase()))
                           _plainCard(
                             icon: LucideIcons.fileText,
                             title: 'Diagnosis',
@@ -698,7 +708,13 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
                             ),
                           ),
 
-                        if (d.observations != null)
+                        if (d.observations != null &&
+                            ![
+                              'no summary available',
+                              'unknown',
+                              'not specified',
+                              'none',
+                            ].contains(d.observations!.toLowerCase()))
                           _plainCard(
                             icon: LucideIcons.stethoscope,
                             title: 'Observations',
@@ -827,7 +843,12 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
                             ),
                           ),
 
-                        if (d.nextVisit != null)
+                        if (d.nextVisit != null &&
+                            ![
+                              'unknown',
+                              'not specified',
+                              'none',
+                            ].contains(d.nextVisit!.toLowerCase()))
                           _plainCard(
                             icon: LucideIcons.calendar,
                             title: 'Next Visit',
@@ -1027,9 +1048,7 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
 
   Widget _roundIconButton(IconData icon, {required VoidCallback onTap}) {
     return Material(
-      color: widget.isDarkMode
-          ? const Color(0xFF0F172A)
-          : Colors.grey.shade100,
+      color: widget.isDarkMode ? const Color(0xFF0F172A) : Colors.grey.shade100,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,

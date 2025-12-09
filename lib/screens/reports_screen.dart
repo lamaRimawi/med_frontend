@@ -12,6 +12,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 import '../models/report_model.dart';
 import '../services/reports_service.dart';
@@ -32,6 +33,7 @@ class ReportsScreen extends StatefulWidget {
 
 class _ReportsScreenState extends State<ReportsScreen> {
   List<Report> _reports = [];
+  Map<int, String> _reportTypesMap = {};
   bool _isLoading = true;
   String? _error;
 
@@ -66,6 +68,25 @@ class _ReportsScreenState extends State<ReportsScreen> {
       }
 
       final reports = await ReportsService().getReports();
+
+      // Fetch timeline to get report types
+      try {
+        final timeline = await ReportsService().getTimeline();
+        final typeMap = <int, String>{};
+        for (var item in timeline) {
+          if (item['report_id'] != null && item['report_type'] != null) {
+            typeMap[item['report_id']] = item['report_type'];
+          }
+        }
+        if (mounted) {
+          setState(() {
+            _reportTypesMap = typeMap;
+          });
+        }
+      } catch (e) {
+        debugPrint('Failed to fetch timeline for types: $e');
+      }
+
       if (mounted) {
         setState(() {
           _reports = reports;
@@ -220,6 +241,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
     if (report.reportType != null && report.reportType!.isNotEmpty) {
       return report.reportType!;
     }
+
+    // Priority 0: Check if we have the type from timeline
+    if (_reportTypesMap.containsKey(report.reportId)) {
+      final type = _reportTypesMap[report.reportId];
+      if (type != null && type.isNotEmpty && type != 'General Report') {
+        return type;
+      }
+    }
     
     // Priority 1: Check for explicit "Report Type" or "Test Name" fields
     final titleField = report.fields.firstWhere(
@@ -240,22 +269,84 @@ class _ReportsScreenState extends State<ReportsScreen> {
       return titleField.fieldValue;
     }
 
-    // Priority 2: Check additional fields
-    final addTitleField = report.additionalFields.firstWhere(
-      (f) =>
-          f.fieldName.toLowerCase().contains('test name') ||
-          f.fieldName.toLowerCase() == 'report type' ||
-          f.fieldName.toLowerCase() == 'title',
-      orElse: () =>
-          AdditionalField(id: 0, fieldName: '', fieldValue: '', category: ''),
-    );
+    // Keywords to look for in field names that might indicate a report title
+    final titleKeywords = [
+      'test name',
+      'report type',
+      'report name',
+      'investigation',
+      'procedure',
+      'study',
+      'examination',
+      'exam',
+      'diagnosis',
+      'title',
+      'type',
+      'test',
+    ];
 
-    if (addTitleField.fieldName.isNotEmpty) {
-      return addTitleField.fieldValue;
+    // Helper to check if a field name matches any keyword
+    bool isTitleField(String fieldName) {
+      final lower = fieldName.toLowerCase();
+      return titleKeywords.any((k) => lower.contains(k));
     }
 
-    // Priority 3: Use Date and ID as a fallback
-    return "Medical Report ${report.reportDate}";
+    // Priority 1: Check main fields
+    try {
+      final titleField = report.fields.firstWhere(
+        (f) => isTitleField(f.fieldName),
+      );
+      return titleField.fieldValue;
+    } catch (_) {}
+
+    // Priority 2: Check additional fields
+    try {
+      final addTitleField = report.additionalFields.firstWhere(
+        (f) => isTitleField(f.fieldName),
+      );
+      return addTitleField.fieldValue;
+    } catch (_) {}
+
+    // Priority 3: Heuristic - Look for the first field that looks like a title
+    try {
+      final candidate = report.fields.firstWhere((f) {
+        final name = f.fieldName.toLowerCase();
+        final value = f.fieldValue;
+
+        // Skip common metadata
+        if (name.contains('date') ||
+            name.contains('time') ||
+            name.contains('age') ||
+            name.contains('sex') ||
+            name.contains('gender'))
+          return false;
+        if (name.contains('patient') ||
+            name.contains('doctor') ||
+            name.contains('hospital') ||
+            name.contains('id'))
+          return false;
+
+        // Skip numeric values
+        if (double.tryParse(value) != null) return false;
+
+        // Skip long text (notes)
+        if (value.length > 50) return false;
+
+        // Skip short text (abbreviations)
+        if (value.length < 3) return false;
+
+        return true;
+      });
+      return candidate.fieldValue;
+    } catch (_) {}
+
+    // Priority 4: Use Date and ID as a fallback
+    try {
+      final date = DateTime.parse(report.reportDate);
+      return "Medical Report ${DateFormat('MMM d, y').format(date)}";
+    } catch (_) {
+      return "Medical Report ${report.reportDate}";
+    }
   }
 
   Future<void> _handleViewReport(Report report) async {
@@ -910,39 +1001,46 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
 
     final reports = _filteredReports;
-    return ListView(
-      padding: const EdgeInsets.all(20),
-      children: [
-        const SizedBox(height: 20),
-        if (reports.isEmpty)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 60),
-              child: Column(
-                children: [
-                  Icon(LucideIcons.fileText, size: 64, color: Colors.grey[300]),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No reports found',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: _isDarkMode
-                          ? Colors.white
-                          : const Color(0xFF111827),
+    return RefreshIndicator(
+      onRefresh: () => _fetchReports(silent: true),
+      child: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          const SizedBox(height: 20),
+          if (reports.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 60),
+                child: Column(
+                  children: [
+                    Icon(
+                      LucideIcons.fileText,
+                      size: 64,
+                      color: Colors.grey[300],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    Text(
+                      'No reports found',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: _isDarkMode
+                            ? Colors.white
+                            : const Color(0xFF111827),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          )
-        else
-          ...reports.asMap().entries.map((entry) {
-            final index = entry.key;
-            final report = entry.value;
-            return _buildReportCard(report, index);
-          }),
-      ],
+            )
+          else
+            ...reports.asMap().entries.map((entry) {
+              final index = entry.key;
+              final report = entry.value;
+              return _buildReportCard(report, index);
+            }),
+        ],
+      ),
     );
   }
 
@@ -998,22 +1096,63 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       Text(
                         title,
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: isDark
                               ? Colors.white
                               : const Color(0xFF111827),
                         ),
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        '${report.totalFields} Fields Extracted',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isDark ? Colors.grey[400] : Colors.grey[500],
-                        ),
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                LucideIcons.calendar,
+                                size: 12,
+                                color: isDark
+                                    ? Colors.grey[400]
+                                    : Colors.grey[500],
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                report.reportDate,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isDark
+                                      ? Colors.grey[400]
+                                      : Colors.grey[500],
+                                ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            width: 4,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.grey[600]
+                                  : Colors.grey[300],
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          Text(
+                            '${report.totalFields} Fields',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark
+                                  ? Colors.grey[400]
+                                  : Colors.grey[500],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -1316,10 +1455,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     // Actually, in _ReportsScreenState, we don't have widget.report. We have _reports list.
     // But wait, _getFieldValue was used in _ModernReportViewer which has widget.report.
     // I moved these methods to _ReportsScreenState, but they were originally in _ModernReportViewer or I am confusing contexts.
-
-    // Ah, I see. I am adding these methods to _ReportsScreenState, but _ReportsScreenState doesn't have a single 'report' property.
-    // It has a list of reports.
-    // But report argument MUST be provided when calling from _ReportsScreenState context (like in _generatePdf).
 
     if (report == null) return null;
 

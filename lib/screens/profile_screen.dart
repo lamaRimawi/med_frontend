@@ -6,6 +6,7 @@ import 'dart:ui';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart';
 import '../widgets/animated_bubble_background.dart';
 import '../widgets/theme_toggle.dart';
 import '../models/user_model.dart';
@@ -71,6 +72,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     'allergies': '',
     'avatar': '',
   };
+
+  String? _phoneError;
 
   @override
   void initState() {
@@ -147,12 +150,35 @@ class _ProfileScreenState extends State<ProfileScreen>
   // Data Lists
   final List<Map<String, String>> _countryCodes = [
     {'code': '+1', 'country': 'United States', 'flag': '🇺🇸'},
+    {'code': '+1', 'country': 'Canada', 'flag': '🇨🇦'},
     {'code': '+44', 'country': 'United Kingdom', 'flag': '🇬🇧'},
     {'code': '+970', 'country': 'Palestine', 'flag': '🇵🇸'},
     {'code': '+972', 'country': 'Israel', 'flag': '🇮🇱'},
+    {'code': '+962', 'country': 'Jordan', 'flag': '🇯🇴'},
+    {'code': '+966', 'country': 'Saudi Arabia', 'flag': '🇸🇦'},
+    {'code': '+971', 'country': 'UAE', 'flag': '🇦🇪'},
+    {'code': '+20', 'country': 'Egypt', 'flag': '🇪🇬'},
+    {'code': '+961', 'country': 'Lebanon', 'flag': '🇱🇧'},
+    {'code': '+963', 'country': 'Syria', 'flag': '🇸🇾'},
+    {'code': '+964', 'country': 'Iraq', 'flag': '🇮🇶'},
+    {'code': '+965', 'country': 'Kuwait', 'flag': '🇰🇼'},
+    {'code': '+974', 'country': 'Qatar', 'flag': '🇶🇦'},
+    {'code': '+973', 'country': 'Bahrain', 'flag': '🇧🇭'},
+    {'code': '+968', 'country': 'Oman', 'flag': '🇴🇲'},
+    {'code': '+967', 'country': 'Yemen', 'flag': '🇾🇪'},
     {'code': '+91', 'country': 'India', 'flag': '🇮🇳'},
     {'code': '+86', 'country': 'China', 'flag': '🇨🇳'},
     {'code': '+81', 'country': 'Japan', 'flag': '🇯🇵'},
+    {'code': '+49', 'country': 'Germany', 'flag': '🇩🇪'},
+    {'code': '+33', 'country': 'France', 'flag': '🇫🇷'},
+    {'code': '+39', 'country': 'Italy', 'flag': '🇮🇹'},
+    {'code': '+34', 'country': 'Spain', 'flag': '🇪🇸'},
+    {'code': '+7', 'country': 'Russia', 'flag': '🇷🇺'},
+    {'code': '+61', 'country': 'Australia', 'flag': '🇦🇺'},
+    {'code': '+55', 'country': 'Brazil', 'flag': '🇧🇷'},
+    {'code': '+52', 'country': 'Mexico', 'flag': '🇲🇽'},
+    {'code': '+90', 'country': 'Turkey', 'flag': '🇹🇷'},
+    {'code': '+82', 'country': 'South Korea', 'flag': '🇰🇷'},
   ];
 
   final List<Map<String, dynamic>> _locations = [
@@ -320,7 +346,9 @@ class _ProfileScreenState extends State<ProfileScreen>
     final isDark = _isDarkMode;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF5F5F5),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF5F5F5),
       body: Column(
         children: [
           // Blue Header with User Info
@@ -351,7 +379,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                       ),
                     ),
                   ),
-                  
+
                   // Profile Picture and User Info
                   Padding(
                     padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
@@ -365,7 +393,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                               height: 80,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.transparent, width: 0),
+                                border: Border.all(
+                                  color: Colors.transparent,
+                                  width: 0,
+                                ),
                                 image: DecorationImage(
                                   image: _imageFile != null
                                       ? FileImage(_imageFile!) as ImageProvider
@@ -399,7 +430,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           ],
                         ),
                         const SizedBox(width: 16),
-                        
+
                         // User Info
                         Expanded(
                           child: Column(
@@ -415,7 +446,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                _profileData['phone'].isNotEmpty 
+                                _profileData['phone'].isNotEmpty
                                     ? '${_profileData['phonePrefix'] ?? '+962'} ${_profileData['phone']}'
                                     : '+962 79 123 4567',
                                 style: TextStyle(
@@ -441,7 +472,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ),
           ),
-          
+
           // Menu Items
           Expanded(
             child: ListView(
@@ -476,105 +507,106 @@ class _ProfileScreenState extends State<ProfileScreen>
                   () => setState(() => _currentScreen = 'support'),
                 ),
                 const SizedBox(height: 12),
-                _buildMenuItem(
-                  LucideIcons.logOut,
-                  'Logout',
-                  () async {
-                    // Show bottom sheet confirmation
-                    final shouldLogout = await showModalBottomSheet<bool>(
-                      context: context,
-                      backgroundColor: Colors.transparent,
-                      builder: (context) => Container(
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF1E293B)
-                              : Colors.white,
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(24),
-                            topRight: Radius.circular(24),
-                          ),
-                        ),
-                        padding: const EdgeInsets.fromLTRB(32, 48, 32, 32),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const SizedBox(height: 16),
-                            Text(
-                              'Are you sure you want to log out?',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: isDark ? Colors.white : const Color(0xFF111827),
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 36),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () => Navigator.pop(context, false),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
-                                      decoration: BoxDecoration(
-                                        color: Colors.transparent,
-                                        border: Border.all(
-                                          color: const Color(0xFF39A4E6),
-                                          width: 1.5,
-                                        ),
-                                        borderRadius: BorderRadius.circular(24),
-                                      ),
-                                      child: Text(
-                                        'Cancel',
-                                        style: TextStyle(
-                                          color: isDark ? Colors.white : const Color(0xFF111827),
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 14,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () => Navigator.pop(context, true),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF39A4E6),
-                                        borderRadius: BorderRadius.circular(24),
-                                      ),
-                                      child: const Text(
-                                        'Yes, Logout',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 14,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 24),
-                          ],
+                _buildMenuItem(LucideIcons.logOut, 'Logout', () async {
+                  // Show bottom sheet confirmation
+                  final shouldLogout = await showModalBottomSheet<bool>(
+                    context: context,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => Container(
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(24),
+                          topRight: Radius.circular(24),
                         ),
                       ),
-                    );
+                      padding: const EdgeInsets.fromLTRB(32, 48, 32, 32),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(height: 16),
+                          Text(
+                            'Are you sure you want to log out?',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF111827),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 36),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () => Navigator.pop(context, false),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.transparent,
+                                      border: Border.all(
+                                        color: const Color(0xFF39A4E6),
+                                        width: 1.5,
+                                      ),
+                                      borderRadius: BorderRadius.circular(24),
+                                    ),
+                                    child: Text(
+                                      'Cancel',
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white
+                                            : const Color(0xFF111827),
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () => Navigator.pop(context, true),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF39A4E6),
+                                      borderRadius: BorderRadius.circular(24),
+                                    ),
+                                    child: const Text(
+                                      'Yes, Logout',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
+                  );
 
-                    // Only logout if user confirmed
-                    if (shouldLogout == true) {
-                      await User.clearFromPrefs();
-                      await AuthApi.logout();
-                      widget.onLogout();
-                    }
-                  },
-                  isLogout: true,
-                ),
+                  // Only logout if user confirmed
+                  if (shouldLogout == true) {
+                    await User.clearFromPrefs();
+                    await AuthApi.logout();
+                    widget.onLogout();
+                  }
+                }, isLogout: true),
               ],
             ),
           ),
@@ -583,9 +615,14 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, VoidCallback onTap, {bool isLogout = false}) {
+  Widget _buildMenuItem(
+    IconData icon,
+    String title,
+    VoidCallback onTap, {
+    bool isLogout = false,
+  }) {
     final isDark = _isDarkMode;
-    
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -609,11 +646,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 color: const Color(0xFF39A4E6).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color: const Color(0xFF39A4E6),
-                size: 22,
-              ),
+              child: Icon(icon, color: const Color(0xFF39A4E6), size: 22),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -622,7 +655,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: isLogout 
+                  color: isLogout
                       ? const Color(0xFF39A4E6)
                       : (isDark ? Colors.white : const Color(0xFF111827)),
                 ),
@@ -728,8 +761,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-
-
   // --- Personal Info Screen ---
   Widget _buildPersonalInfoScreen() {
     final isDark = _isDarkMode;
@@ -740,7 +771,6 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: Stack(
         children: [
           // Background Animation removed as requested
-
           SafeArea(
             child: Column(
               children: [
@@ -756,14 +786,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                           LucideIcons.user,
                           _profileData['name'],
                           (val) => setState(() => _profileData['name'] = val),
-                        ),
-                        const SizedBox(height: 20),
-
-                        _buildLabel('EMAIL ADDRESS'),
-                        _buildTextField(
-                          LucideIcons.mail,
-                          _profileData['email'],
-                          (val) => setState(() => _profileData['email'] = val),
                         ),
                         const SizedBox(height: 20),
 
@@ -817,8 +839,16 @@ class _ProfileScreenState extends State<ProfileScreen>
                               child: _buildTextField(
                                 LucideIcons.phone,
                                 _profileData['phone'],
-                                (val) =>
-                                    setState(() => _profileData['phone'] = val),
+                                (val) => setState(() {
+                                  _profileData['phone'] = val;
+                                  if (_phoneError != null) _phoneError = null;
+                                }),
+                                keyboardType: TextInputType.phone,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(9),
+                                ],
+                                errorText: _phoneError,
                               ),
                             ),
                           ],
@@ -891,21 +921,67 @@ class _ProfileScreenState extends State<ProfileScreen>
                         const SizedBox(height: 20),
 
                         // Medical History and Allergies removed as requested
-
                         const SizedBox(height: 32),
                         GestureDetector(
                           onTap: () async {
+                            // Validation
+                            if (_profileData['name']
+                                .toString()
+                                .trim()
+                                .isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Please enter your full name'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              return;
+                            }
+                            // Phone validation
+                            final phone = _profileData['phone']
+                                .toString()
+                                .trim();
+                            if (phone.isNotEmpty && phone.length != 9) {
+                              setState(
+                                () => _phoneError =
+                                    'Phone number must be 9 digits',
+                              );
+                              return;
+                            }
+                            setState(() => _phoneError = null);
+                            if (_profileData['dateOfBirth']
+                                .toString()
+                                .isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Please select your date of birth',
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              return;
+                            }
+
                             try {
                               // Split name into first and last
-                              final nameParts = _profileData['name'].toString().split(' ');
-                              final firstName = nameParts.isNotEmpty ? nameParts.first : '';
-                              final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+                              final nameParts = _profileData['name']
+                                  .toString()
+                                  .split(' ');
+                              final firstName = nameParts.isNotEmpty
+                                  ? nameParts.first
+                                  : '';
+                              final lastName = nameParts.length > 1
+                                  ? nameParts.sublist(1).join(' ')
+                                  : '';
 
                               await UserService().updateUserProfile({
                                 'first_name': firstName,
                                 'last_name': lastName,
-                                'phone_number': '${_profileData['phonePrefix']}${_profileData['phone']}',
-                                'medical_history': _profileData['medicalHistory'],
+                                'phone_number':
+                                    '${_profileData['phonePrefix']}${_profileData['phone']}',
+                                'medical_history':
+                                    _profileData['medicalHistory'],
                                 'allergies': _profileData['allergies'],
                               });
 
@@ -915,7 +991,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Profile updated successfully'),
+                                    content: Text(
+                                      'Profile updated successfully',
+                                    ),
                                     backgroundColor: Color(0xFF10B981),
                                   ),
                                 );
@@ -928,7 +1006,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('Failed to update profile: $e'),
+                                    content: Text(
+                                      'Failed to update profile: $e',
+                                    ),
                                     backgroundColor: Colors.red,
                                   ),
                                 );
@@ -995,14 +1075,20 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget _buildTextField(
     IconData icon,
     String value,
-    Function(String) onChanged,
-  ) {
+    Function(String) onChanged, {
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    String? errorText,
+  }) {
     final isDark = _isDarkMode;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF111827) : Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: errorText != null
+            ? Border.all(color: Colors.red, width: 1)
+            : null,
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
         ],
@@ -1013,15 +1099,27 @@ class _ProfileScreenState extends State<ProfileScreen>
             TextPosition(offset: value.length),
           ),
         onChanged: onChanged,
+        keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
         style: TextStyle(
           color: isDark ? Colors.white : const Color(0xFF111827),
           fontWeight: FontWeight.w500,
         ),
         decoration: InputDecoration(
-          icon: Icon(icon, color: Colors.grey[400], size: 20),
+          icon: Icon(
+            icon,
+            color: errorText != null ? Colors.red : Colors.grey[400],
+            size: 20,
+          ),
           border: InputBorder.none,
           hintText: 'Enter value',
           hintStyle: TextStyle(color: Colors.grey[400]),
+          errorText: errorText,
+          errorStyle: const TextStyle(
+            color: Colors.red,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
     );

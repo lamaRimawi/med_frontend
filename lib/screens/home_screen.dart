@@ -54,6 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> _dates = [];
   List<Map<String, String>> _reports = [];
   bool _isLoadingReports = true;
+  Map<int, String> _reportTypesMap = {};
 
   @override
   void initState() {
@@ -74,6 +75,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // 2. Fetch fresh
       final reports = await ReportsService().getReports();
+
+      // 3. Fetch timeline for better names
+      try {
+        final timeline = await ReportsService().getTimeline();
+        final typeMap = <int, String>{};
+        for (var item in timeline) {
+          if (item['report_id'] != null && item['report_type'] != null) {
+            typeMap[item['report_id']] = item['report_type'];
+          }
+        }
+        if (mounted) {
+          setState(() {
+            _reportTypesMap = typeMap;
+          });
+        }
+      } catch (e) {
+        debugPrint('Failed to fetch timeline for types: $e');
+      }
+
       if (mounted) {
         _mapReportsToUi(reports);
         setState(() => _isLoadingReports = false);
@@ -82,7 +102,11 @@ class _HomeScreenState extends State<HomeScreen> {
       debugPrint('Error loading home reports: $e');
       if (e.toString().contains('Unauthorized')) {
         if (mounted) {
-           Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/login',
+            (route) => false,
+          );
         }
         return;
       }
@@ -90,22 +114,124 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  String _getReportTitle(Report report) {
+    // Priority 0: Check if we have the type from timeline (Highest Priority)
+    if (_reportTypesMap.containsKey(report.reportId)) {
+      final type = _reportTypesMap[report.reportId];
+      if (type != null && type.isNotEmpty && type != 'General Report') {
+        return type;
+      }
+    }
+
+    // Priority 1: Check explicit report type from backend
+    if (report.reportType != null &&
+        report.reportType!.isNotEmpty &&
+        report.reportType!.toLowerCase() != 'general' &&
+        report.reportType!.toLowerCase() != 'other') {
+      return report.reportType!;
+    }
+
+    // Keywords to look for in field names that might indicate a report title
+    final titleKeywords = [
+      'test name',
+      'report type',
+      'report name',
+      'investigation',
+      'procedure',
+      'study',
+      'examination',
+      'exam',
+      'diagnosis',
+      'title',
+      'type',
+      'test',
+    ];
+
+    // Helper to check if a field name matches any keyword
+    bool isTitleField(String fieldName) {
+      final lower = fieldName.toLowerCase();
+      return titleKeywords.any((k) => lower.contains(k));
+    }
+
+    // Priority 1: Check main fields
+    try {
+      final titleField = report.fields.firstWhere(
+        (f) => isTitleField(f.fieldName),
+      );
+      return titleField.fieldValue;
+    } catch (_) {}
+
+    // Priority 2: Check additional fields
+    try {
+      final addTitleField = report.additionalFields.firstWhere(
+        (f) => isTitleField(f.fieldName),
+      );
+      return addTitleField.fieldValue;
+    } catch (_) {}
+
+    // Priority 3: Heuristic - Look for the first field that looks like a title
+    try {
+      final candidate = report.fields.firstWhere((f) {
+        final name = f.fieldName.toLowerCase();
+        final value = f.fieldValue;
+
+        // Skip common metadata
+        if (name.contains('date') ||
+            name.contains('time') ||
+            name.contains('age') ||
+            name.contains('sex') ||
+            name.contains('gender'))
+          return false;
+        if (name.contains('patient') ||
+            name.contains('doctor') ||
+            name.contains('hospital') ||
+            name.contains('id'))
+          return false;
+
+        // Skip numeric values
+        if (double.tryParse(value) != null) return false;
+
+        // Skip long text (notes)
+        if (value.length > 50) return false;
+
+        // Skip short text (abbreviations)
+        if (value.length < 3) return false;
+
+        return true;
+      });
+      return candidate.fieldValue;
+    } catch (_) {}
+
+    // Priority 4: Fallback to first field name (e.g. "WBC") if no better title found
+    if (report.fields.isNotEmpty) {
+      return report.fields.first.fieldName;
+    }
+
+    return "Medical Report";
+  }
+
   void _mapReportsToUi(List<Report> reports) {
     _reports = reports.map((r) {
       // Parse date
       DateTime dt;
       try {
-        dt = DateTime.parse(r.createdAt); 
+        dt = DateTime.parse(r.createdAt);
       } catch (_) {
         dt = DateTime.now();
       }
-      
+
       // Attempt to find doctor
-      String doctor = 'Unknown Doctor';
+      String doctor = '';
       final docField = r.additionalFields.firstWhere(
-        (f) => f.fieldName.toLowerCase().contains('doctor') || 
-               f.category.toLowerCase() == 'doctor',
-        orElse: () => AdditionalField(id: -1, fieldName: '', fieldValue: '', category: ''),
+        (f) =>
+            f.fieldName.toLowerCase().contains('doctor') ||
+            f.category.toLowerCase() == 'doctor',
+        orElse: () => AdditionalField(
+          id: -1,
+          fieldName: '',
+          fieldValue: '',
+          category: '',
+        ),
       );
       if (docField.id != -1) doctor = docField.fieldValue;
 
@@ -113,18 +239,18 @@ class _HomeScreenState extends State<HomeScreen> {
       final allNormal = r.fields.every((f) => f.isNormal ?? true);
       final status = allNormal ? 'Normal' : 'Attention';
 
-      // Title - use first field or generic
-      String title = 'Medical Report';
-      if (r.fields.isNotEmpty) {
-        title = r.fields.first.fieldName;
-        // Clean up title if it's too long or specific
-        if (title.length > 20) title = 'Medical Report'; 
-      }
+      // Title - use robust logic
+      String title = _getReportTitle(r);
+
+      // Clean up title if it's too long
+      if (title.length > 30) title = title.substring(0, 27) + '...';
 
       return {
         'day': '${dt.day}',
-        'date': '${dt.day} ${_getMonthName(dt.month)} - ${_getDayName(dt.weekday)}',
-        'time': '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}',
+        'date':
+            '${dt.day} ${_getMonthName(dt.month)} - ${_getDayName(dt.weekday)}',
+        'time':
+            '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}',
         'title': title,
         'doctor': doctor,
         'status': status,
@@ -145,20 +271,19 @@ class _HomeScreenState extends State<HomeScreen> {
   void _initializeDates() {
     final now = DateTime.now();
     _selectedDate = now.day;
-    
+
     // Generate 5 days centered on today
     _dates = List.generate(5, (index) {
       final date = now.subtract(Duration(days: 2 - index));
-      return {
-        'day': date.day,
-        'label': _getDayLabel(date),
-      };
+      return {'day': date.day, 'label': _getDayLabel(date)};
     });
   }
 
   String _getDayLabel(DateTime date) {
     final now = DateTime.now();
-    if (date.year == now.year && date.month == now.month && date.day == now.day) {
+    if (date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day) {
       return 'Today';
     }
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -166,15 +291,44 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _getDayName(int weekday) {
-    const days = ['Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Monday', 'Tuesday'];
+    const days = [
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+      'Monday',
+      'Tuesday',
+    ];
     // Adjust index based on standard weekday (1=Mon, 7=Sun)
     // My array starts with Wed? No, let's use standard.
-    const standardDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const standardDays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
     return standardDays[weekday - 1];
   }
 
   String _getMonthName(int month) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return months[month - 1];
   }
 
@@ -241,7 +395,6 @@ class _HomeScreenState extends State<HomeScreen> {
       body = Stack(
         children: [
           // Animated Background removed
-
 
           // Main Content
           SafeArea(
@@ -585,7 +738,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             if (_isLoadingReports)
               const Center(
                 child: Padding(
@@ -594,279 +747,287 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               )
             else ...[
-            // Date selector (Only show if not searching)
-            if (!isSearching) ...[
-              SizedBox(
-                height: 72,
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          final idx = _dates.indexWhere(
-                            (d) => d['day'] == _selectedDate,
-                          );
-                          if (idx > 0)
-                            _selectedDate = _dates[idx - 1]['day'] as int;
-                        });
-                      },
-                      icon: const Icon(
-                        LucideIcons.chevronLeft,
-                        color: Colors.white70,
-                        size: 20,
-                      ),
-                    ),
-                    Expanded(
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemBuilder: (context, i) {
-                          final d = _dates[i];
-                          final isSel = d['day'] == _selectedDate;
-                          return GestureDetector(
-                            onTap: () =>
-                                setState(() => _selectedDate = d['day'] as int),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 18,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isSel
-                                    ? Colors.white
-                                    : Colors.white.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: isSel
-                                    ? [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.15),
-                                          blurRadius: 10,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ]
-                                    : null,
-                              ),
-                              constraints: const BoxConstraints(minHeight: 56),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    '${d['day']}',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      color: isSel
-                                          ? const Color(0xFF39A4E6)
-                                          : Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${d['label']}',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: isSel
-                                          ? const Color(0xFF39A4E6)
-                                          : Colors.white.withOpacity(0.8),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
+              // Date selector (Only show if not searching)
+              if (!isSearching) ...[
+                SizedBox(
+                  height: 72,
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            final idx = _dates.indexWhere(
+                              (d) => d['day'] == _selectedDate,
+                            );
+                            if (idx > 0)
+                              _selectedDate = _dates[idx - 1]['day'] as int;
+                          });
                         },
-                        separatorBuilder: (_, __) => const SizedBox(width: 8),
-                        itemCount: _dates.length,
+                        icon: const Icon(
+                          LucideIcons.chevronLeft,
+                          color: Colors.white70,
+                          size: 20,
+                        ),
                       ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          final idx = _dates.indexWhere(
-                            (d) => d['day'] == _selectedDate,
-                          );
-                          if (idx < _dates.length - 1)
-                            _selectedDate = _dates[idx + 1]['day'] as int;
-                        });
-                      },
-                      icon: const Icon(
-                        LucideIcons.chevronRight,
-                        color: Colors.white70,
-                        size: 20,
+                      Expanded(
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemBuilder: (context, i) {
+                            final d = _dates[i];
+                            final isSel = d['day'] == _selectedDate;
+                            return GestureDetector(
+                              onTap: () => setState(
+                                () => _selectedDate = d['day'] as int,
+                              ),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 18,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSel
+                                      ? Colors.white
+                                      : Colors.white.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: isSel
+                                      ? [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(
+                                              0.15,
+                                            ),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                constraints: const BoxConstraints(
+                                  minHeight: 56,
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      '${d['day']}',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: isSel
+                                            ? const Color(0xFF39A4E6)
+                                            : Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${d['label']}',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: isSel
+                                            ? const Color(0xFF39A4E6)
+                                            : Colors.white.withOpacity(0.8),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                          separatorBuilder: (_, __) => const SizedBox(width: 8),
+                          itemCount: _dates.length,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-            const SizedBox(height: 16),
-            // Header for reports count and "See all"
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${filtered.length} ${filtered.length == 1 ? 'report' : 'reports'}',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: 13,
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            final idx = _dates.indexWhere(
+                              (d) => d['day'] == _selectedDate,
+                            );
+                            if (idx < _dates.length - 1)
+                              _selectedDate = _dates[idx + 1]['day'] as int;
+                          });
+                        },
+                        icon: const Icon(
+                          LucideIcons.chevronRight,
+                          color: Colors.white70,
+                          size: 20,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                GestureDetector(
-                  onTap: () => setState(() => _showReports = true),
-                  child: Text(
-                    'See all',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 14,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ),
+                const SizedBox(height: 16),
               ],
-            ),
-            const SizedBox(height: 12),
-            if (filtered.isEmpty)
-              Column(
+              const SizedBox(height: 16),
+              // Header for reports count and "See all"
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Icon(
-                    LucideIcons.fileText,
-                    size: 40,
-                    color: Colors.white30,
-                  ),
-                  const SizedBox(height: 8),
                   Text(
-                    isSearching
-                        ? 'No matching reports found'
-                        : 'No reports for this date',
+                    '${filtered.length} ${filtered.length == 1 ? 'report' : 'reports'}',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.7),
                       fontSize: 13,
                     ),
                   ),
-                  Text(
-                    isSearching
-                        ? 'Try a different search term'
-                        : 'Select another day to view reports',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
-                      fontSize: 11,
+                  GestureDetector(
+                    onTap: () => setState(() => _showReports = true),
+                    child: Text(
+                      'See all',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 14,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   ),
                 ],
-              )
-            else
-              Column(
-                children: [
-                  for (int i = 0; i < filtered.length; i++)
-                    GestureDetector(
-                      onTap: () {
-                        final typeKey = (filtered[i]['type'] ?? '')
-                            .toLowerCase()
-                            .replaceAll(' ', '');
-                        setState(() {
-                          _showQuickView = {
-                            'type': typeKey,
-                            'title': filtered[i]['type'] ?? '',
-                          };
-                        });
-                      },
-                      child: Container(
-                        margin: EdgeInsets.only(
-                          bottom: i == filtered.length - 1 ? 0 : 12,
-                        ),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 6,
-                              height: 6,
-                              margin: const EdgeInsets.only(top: 6, right: 8),
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        filtered[i]['date'] ?? '',
-                                        style: TextStyle(
-                                          color: textOnBlue.withOpacity(0.8),
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      _buildStatusBadge(
-                                        filtered[i]['status'] ?? 'Pending',
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        filtered[i]['time'] ?? '',
-                                        style: TextStyle(
-                                          color: textOnBlue.withOpacity(0.8),
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          filtered[i]['title'] ?? '',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 15,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      Flexible(
-                                        child: Text(
-                                          filtered[i]['doctor'] ?? '',
-                                          style: TextStyle(
-                                            color: textOnBlue.withOpacity(0.6),
-                                            fontSize: 13,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      ReportTypeBadge(
-                                        type: filtered[i]['type'] ?? 'General',
-                                        variant: ReportBadgeVariant.compact,
-                                        size: BadgeSize.sm,
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+              ),
+              const SizedBox(height: 12),
+              if (filtered.isEmpty)
+                Column(
+                  children: [
+                    const Icon(
+                      LucideIcons.fileText,
+                      size: 40,
+                      color: Colors.white30,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      isSearching
+                          ? 'No matching reports found'
+                          : 'No reports for this date',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 13,
                       ),
                     ),
-                ],
-              ),
+                    Text(
+                      isSearching
+                          ? 'Try a different search term'
+                          : 'Select another day to view reports',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.5),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                )
+              else
+                Column(
+                  children: [
+                    for (int i = 0; i < filtered.length; i++)
+                      GestureDetector(
+                        onTap: () {
+                          final typeKey = (filtered[i]['type'] ?? '')
+                              .toLowerCase()
+                              .replaceAll(' ', '');
+                          setState(() {
+                            _showQuickView = {
+                              'type': typeKey,
+                              'title': filtered[i]['type'] ?? '',
+                            };
+                          });
+                        },
+                        child: Container(
+                          margin: EdgeInsets.only(
+                            bottom: i == filtered.length - 1 ? 0 : 12,
+                          ),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                margin: const EdgeInsets.only(top: 6, right: 8),
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          filtered[i]['date'] ?? '',
+                                          style: TextStyle(
+                                            color: textOnBlue.withOpacity(0.8),
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          filtered[i]['time'] ?? '',
+                                          style: TextStyle(
+                                            color: textOnBlue.withOpacity(0.8),
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            filtered[i]['title'] ?? '',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 15,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        if ((filtered[i]['doctor'] ?? '')
+                                            .isNotEmpty) ...[
+                                          Flexible(
+                                            child: Text(
+                                              filtered[i]['doctor'] ?? '',
+                                              style: TextStyle(
+                                                color: textOnBlue.withOpacity(
+                                                  0.6,
+                                                ),
+                                                fontSize: 13,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                        ],
+                                        ReportTypeBadge(
+                                          type:
+                                              filtered[i]['type'] ?? 'General',
+                                          variant: ReportBadgeVariant.compact,
+                                          size: BadgeSize.sm,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
             ],
           ],
         ),
@@ -963,22 +1124,30 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _determineReportType(Report r) {
     String type = 'General';
-    
+
     // Try to find a matching field in additionalFields
     final typeField = r.additionalFields.firstWhere(
-      (f) => f.fieldName.toLowerCase() == 'type' || f.category.toLowerCase() == 'type',
-      orElse: () => AdditionalField(id: -1, fieldName: '', fieldValue: '', category: ''),
+      (f) =>
+          f.fieldName.toLowerCase() == 'type' ||
+          f.category.toLowerCase() == 'type',
+      orElse: () =>
+          AdditionalField(id: -1, fieldName: '', fieldValue: '', category: ''),
     );
-    
+
     if (typeField.id != -1) {
       type = typeField.fieldValue;
     }
-    
+
     // Normalize type string
     final typeLower = type.toLowerCase();
-    if (typeLower.contains('lab') || typeLower.contains('blood')) return 'Lab Results';
-    if (typeLower.contains('prescription') || typeLower.contains('medication')) return 'Prescriptions';
-    if (typeLower.contains('imaging') || typeLower.contains('x-ray') || typeLower.contains('scan')) return 'Imaging';
+    if (typeLower.contains('lab') || typeLower.contains('blood'))
+      return 'Lab Results';
+    if (typeLower.contains('prescription') || typeLower.contains('medication'))
+      return 'Prescriptions';
+    if (typeLower.contains('imaging') ||
+        typeLower.contains('x-ray') ||
+        typeLower.contains('scan'))
+      return 'Imaging';
     if (typeLower.contains('vital')) return 'Vitals';
     if (typeLower.contains('pathology')) return 'Pathology';
     if (typeLower.contains('cardio')) return 'Cardiology';
@@ -986,7 +1155,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (typeLower.contains('ortho')) return 'Orthopedic';
     if (typeLower.contains('temp')) return 'Temperature';
     if (typeLower.contains('resp')) return 'Respiratory';
-    
+
     return 'General';
   }
 
@@ -994,7 +1163,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // Calculate counts from cached reports
     final counts = <String, int>{};
     final allReports = ReportsService().cachedReports ?? [];
-    
+
     for (var r in allReports) {
       final type = _determineReportType(r);
       counts[type] = (counts[type] ?? 0) + 1;
@@ -1313,8 +1482,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-
 
   Widget _buildNotificationsPanel() {
     return Positioned.fill(
@@ -1660,8 +1827,10 @@ class _HomeScreenState extends State<HomeScreen> {
     };
 
     final targetLabel = keyToLabel[typeKey] ?? 'General';
-    final filteredReports = _reports.where((r) => r['type'] == targetLabel).toList();
-    
+    final filteredReports = _reports
+        .where((r) => r['type'] == targetLabel)
+        .toList();
+
     return _buildGenericReportList(filteredReports);
   }
 
@@ -1675,10 +1844,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 16),
             Text(
               'No reports found',
-              style: TextStyle(
-                color: Colors.grey[500],
-                fontSize: 16,
-              ),
+              style: TextStyle(color: Colors.grey[500], fontSize: 16),
             ),
           ],
         ),
@@ -1723,20 +1889,30 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Icon(LucideIcons.user, size: 14, color: _isDarkMode ? Colors.grey[400] : Colors.grey[600]),
+                  Icon(
+                    LucideIcons.user,
+                    size: 14,
+                    color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                  ),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       report['doctor'] ?? 'Unknown Doctor',
                       style: TextStyle(
-                        color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                        color: _isDarkMode
+                            ? Colors.grey[400]
+                            : Colors.grey[600],
                         fontSize: 12,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Icon(LucideIcons.calendar, size: 14, color: _isDarkMode ? Colors.grey[400] : Colors.grey[600]),
+                  Icon(
+                    LucideIcons.calendar,
+                    size: 14,
+                    color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     report['date'] ?? '',
@@ -1754,14 +1930,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
-
-
-
-
   Widget _buildAllReportTypesModal() {
     final reportTypes = _getReportTypes();
-    
+
     return GestureDetector(
       onTap: () => setState(() => _showAllReportTypes = false),
       child: Container(
@@ -1776,9 +1947,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 maxHeight: MediaQuery.of(context).size.height * 0.6,
               ),
               decoration: BoxDecoration(
-                color: _isDarkMode
-                    ? const Color(0xFF1F2937)
-                    : Colors.white,
+                color: _isDarkMode ? const Color(0xFF1F2937) : Colors.white,
                 borderRadius: BorderRadius.circular(32),
                 boxShadow: [
                   BoxShadow(
@@ -1806,7 +1975,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: _isDarkMode ? Colors.white : const Color(0xFF111827),
+                                color: _isDarkMode
+                                    ? Colors.white
+                                    : const Color(0xFF111827),
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -1814,14 +1985,17 @@ class _HomeScreenState extends State<HomeScreen> {
                               'Browse all medical report categories',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: _isDarkMode ? Colors.grey[400] : Colors.grey[500],
+                                color: _isDarkMode
+                                    ? Colors.grey[400]
+                                    : Colors.grey[500],
                               ),
                             ),
                           ],
                         ),
                         // Close Button
                         GestureDetector(
-                          onTap: () => setState(() => _showAllReportTypes = false),
+                          onTap: () =>
+                              setState(() => _showAllReportTypes = false),
                           child: Container(
                             width: 36,
                             height: 36,
@@ -1834,14 +2008,16 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Icon(
                               LucideIcons.x,
                               size: 20,
-                              color: _isDarkMode ? Colors.white : Colors.grey[600],
+                              color: _isDarkMode
+                                  ? Colors.white
+                                  : Colors.grey[600],
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  
+
                   // Grid Content
                   Flexible(
                     child: SingleChildScrollView(
@@ -1849,12 +2025,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: GridView.builder(
                         physics: const NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                          childAspectRatio: 0.8,
-                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: 0.8,
+                            ),
                         itemCount: reportTypes.length,
                         itemBuilder: (context, index) {
                           final type = reportTypes[index];
@@ -1862,20 +2039,23 @@ class _HomeScreenState extends State<HomeScreen> {
                             onTap: () {
                               setState(() => _showAllReportTypes = false);
                               // Delayed navigation to allow modal to close smoothly
-                              Future.delayed(const Duration(milliseconds: 200), () {
-                                if (type['navigateTo'] == 'records') {
-                                  setState(() => _showRecords = true);
-                                  return;
-                                }
-                                if (type['quickView'] != null) {
-                                  setState(() {
-                                    _showQuickView = {
-                                      'type': type['quickView'] as String,
-                                      'title': type['label'] as String,
-                                    };
-                                  });
-                                }
-                              });
+                              Future.delayed(
+                                const Duration(milliseconds: 200),
+                                () {
+                                  if (type['navigateTo'] == 'records') {
+                                    setState(() => _showRecords = true);
+                                    return;
+                                  }
+                                  if (type['quickView'] != null) {
+                                    setState(() {
+                                      _showQuickView = {
+                                        'type': type['quickView'] as String,
+                                        'title': type['label'] as String,
+                                      };
+                                    });
+                                  }
+                                },
+                              );
                             },
                             child: Container(
                               decoration: BoxDecoration(
@@ -1907,7 +2087,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                           begin: Alignment.topLeft,
                                           end: Alignment.bottomRight,
                                           colors: [
-                                            (type['color'] as Color).withOpacity(0.05),
+                                            (type['color'] as Color)
+                                                .withOpacity(0.05),
                                             Colors.transparent,
                                           ],
                                         ),
@@ -1920,10 +2101,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                       top: 8,
                                       right: 8,
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: type['color'] as Color,
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                         child: Text(
                                           '${type['count']}',
@@ -1938,12 +2124,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                   // Icon & Label
                                   Center(
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Container(
                                           padding: const EdgeInsets.all(12),
                                           decoration: BoxDecoration(
-                                            color: (type['color'] as Color).withOpacity(0.1),
+                                            color: (type['color'] as Color)
+                                                .withOpacity(0.1),
                                             shape: BoxShape.circle,
                                           ),
                                           child: Icon(
@@ -1954,7 +2142,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                         const SizedBox(height: 12),
                                         Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 4,
+                                          ),
                                           child: Text(
                                             type['label'] as String,
                                             textAlign: TextAlign.center,
@@ -1963,7 +2153,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                             style: TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.w600,
-                                              color: _isDarkMode ? Colors.grey[200] : Colors.grey[700],
+                                              color: _isDarkMode
+                                                  ? Colors.grey[200]
+                                                  : Colors.grey[700],
                                             ),
                                           ),
                                         ),
@@ -1978,7 +2170,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                  
+
                   // Footer Stats
                   Container(
                     width: double.infinity,
@@ -2001,7 +2193,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             Text(
                               '${reportTypes.length} Active Categories',
                               style: const TextStyle(
-                                color: Color(0xFF39A4E6), // Blue to match design
+                                color: Color(
+                                  0xFF39A4E6,
+                                ), // Blue to match design
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -2010,7 +2204,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             Text(
                               'All report types are fully functional',
                               style: TextStyle(
-                                color: _isDarkMode ? Colors.grey[400] : Colors.grey[500],
+                                color: _isDarkMode
+                                    ? Colors.grey[400]
+                                    : Colors.grey[500],
                                 fontSize: 12,
                               ),
                             ),
@@ -2047,4 +2243,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-

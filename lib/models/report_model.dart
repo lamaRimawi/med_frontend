@@ -3,6 +3,7 @@ class Report {
   final String reportDate;
   final String createdAt;
   final int totalFields;
+  final String? reportType;
   final List<ReportField> fields;
   final List<AdditionalField> additionalFields;
   final String? patientName;
@@ -15,6 +16,7 @@ class Report {
     required this.reportDate,
     required this.createdAt,
     required this.totalFields,
+    this.reportType,
     required this.fields,
     required this.additionalFields,
     this.patientName,
@@ -29,11 +31,14 @@ class Report {
       reportDate: json['report_date'] as String,
       createdAt: json['created_at'] as String,
       totalFields: json['total_fields'] as int,
-      fields: (json['fields'] as List<dynamic>?)
+      reportType: json['report_type'] as String?,
+      fields:
+          (json['fields'] as List<dynamic>?)
               ?.map((e) => ReportField.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      additionalFields: (json['additional_fields'] as List<dynamic>?)
+      additionalFields:
+          (json['additional_fields'] as List<dynamic>?)
               ?.map((e) => AdditionalField.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],

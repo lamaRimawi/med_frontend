@@ -39,15 +39,17 @@ class ApiClient {
         mergedHeaders['Authorization'] = 'Bearer $token';
       }
     }
-    final response = await http.post(_uri(path, query), headers: mergedHeaders, body: body);
-    
+    final response = await http
+        .post(_uri(path, query), headers: mergedHeaders, body: body)
+        .timeout(const Duration(seconds: 60));
+
     // Only throw exception for 401 if this was an authenticated request AND we don't want to skip global logout
     if (response.statusCode == 401 && auth && !skipGlobalLogoutOn401) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('jwt_token');
       throw Exception('Unauthorized: Token expired');
     }
-    
+
     return response;
   }
 
@@ -67,8 +69,9 @@ class ApiClient {
         mergedHeaders['Authorization'] = 'Bearer $token';
       }
     }
-    final response = await http.get(_uri(path, query), headers: mergedHeaders)
-        .timeout(const Duration(seconds: 30));
+    final response = await http
+        .get(_uri(path, query), headers: mergedHeaders)
+        .timeout(const Duration(seconds: 60));
     if (response.statusCode == 401) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('jwt_token');
@@ -94,7 +97,9 @@ class ApiClient {
         mergedHeaders['Authorization'] = 'Bearer $token';
       }
     }
-    final response = await http.put(_uri(path, query), headers: mergedHeaders, body: body);
+    final response = await http
+        .put(_uri(path, query), headers: mergedHeaders, body: body)
+        .timeout(const Duration(seconds: 60));
     if (response.statusCode == 401) {
       // Token expired or invalid
       final prefs = await SharedPreferences.getInstance();
@@ -121,7 +126,9 @@ class ApiClient {
         mergedHeaders['Authorization'] = 'Bearer $token';
       }
     }
-    final response = await http.delete(_uri(path, query), headers: mergedHeaders);
+    final response = await http
+        .delete(_uri(path, query), headers: mergedHeaders)
+        .timeout(const Duration(seconds: 60));
     if (response.statusCode == 401) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('jwt_token');
@@ -137,7 +144,7 @@ class ApiClient {
     bool auth = false,
   }) async {
     final request = http.MultipartRequest('POST', _uri(path));
-    
+
     if (auth) {
       final token = await _getToken();
       if (token != null && token.isNotEmpty) {
@@ -153,7 +160,7 @@ class ApiClient {
 
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
-    
+
     if (response.statusCode == 401) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('jwt_token');
