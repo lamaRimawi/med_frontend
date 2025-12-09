@@ -66,6 +66,7 @@ class TestResult {
   final String unit;
   final String normalRange;
   final String status; // 'normal', 'high', 'low', 'critical'
+  final String? category;
 
   TestResult({
     required this.name,
@@ -73,6 +74,7 @@ class TestResult {
     required this.unit,
     required this.normalRange,
     required this.status,
+    this.category,
   });
 }
 

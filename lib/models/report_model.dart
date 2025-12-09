@@ -24,14 +24,19 @@ class Report {
   });
 
   factory Report.fromJson(Map<String, dynamic> json) {
+    // Handle both 'fields' and 'medical_data' keys
+    final fieldsList =
+        (json['fields'] ?? json['medical_data']) as List<dynamic>?;
+
     return Report(
       reportId: json['report_id'] as int,
       reportDate: json['report_date'] as String,
-      createdAt: json['created_at'] as String,
-      totalFields: json['total_fields'] as int,
+      createdAt:
+          json['created_at'] as String? ?? DateTime.now().toIso8601String(),
+      totalFields: json['total_fields'] as int? ?? fieldsList?.length ?? 0,
       reportType: json['report_type'] as String?,
       fields:
-          (json['fields'] as List<dynamic>?)
+          fieldsList
               ?.map((e) => ReportField.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -58,7 +63,8 @@ class ReportField {
   final bool? isNormal;
   final String? fieldType;
   final String? notes;
-  final String createdAt;
+  final String? createdAt;
+  final String? category;
 
   ReportField({
     required this.id,
@@ -69,7 +75,8 @@ class ReportField {
     this.isNormal,
     this.fieldType,
     this.notes,
-    required this.createdAt,
+    this.createdAt,
+    this.category,
   });
 
   factory ReportField.fromJson(Map<String, dynamic> json) {
@@ -82,7 +89,8 @@ class ReportField {
       isNormal: json['is_normal'] as bool?,
       fieldType: json['field_type'] as String?,
       notes: json['notes'] as String?,
-      createdAt: json['created_at'] as String,
+      createdAt: json['created_at'] as String?,
+      category: json['category'] as String?,
     );
   }
 }

@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:mediScan/models/extracted_report_data.dart';
+import 'package:mediScan/widgets/report_content_widget.dart';
 
 class ExtractedReportScreen extends StatefulWidget {
   final bool isDarkMode;
@@ -201,55 +202,6 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
     ], text: 'Medical report for ${widget.extractedData.patientInfo.name}');
   }
 
-  Color _statusColor(String status) {
-    switch (status) {
-      case 'high':
-      case 'low':
-        return const Color(0xFFF59E0B); // Orange for borderline
-      case 'critical':
-        return const Color(0xFFEF4444); // Red for critical
-      case 'abnormal':
-        return const Color(0xFFF59E0B); // Orange for abnormal
-      case 'normal':
-        return const Color(0xFF10B981); // Green for normal
-      default:
-        return widget.isDarkMode ? Colors.grey : Colors.grey.shade700;
-    }
-  }
-
-  Color _statusBg(String status) {
-    switch (status) {
-      case 'high':
-      case 'low':
-        return const Color(0x1AF59E0B); // 10% alpha orange
-      case 'critical':
-        return const Color(0x1AEF4444); // 10% alpha red
-      case 'abnormal':
-        return const Color(0x1AF59E0B); // 10% alpha orange
-      case 'normal':
-        return const Color(0x1A10B981); // 10% alpha green
-      default:
-        return widget.isDarkMode
-            ? const Color(0x80373737)
-            : Colors.grey.shade100;
-    }
-  }
-
-  IconData _vitalIcon(String name) {
-    switch (name) {
-      case 'heart':
-        return LucideIcons.heart;
-      case 'thermometer':
-        return LucideIcons.thermometer;
-      case 'activity':
-        return LucideIcons.activity;
-      case 'droplet':
-        return LucideIcons.droplet;
-      default:
-        return LucideIcons.activity;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final d = widget.extractedData;
@@ -294,7 +246,7 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
           SafeArea(
             child: Column(
               children: [
-                // Header
+                // Header (kept as is)
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -387,474 +339,89 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
                 ),
 
                 Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        // Patient info
-                        _sectionCard(
-                          id: 'patient',
-                          leadingIcon: LucideIcons.user,
-                          title: 'Patient Information',
-                          content: Column(
-                            children: [
-                              _infoRow('Full Name', d.patientInfo.name),
-                              _infoRow(
-                                'Age / Gender',
-                                '${d.patientInfo.age} years • ${d.patientInfo.gender}',
-                              ),
-                              if (d.patientInfo.id != null)
-                                _infoRow('Patient ID', d.patientInfo.id!),
-                              if (d.patientInfo.phone != null)
-                                _infoRow('Phone', d.patientInfo.phone!),
-                            ],
-                          ),
+                  child: ReportContentWidget(
+                    isDarkMode: widget.isDarkMode,
+                    patientName: d.patientInfo.name,
+                    patientAge: d.patientInfo.age.toString(),
+                    patientGender: d.patientInfo.gender,
+                    patientId: d.patientInfo.id,
+                    patientPhone: d.patientInfo.phone,
+                    reportType: d.reportType,
+                    reportDate: d.reportDate,
+                    doctorName: d.doctorInfo?.name,
+                    doctorSpecialty: d.doctorInfo?.specialty,
+                    hospitalName: d.doctorInfo?.hospital,
+                    results: [
+                      // Map Vitals
+                      if (d.vitals != null)
+                        ...d.vitals!.map((v) => TestResult(
+                          name: v.name,
+                          value: v.value,
+                          unit: v.unit,
+                          normalRange: 'N/A',
+                          status: 'normal', // Default for now
+                          category: 'Vital Signs',
+                        )),
+                      
+                      // Map Test Results
+                      if (d.testResults != null)
+                        ...d.testResults!,
+                        
+                      // Map Medications
+                      if (d.medications != null)
+                        ...d.medications!.map((m) => TestResult(
+                          name: m.name,
+                          value: '${m.dosage} - ${m.frequency}',
+                          unit: '',
+                          normalRange: m.duration,
+                          status: 'normal',
+                          category: 'Medications',
+                        )),
+                        
+                      // Map Diagnosis
+                      if (d.diagnosis != null && d.diagnosis!.isNotEmpty)
+                        TestResult(
+                          name: 'Diagnosis',
+                          value: d.diagnosis!,
+                          unit: '',
+                          normalRange: '',
+                          status: 'normal',
+                          category: 'Diagnosis & Summary',
                         ),
-
-                        if (d.doctorInfo != null &&
-                            ![
-                              'unknown',
-                              'not specified',
-                              'none',
-                            ].contains(d.doctorInfo!.name.toLowerCase()))
-                          _plainCard(
-                            icon: LucideIcons.stethoscope,
-                            title: 'Doctor Information',
-                            child: Column(
-                              children: [
-                                _infoRow('Doctor Name', d.doctorInfo!.name),
-                                _infoRow('Specialty', d.doctorInfo!.specialty),
-                                if (d.doctorInfo!.hospital != null)
-                                  _infoRow('Hospital', d.doctorInfo!.hospital!),
-                              ],
-                            ),
-                          ),
-
-                        if ((d.vitals ?? []).isNotEmpty)
-                          _sectionCard(
-                            id: 'vitals',
-                            leadingIcon: LucideIcons.activity,
-                            title: 'Vital Signs',
-                            subtitle: 'Current measurements',
-                            content: GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: d.vitals!.length,
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                    mainAxisSpacing: 8,
-                                    crossAxisSpacing: 8,
-                                    childAspectRatio: 2.6,
-                                  ),
-                              itemBuilder: (context, i) {
-                                final v = d.vitals![i];
-                                return Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: widget.isDarkMode
-                                        ? Colors.white10
-                                        : Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        width: 36,
-                                        height: 36,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0x1A39A4E6),
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
-                                        ),
-                                        child: Icon(
-                                          _vitalIcon(v.icon),
-                                          color: const Color(0xFF39A4E6),
-                                          size: 18,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              v.value,
-                                              style: TextStyle(
-                                                color: widget.isDarkMode
-                                                    ? Colors.white
-                                                    : Colors.black,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                            Text(
-                                              '${v.name} • ${v.unit}',
-                                              style: TextStyle(
-                                                color: widget.isDarkMode
-                                                    ? Colors.grey
-                                                    : Colors.grey.shade600,
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-
-                        if ((d.testResults ?? []).isNotEmpty)
-                          _sectionCard(
-                            id: 'tests',
-                            leadingIcon: LucideIcons.fileText,
-                            title: 'Test Results',
-                            subtitle: '${d.testResults!.length} tests analyzed',
-                            content: Column(
-                              children: d.testResults!.map((t) {
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  padding: const EdgeInsets.all(14),
-                                  decoration: BoxDecoration(
-                                    color: widget.isDarkMode
-                                        ? Colors.white10
-                                        : Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    t.name,
-                                                    style: TextStyle(
-                                                      color: widget.isDarkMode
-                                                          ? Colors.white
-                                                          : Colors.black,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 8,
-                                                        vertical: 4,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color: _statusBg(t.status),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          999,
-                                                        ),
-                                                  ),
-                                                  child: Text(
-                                                    t.status,
-                                                    style: TextStyle(
-                                                      color: _statusColor(
-                                                        t.status,
-                                                      ),
-                                                      fontSize: 11,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 6),
-                                            Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.end,
-                                              children: [
-                                                Text(
-                                                  t.value,
-                                                  style: TextStyle(
-                                                    fontSize: 22,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: widget.isDarkMode
-                                                        ? Colors.white
-                                                        : Colors.black,
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 6),
-                                                Text(
-                                                  t.unit,
-                                                  style: TextStyle(
-                                                    color: widget.isDarkMode
-                                                        ? Colors.grey
-                                                        : Colors.grey.shade700,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              'Normal: ${t.normalRange} ${t.unit}',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: widget.isDarkMode
-                                                    ? Colors.grey
-                                                    : Colors.grey.shade600,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ),
-
-                        if ((d.medications ?? []).isNotEmpty)
-                          _sectionCard(
-                            id: 'meds',
-                            leadingIcon: LucideIcons.pill,
-                            title: 'Medications',
-                            subtitle: '${d.medications!.length} prescribed',
-                            content: Column(
-                              children: d.medications!.map((m) {
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  padding: const EdgeInsets.all(14),
-                                  decoration: BoxDecoration(
-                                    color: widget.isDarkMode
-                                        ? Colors.white10
-                                        : Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        m.name,
-                                        style: TextStyle(
-                                          color: widget.isDarkMode
-                                              ? Colors.white
-                                              : Colors.black,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: _infoRow('Dosage', m.dosage),
-                                          ),
-                                          Expanded(
-                                            child: _infoRow(
-                                              'Frequency',
-                                              m.frequency,
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: _infoRow(
-                                              'Duration',
-                                              m.duration,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ),
-
-                        if (d.diagnosis != null &&
-                            ![
-                              'unknown',
-                              'not specified',
-                              'none',
-                            ].contains(d.diagnosis!.toLowerCase()))
-                          _plainCard(
-                            icon: LucideIcons.fileText,
-                            title: 'Diagnosis',
-                            child: Text(
-                              d.diagnosis!,
-                              style: TextStyle(
-                                color: widget.isDarkMode
-                                    ? Colors.grey[300]
-                                    : Colors.grey.shade700,
-                                height: 1.5,
-                              ),
-                            ),
-                          ),
-
-                        if (d.observations != null &&
-                            ![
-                              'no summary available',
-                              'unknown',
-                              'not specified',
-                              'none',
-                            ].contains(d.observations!.toLowerCase()))
-                          _plainCard(
-                            icon: LucideIcons.stethoscope,
-                            title: 'Observations',
-                            child: Text(
-                              d.observations!,
-                              style: TextStyle(
-                                color: widget.isDarkMode
-                                    ? Colors.grey[300]
-                                    : Colors.grey.shade700,
-                                height: 1.5,
-                              ),
-                            ),
-                          ),
-
-                        if ((d.recommendations ?? []).isNotEmpty)
-                          _plainCard(
-                            icon: LucideIcons.target,
-                            title: 'Recommendations',
-                            child: Column(
-                              children: d.recommendations!
-                                  .map(
-                                    (r) => Padding(
-                                      padding: const EdgeInsets.only(bottom: 8),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Container(
-                                            width: 6,
-                                            height: 6,
-                                            margin: const EdgeInsets.only(
-                                              top: 6,
-                                              right: 10,
-                                            ),
-                                            decoration: const BoxDecoration(
-                                              color: Color(0xFF39A4E6),
-                                              shape: BoxShape.circle,
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: Text(
-                                              r,
-                                              style: TextStyle(
-                                                color: widget.isDarkMode
-                                                    ? Colors.grey[300]
-                                                    : Colors.grey.shade700,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                            ),
-                          ),
-
-                        if ((d.warnings ?? []).isNotEmpty)
-                          Container(
-                            width: double.infinity,
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: widget.isDarkMode
-                                  ? const Color(0x33FF0000)
-                                  : Colors.red.shade50,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: widget.isDarkMode
-                                    ? const Color(0x26FF0000)
-                                    : Colors.red.shade200,
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      LucideIcons.alertTriangle,
-                                      color: Colors.redAccent,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Important Warnings',
-                                      style: TextStyle(
-                                        color: widget.isDarkMode
-                                            ? Colors.red[200]
-                                            : Colors.red.shade900,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                ...d.warnings!.map(
-                                  (w) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 6),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const Icon(
-                                          LucideIcons.alertCircle,
-                                          size: 16,
-                                          color: Colors.redAccent,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            w,
-                                            style: TextStyle(
-                                              color: widget.isDarkMode
-                                                  ? Colors.red[200]
-                                                  : Colors.red.shade900,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                        if (d.nextVisit != null &&
-                            ![
-                              'unknown',
-                              'not specified',
-                              'none',
-                            ].contains(d.nextVisit!.toLowerCase()))
-                          _plainCard(
-                            icon: LucideIcons.calendar,
-                            title: 'Next Visit',
-                            child: Text(
-                              d.nextVisit!,
-                              style: TextStyle(
-                                color: widget.isDarkMode
-                                    ? Colors.grey[300]
-                                    : Colors.grey.shade700,
-                              ),
-                            ),
-                          ),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
+                        
+                      // Map Observations
+                      if (d.observations != null && d.observations!.isNotEmpty)
+                        TestResult(
+                          name: 'Observations',
+                          value: d.observations!,
+                          unit: '',
+                          normalRange: '',
+                          status: 'normal',
+                          category: 'Diagnosis & Summary',
+                        ),
+                        
+                      // Map Warnings
+                      if (d.warnings != null && d.warnings!.isNotEmpty)
+                        ...d.warnings!.map((w) => TestResult(
+                          name: 'Warning',
+                          value: w,
+                          unit: '',
+                          normalRange: '',
+                          status: 'critical',
+                          category: 'Warnings',
+                        )),
+                        
+                      // Map Next Visit
+                      if (d.nextVisit != null && d.nextVisit!.isNotEmpty)
+                        TestResult(
+                          name: 'Next Visit',
+                          value: d.nextVisit!,
+                          unit: '',
+                          normalRange: '',
+                          status: 'normal',
+                          category: 'Follow Up',
+                        ),
+                    ],
                   ),
                 ),
               ],
@@ -867,176 +434,7 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
     );
   }
 
-  Widget _sectionCard({
-    required String id,
-    required IconData leadingIcon,
-    required String title,
-    String? subtitle,
-    required Widget content,
-  }) {
-    final expanded = _expanded.contains(id);
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: widget.isDarkMode ? const Color(0xFF111827) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: widget.isDarkMode
-              ? const Color(0x1FFFFFFF)
-              : Colors.grey.shade200,
-        ),
-      ),
-      child: Column(
-        children: [
-          InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () => _toggle(id),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0x1A39A4E6),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      LucideIcons.activity,
-                      color: Color(0xFF39A4E6),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: TextStyle(
-                            color: widget.isDarkMode
-                                ? Colors.white
-                                : Colors.black,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if (subtitle != null)
-                          Text(
-                            subtitle,
-                            style: TextStyle(
-                              color: widget.isDarkMode
-                                  ? Colors.grey
-                                  : Colors.grey.shade700,
-                              fontSize: 12,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  AnimatedRotation(
-                    turns: expanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Icon(
-                      LucideIcons.chevronDown,
-                      color: widget.isDarkMode
-                          ? Colors.grey
-                          : Colors.grey.shade600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (expanded)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: content,
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _plainCard({
-    required IconData icon,
-    required String title,
-    required Widget child,
-  }) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: widget.isDarkMode ? const Color(0xFF111827) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: widget.isDarkMode
-              ? const Color(0x1FFFFFFF)
-              : Colors.grey.shade200,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: const Color(0x1A39A4E6),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: const Color(0xFF39A4E6)),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                title,
-                style: TextStyle(
-                  color: widget.isDarkMode ? Colors.white : Colors.black,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          child,
-        ],
-      ),
-    );
-  }
-
-  Widget _infoRow(String label, String value) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: widget.isDarkMode ? Colors.grey : Colors.grey.shade600,
-                fontSize: 12,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                color: widget.isDarkMode ? Colors.white : Colors.black,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
+  // Helper method for header buttons
   Widget _roundIconButton(IconData icon, {required VoidCallback onTap}) {
     return Material(
       color: widget.isDarkMode ? const Color(0xFF0F172A) : Colors.grey.shade100,

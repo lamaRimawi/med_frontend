@@ -6,6 +6,7 @@ class User {
   final String email;
   final String phoneNumber;
   final String dateOfBirth;
+  final String? gender;
   final String? medicalHistory;
   final String? allergies;
 
@@ -15,6 +16,7 @@ class User {
     required this.email,
     required this.phoneNumber,
     required this.dateOfBirth,
+    this.gender,
     this.medicalHistory,
     this.allergies,
   });
@@ -28,6 +30,7 @@ class User {
       email: json['email']?.toString() ?? '',
       phoneNumber: json['phone_number']?.toString() ?? '',
       dateOfBirth: json['date_of_birth']?.toString() ?? '',
+      gender: json['gender']?.toString(),
       medicalHistory: json['medical_history']?.toString(),
       allergies: json['allergies']?.toString(),
     );
@@ -40,6 +43,7 @@ class User {
       'email': email,
       'phone_number': phoneNumber,
       'date_of_birth': dateOfBirth,
+      'gender': gender,
       'medical_history': medicalHistory,
       'allergies': allergies,
     };
@@ -53,6 +57,9 @@ class User {
     await prefs.setString('user_email', user.email);
     await prefs.setString('user_phone', user.phoneNumber);
     await prefs.setString('user_dob', user.dateOfBirth);
+    if (user.gender != null) {
+      await prefs.setString('user_gender', user.gender!);
+    }
     if (user.medicalHistory != null) {
       await prefs.setString('user_medical_history', user.medicalHistory!);
     }
@@ -65,18 +72,28 @@ class User {
   static Future<User?> loadFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     final firstName = prefs.getString('user_first_name');
-    
-    if (firstName == null) return null;
-    
-    return User(
-      firstName: firstName,
-      lastName: prefs.getString('user_last_name') ?? '',
-      email: prefs.getString('user_email') ?? '',
-      phoneNumber: prefs.getString('user_phone') ?? '',
-      dateOfBirth: prefs.getString('user_dob') ?? '',
-      medicalHistory: prefs.getString('user_medical_history'),
-      allergies: prefs.getString('user_allergies'),
-    );
+    final lastName = prefs.getString('user_last_name');
+    final email = prefs.getString('user_email');
+    final phone = prefs.getString('user_phone');
+    final dob = prefs.getString('user_dob');
+
+    if (firstName != null &&
+        lastName != null &&
+        email != null &&
+        phone != null &&
+        dob != null) {
+      return User(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        phoneNumber: phone,
+        dateOfBirth: dob,
+        gender: prefs.getString('user_gender'),
+        medicalHistory: prefs.getString('user_medical_history'),
+        allergies: prefs.getString('user_allergies'),
+      );
+    }
+    return null;
   }
 
   // Clear from SharedPreferences
@@ -87,6 +104,7 @@ class User {
     await prefs.remove('user_email');
     await prefs.remove('user_phone');
     await prefs.remove('user_dob');
+    await prefs.remove('user_gender');
     await prefs.remove('user_medical_history');
     await prefs.remove('user_allergies');
   }

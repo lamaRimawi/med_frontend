@@ -13,6 +13,7 @@ class ApiConfig {
   static const String changePassword = '/auth/change-password';
   static const String vlmChat = '/vlm/chat';
   static const String userProfile = '/users/profile';
+  static const String deleteAccount = '/users/delete-account';
   static const String reports = '/reports';
   static const String reportsTimeline = '/reports/timeline';
   static const String reportsStats = '/reports/stats';

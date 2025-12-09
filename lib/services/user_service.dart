@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
 import '../models/user_model.dart';
 import 'api_client.dart';
@@ -40,6 +41,26 @@ class UserService {
       }
     } catch (e) {
       throw Exception('Error updating profile: $e');
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    try {
+      final response = await _client.delete(
+        ApiConfig.deleteAccount,
+        auth: true,
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to delete account: ${response.statusCode}');
+      }
+      
+      // Clear all local data upon successful deletion
+      await User.clearFromPrefs();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear(); // Clear all app data to be safe
+    } catch (e) {
+      throw Exception('Error deleting account: $e');
     }
   }
 }

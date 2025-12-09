@@ -12,6 +12,8 @@ import '../widgets/theme_toggle.dart';
 import '../models/user_model.dart';
 import '../services/auth_api.dart';
 import '../services/user_service.dart';
+import '../services/reports_service.dart';
+import '../models/report_model.dart';
 import 'timeline_screen.dart';
 import 'reports_screen.dart';
 import 'dark_mode_screen.dart';
@@ -68,6 +70,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     'phone': '',
     'phonePrefix': '+1',
     'dateOfBirth': '',
+    'gender': '',
     'medicalHistory': '',
     'allergies': '',
     'avatar': '',
@@ -80,6 +83,36 @@ class _ProfileScreenState extends State<ProfileScreen>
     super.initState();
     _loadUserData();
     _loadSettings();
+    _loadRecentReports();
+  }
+
+  Future<void> _loadRecentReports() async {
+    try {
+      final reports = await ReportsService().getReports();
+      if (mounted) {
+        setState(() {
+          _medicalReports = reports.take(3).map((report) {
+            // Determine status based on fields (simple logic)
+            String status = 'Analyzed';
+            Color statusColor = Colors.green;
+            
+            // Allow basic types or default
+            String type = report.reportType ?? 'Medical Report';
+            
+            return {
+              'id': report.reportId,
+              'name': type,
+              'date': report.reportDate,
+              'type': type,
+              'status': status,
+              'color': const Color(0xFF39A4E6), // Default blue
+            };
+          }).toList().cast<Map<String, dynamic>>();
+        });
+      }
+    } catch (e) {
+      print('Failed to load recent reports for profile: $e');
+    }
   }
 
   Future<void> _loadSettings() async {
@@ -126,6 +159,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           .replaceFirst(RegExp(r'^\+[0-9]+'), '')
           .trim();
       _profileData['dateOfBirth'] = user.dateOfBirth;
+      _profileData['gender'] = user.gender ?? '';
       _profileData['medicalHistory'] = user.medicalHistory ?? '';
       _profileData['allergies'] = user.allergies ?? '';
       _profileData['avatar'] =
@@ -226,32 +260,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     },
   ];
 
-  final List<Map<String, dynamic>> _medicalReports = [
-    {
-      'id': 1,
-      'name': 'Blood Test Results',
-      'date': 'Dec 15, 2024',
-      'type': 'Lab Report',
-      'status': 'Normal',
-      'color': const Color(0xFF39A4E6),
-    },
-    {
-      'id': 2,
-      'name': 'X-Ray Chest',
-      'date': 'Nov 28, 2024',
-      'type': 'Radiology',
-      'status': 'Clear',
-      'color': const Color(0xFF10B981),
-    },
-    {
-      'id': 3,
-      'name': 'MRI Scan',
-      'date': 'Oct 10, 2024',
-      'type': 'Imaging',
-      'status': 'Review',
-      'color': const Color(0xFFF59E0B),
-    },
-  ];
+  List<Map<String, dynamic>> _medicalReports = [];
 
   final List<Map<String, dynamic>> _sharedDoctors = [
     {
@@ -920,6 +929,14 @@ class _ProfileScreenState extends State<ProfileScreen>
 
                         const SizedBox(height: 20),
 
+                        _buildLabel('GENDER'),
+                        _buildTextField(
+                          LucideIcons.user,
+                          _profileData['gender'],
+                          (val) => setState(() => _profileData['gender'] = val),
+                        ),
+                        const SizedBox(height: 20),
+
                         // Medical History and Allergies removed as requested
                         const SizedBox(height: 32),
                         GestureDetector(
@@ -937,6 +954,19 @@ class _ProfileScreenState extends State<ProfileScreen>
                               );
                               return;
                             }
+                            
+                            // Name Validation (Letters and spaces only)
+                            final nameRegex = RegExp(r'^[a-zA-Z\s]+$');
+                            if (!nameRegex.hasMatch(_profileData['name'].toString().trim())) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Name must contain only letters'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              return;
+                            }
+
                             // Phone validation
                             final phone = _profileData['phone']
                                 .toString()
@@ -949,6 +979,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                               return;
                             }
                             setState(() => _phoneError = null);
+                            
                             if (_profileData['dateOfBirth']
                                 .toString()
                                 .isEmpty) {
@@ -967,6 +998,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                               // Split name into first and last
                               final nameParts = _profileData['name']
                                   .toString()
+                                  .trim()
                                   .split(' ');
                               final firstName = nameParts.isNotEmpty
                                   ? nameParts.first
@@ -974,16 +1006,47 @@ class _ProfileScreenState extends State<ProfileScreen>
                               final lastName = nameParts.length > 1
                                   ? nameParts.sublist(1).join(' ')
                                   : '';
+                                
+                                // Format Date of Birth to YYYY-MM-DD
+                                String formattedDob = '';
+                                try {
+                                    // Parse from "d MMM yyyy" format (e.g. "1 Jan 2024") to YYYY-MM-DD
+                                    // We can reuse the stored day/month/year if available or parse string
+                                    // Since we have _selectedYear, _selectedMonth, _selectedDay, use them securely if match
+                                    // Or parse the string
+                                    final dobStr = _profileData['dateOfBirth'].toString();
+                                    final parts = dobStr.split(' ');
+                                    if (parts.length == 3) {
+                                        final day = int.parse(parts[0]);
+                                        final monthStr = parts[1];
+                                        final year = int.parse(parts[2]);
+                                        
+                                        final months = [
+                                          'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                                        ];
+                                        final month = months.indexOf(monthStr) + 1;
+                                        
+                                        formattedDob = '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
+                                    } else {
+                                        formattedDob = dobStr; // Fallback
+                                    }
+                                } catch (e) {
+                                    print('Error formatting date: $e');
+                                    formattedDob = _profileData['dateOfBirth'].toString();
+                                }
 
-                              await UserService().updateUserProfile({
-                                'first_name': firstName,
-                                'last_name': lastName,
-                                'phone_number':
-                                    '${_profileData['phonePrefix']}${_profileData['phone']}',
-                                'medical_history':
-                                    _profileData['medicalHistory'],
-                                'allergies': _profileData['allergies'],
-                              });
+                                await UserService().updateUserProfile({
+                                  'first_name': firstName,
+                                  'last_name': lastName,
+                                  'phone_number':
+                                      '${_profileData['phonePrefix']}${_profileData['phone']}',
+                                  'date_of_birth': formattedDob,
+                                  'gender': _profileData['gender'],
+                                  'medical_history':
+                                      _profileData['medicalHistory'],
+                                  'allergies': _profileData['allergies'],
+                                });
 
                               // Refresh data
                               await _loadUserData();

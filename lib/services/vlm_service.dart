@@ -110,6 +110,7 @@ class VlmService {
         final unit = (e['field_unit'] ?? '') as String;
         final range = (e['normal_range'] ?? '') as String;
         final isNormal = (e['is_normal'] ?? true) as bool;
+        final category = (e['category'] ?? 'General Results') as String;
         tests.add(
           TestResult(
             name: name,
@@ -117,6 +118,7 @@ class VlmService {
             unit: unit,
             normalRange: range,
             status: isNormal ? 'normal' : 'abnormal',
+            category: category,
           ),
         );
       }

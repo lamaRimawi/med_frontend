@@ -60,6 +60,8 @@ class ReportsService {
     return []; // Should not be reached
   }
 
+  Future<Report> getReport(int reportId) => getReportDetail(reportId);
+
   Future<Report> getReportDetail(int reportId) async {
     try {
       final response = await _client.get(

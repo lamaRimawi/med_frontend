@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import '../services/user_service.dart';
+import '../services/auth_api.dart';
 import 'password_manager_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -103,19 +107,52 @@ class SettingsScreen extends StatelessWidget {
                       child: SizedBox(
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             Navigator.pop(dialogContext);
-                            // TODO: Implement account deletion
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text('Account deletion initiated'),
-                                backgroundColor: const Color(0xFFFF4444),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                            
+                            // Show loading indicator
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (context) => const Center(
+                                child: CircularProgressIndicator(),
                               ),
                             );
+
+                            try {
+                              await UserService().deleteAccount();
+                              await AuthApi.logout();
+
+                              if (context.mounted) {
+                                // Close loading dialog
+                                Navigator.pop(context);
+                                
+                                // Navigate to onboarding/login and clear stack
+                                Navigator.of(context).pushNamedAndRemoveUntil(
+                                  '/', // Assuming '/' is onboarding or login
+                                  (route) => false,
+                                );
+                                
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Account deleted successfully'),
+                                    backgroundColor: Color(0xFF10B981),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                // Close loading dialog
+                                Navigator.pop(context);
+                                
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Failed to delete account: $e'),
+                                    backgroundColor: const Color(0xFFFF4444),
+                                  ),
+                                );
+                              }
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFFF4444),

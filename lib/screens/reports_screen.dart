@@ -12,6 +12,8 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:http/http.dart' as http;
+import 'package:mediScan/models/extracted_report_data.dart'; // For TestResult
+import 'package:mediScan/widgets/report_content_widget.dart';
 import 'package:intl/intl.dart';
 
 import '../models/report_model.dart';
@@ -21,6 +23,8 @@ import '../config/api_config.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import '../models/user_model.dart';
+import '../services/user_service.dart';
 
 class ReportsScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -36,11 +40,38 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Map<int, String> _reportTypesMap = {};
   bool _isLoading = true;
   String? _error;
+  User? _currentUser; // Add this
 
   @override
   void initState() {
     super.initState();
     _loadInitialData();
+    _loadUserProfile(); // Add this
+  }
+
+  // Add this method
+  Future<void> _loadUserProfile() async {
+    try {
+      // Try to load from prefs first
+      final user = await User.loadFromPrefs();
+      if (user != null) {
+        if (mounted) {
+          setState(() {
+            _currentUser = user;
+          });
+        }
+      } else {
+        // Fetch from API if not in prefs
+        final fetchedUser = await UserService().getUserProfile();
+        if (mounted) {
+          setState(() {
+            _currentUser = fetchedUser;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading user profile: $e');
+    }
   }
 
   Future<void> _loadInitialData() async {
@@ -249,18 +280,20 @@ class _ReportsScreenState extends State<ReportsScreen> {
         return type;
       }
     }
-    
+
     // Priority 1: Check for explicit "Report Type" or "Test Name" fields
     final titleField = report.fields.firstWhere(
-      (f) =>
-          f.fieldName.toLowerCase().contains('test name') ||
-          f.fieldName.toLowerCase() == 'report type' ||
-          f.fieldName.toLowerCase() == 'study' ||
-          f.fieldName.toLowerCase() == 'diagnosis' ||
-          f.fieldName.toLowerCase().contains('examination') ||
-          f.fieldName.toLowerCase().contains('investigation') ||
-          f.fieldName.toLowerCase() == 'title' ||
-          f.fieldName.toLowerCase() == 'name',
+      (f) {
+        final name = f.fieldName.toLowerCase().replaceAll('_', ' ');
+        return name.contains('test name') ||
+            name == 'report type' ||
+            name == 'study' ||
+            name == 'diagnosis' ||
+            name.contains('examination') ||
+            name.contains('investigation') ||
+            name == 'title' ||
+            name == 'name';
+      },
       orElse: () =>
           ReportField(id: 0, fieldName: '', fieldValue: '', createdAt: ''),
     );
@@ -1105,6 +1138,32 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      if (report.patientName != null &&
+                          report.patientName!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          report.patientName!,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ] else if (_currentUser != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          _currentUser!.fullName,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                       const SizedBox(height: 4),
                       Wrap(
                         crossAxisAlignment: WrapCrossAlignment.center,
@@ -1689,11 +1748,17 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
   final Map<int, String> _downloadErrors = {};
   final Map<int, bool> _isPdfMap = {};
 
+  User? _currentUser;
+  Report? _fetchedReport;
+  bool _isLoadingDetails = false;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _pageController = PageController(initialPage: 0);
+    _loadUserProfile();
+    _loadReportDetails();
 
     // Load the first file immediately
     if (widget.images.isNotEmpty) {
@@ -1701,11 +1766,94 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
     }
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    _pageController.dispose();
-    super.dispose();
+  Future<void> _loadReportDetails() async {
+    if (mounted) setState(() => _isLoadingDetails = true);
+    try {
+      final report = await ReportsService().getReport(widget.report.reportId);
+      if (mounted) {
+        setState(() {
+           _fetchedReport = report;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching report details: $e');
+    } finally {
+      if (mounted) setState(() => _isLoadingDetails = false);
+    }
+  }
+
+  Future<void> _loadUserProfile() async {
+    try {
+      // Try to load from prefs first
+      final user = await User.loadFromPrefs();
+      if (user != null) {
+        if (mounted) {
+          setState(() {
+            _currentUser = user;
+          });
+        }
+      } else {
+        // Fetch from API if not in prefs
+        final fetchedUser = await UserService().getUserProfile();
+        if (mounted) {
+          setState(() {
+            _currentUser = fetchedUser;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading user profile: $e');
+    }
+  }
+
+  int? _calculateAge(String? dob) {
+    if (dob == null || dob.isEmpty) return null;
+    try {
+      DateTime birthDate;
+      try {
+        birthDate = DateTime.parse(dob);
+      } catch (_) {
+        // Try parsing "D Mon YYYY" format (e.g., "9 Dec 2025")
+        final parts = dob.split(' ');
+        if (parts.length == 3) {
+          final day = int.parse(parts[0]);
+          final monthStr = parts[1];
+          final year = int.parse(parts[2]);
+          final months = [
+            'Jan',
+            'Feb',
+            'Mar',
+            'Apr',
+            'May',
+            'Jun',
+            'Jul',
+            'Aug',
+            'Sep',
+            'Oct',
+            'Nov',
+            'Dec',
+          ];
+          final month = months.indexOf(monthStr) + 1;
+          if (month > 0) {
+            birthDate = DateTime(year, month, day);
+          } else {
+            return null;
+          }
+        } else {
+          return null;
+        }
+      }
+
+      final today = DateTime.now();
+      int age = today.year - birthDate.year;
+      if (today.month < birthDate.month ||
+          (today.month == birthDate.month && today.day < birthDate.day)) {
+        age--;
+      }
+      return age;
+    } catch (e) {
+      return null;
+    }
   }
 
   bool _isPdf(String filename) {
@@ -1732,7 +1880,9 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
         final backendIndex = imageMap['index'] as int?;
         final fileIndex = backendIndex ?? (index + 1);
 
-        debugPrint('ReportViewer: Loading image index $index (backend fileIndex: $fileIndex)');
+        debugPrint(
+          'ReportViewer: Loading image index $index (backend fileIndex: $fileIndex)',
+        );
 
         final url =
             '${ApiConfig.baseUrl}${ApiConfig.reports}/${widget.report.reportId}/images/$fileIndex';
@@ -1792,13 +1942,15 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
         } else {
           debugPrint('ReportViewer: Failed with status ${response.statusCode}');
           if (response.statusCode == 404) {
-             // If 404, maybe we shouldn't retry? But for now let's just throw
-             throw Exception('File not found (404)');
+            // If 404, maybe we shouldn't retry? But for now let's just throw
+            throw Exception('File not found (404)');
           }
           throw Exception('Failed to download file: ${response.statusCode}');
         }
       } catch (e) {
-        debugPrint('ReportViewer: Error downloading file (attempt ${retryCount + 1}): $e');
+        debugPrint(
+          'ReportViewer: Error downloading file (attempt ${retryCount + 1}): $e',
+        );
         retryCount++;
         if (retryCount >= maxRetries) {
           if (mounted) {
@@ -1816,10 +1968,15 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
   }
 
   String? _getFieldValue(String key) {
+    final normalizedKey = key.toLowerCase().replaceAll('_', ' ');
+
     // Try to find in fields
     try {
       final field = widget.report.fields.firstWhere(
-        (f) => f.fieldName.toLowerCase().contains(key.toLowerCase()),
+        (f) => f.fieldName
+            .toLowerCase()
+            .replaceAll('_', ' ')
+            .contains(normalizedKey),
         orElse: () =>
             ReportField(id: 0, fieldName: '', fieldValue: '', createdAt: ''),
       );
@@ -1834,7 +1991,10 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
     // Try to find in additional fields
     try {
       final addField = widget.report.additionalFields.firstWhere(
-        (f) => f.fieldName.toLowerCase().contains(key.toLowerCase()),
+        (f) => f.fieldName
+            .toLowerCase()
+            .replaceAll('_', ' ')
+            .contains(normalizedKey),
         orElse: () =>
             AdditionalField(id: 0, fieldName: '', fieldValue: '', category: ''),
       );
@@ -1864,6 +2024,38 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
     for (final key in keys) {
       final val = _getFieldValue(key);
       if (val != null) return val;
+    }
+
+    // Heuristic: Guess report type based on common fields
+    final fieldNames = widget.report.fields
+        .map((f) => f.fieldName.toLowerCase())
+        .toList();
+
+    if (fieldNames.any((n) => n.contains('hemoglobin') || n.contains('hgb')) &&
+        fieldNames.any((n) => n.contains('wbc') || n.contains('white blood'))) {
+      return 'Complete Blood Count (CBC)';
+    }
+
+    if (fieldNames.any(
+      (n) =>
+          n.contains('cholesterol') || n.contains('ldl') || n.contains('hdl'),
+    )) {
+      return 'Lipid Panel';
+    }
+
+    if (fieldNames.any(
+      (n) =>
+          n.contains('glucose') ||
+          n.contains('creatinine') ||
+          n.contains('sodium'),
+    )) {
+      return 'Metabolic Panel';
+    }
+
+    if (fieldNames.any(
+      (n) => n.contains('tsh') || n.contains('t3') || n.contains('t4'),
+    )) {
+      return 'Thyroid Function Test';
     }
 
     return null;
@@ -1968,60 +2160,51 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
                 )
               : _buildFileViewer(isDark),
 
-          ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              _buildSection(context, 'Patient Information', [
-                _buildInfoTile(
-                  context,
-                  'Full Name',
-                  widget.report.patientName ?? 'Unknown',
-                ),
-                _buildInfoTile(
-                  context,
-                  'Age / Gender',
-                  '${widget.report.patientAge ?? 0} years • ${widget.report.patientGender ?? 'Unknown'}',
-                ),
-              ]),
-              const SizedBox(height: 24),
-              _buildSection(context, 'Report Info', [
-                _buildInfoTile(context, 'Type', _getSmartReportType()),
-                _buildInfoTile(context, 'Date', widget.report.reportDate),
-                _buildInfoTile(context, 'Doctor', _getFieldValue('doctor')),
-                _buildInfoTile(context, 'Hospital', _getFieldValue('hospital')),
-              ]),
-              const SizedBox(height: 24),
-              if (validFields.isNotEmpty)
-                _buildSection(
-                  context,
-                  'Extracted Fields',
-                  validFields
-                      .map((field) => _buildFieldTile(context, field))
-                      .toList(),
-                )
-              else
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      children: [
-                        Icon(
-                          LucideIcons.fileSearch,
-                          size: 48,
-                          color: Colors.grey[300],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No extracted data available',
-                          style: TextStyle(
-                            color: isDark ? Colors.grey[400] : Colors.grey[500],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
+          ReportContentWidget(
+            isDarkMode: isDark,
+            patientName: (_fetchedReport?.patientName != null &&
+                    _fetchedReport!.patientName!.isNotEmpty &&
+                    _fetchedReport!.patientName!.toLowerCase() != 'unknown')
+                ? _fetchedReport!.patientName!
+                : (widget.report.patientName != null &&
+                        widget.report.patientName!.isNotEmpty &&
+                        widget.report.patientName!.toLowerCase() != 'unknown')
+                    ? widget.report.patientName!
+                    : (_getFieldValue('patient name') ??
+                        _getFieldValue('name') ??
+                        _currentUser?.fullName ??
+                        'Unknown'),
+            patientAge: (_fetchedReport?.patientAge ??
+                    widget.report.patientAge ??
+                    _getFieldValue('age') ??
+                    _calculateAge(_currentUser?.dateOfBirth) ??
+                    0)
+                .toString(),
+            patientGender: _fetchedReport?.patientGender ??
+                widget.report.patientGender ??
+                _getFieldValue('gender') ??
+                _getFieldValue('sex') ??
+                _currentUser?.gender ??
+                "Unknown",
+            // Helper mapping for ReportField -> TestResult
+            results: validFields.map((f) {
+              return TestResult(
+                name: _formatFieldName(f.fieldName),
+                value: f.fieldValue,
+                unit: f.fieldUnit ?? '',
+                normalRange: f.normalRange ?? '',
+                status: f.isNormal == true
+                    ? 'normal'
+                    : (f.isNormal == false ? 'abnormal' : 'normal'),
+                category: f.category,
+              );
+            }).toList(),
+            reportType: widget.report.reportType ??
+                _getSmartReportType() ??
+                'General Report',
+            reportDate: widget.report.reportDate,
+            doctorName: _getFieldValue('doctor'),
+            hospitalName: _getFieldValue('hospital'),
           ),
         ],
       ),
@@ -2141,180 +2324,7 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
     );
   }
 
-  Widget _buildSection(
-    BuildContext context,
-    String title,
-    List<Widget> children,
-  ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : const Color(0xFF1E293B),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isDark ? const Color(0xFF334155) : Colors.grey[200]!,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(children: children),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoTile(BuildContext context, String label, String? value) {
-    if (value == null ||
-        value.isEmpty ||
-        value.toLowerCase() == 'n/a' ||
-        value.toLowerCase() == 'null') {
-      return const SizedBox.shrink();
-    }
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: isDark ? Colors.grey[400] : Colors.grey[500],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: TextStyle(
-                color: isDark ? Colors.white : const Color(0xFF1E293B),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFieldTile(BuildContext context, ReportField field) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final formattedName = _formatFieldName(field.fieldName);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: isDark ? const Color(0xFF334155) : Colors.grey[100]!,
-          ),
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  formattedName,
-                  style: TextStyle(
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      field.fieldValue,
-                      style: TextStyle(
-                        color: isDark ? Colors.white : const Color(0xFF1E293B),
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (field.fieldUnit != null &&
-                        field.fieldUnit!.isNotEmpty) ...[
-                      const SizedBox(width: 4),
-                      Text(
-                        field.fieldUnit!,
-                        style: TextStyle(
-                          color: isDark ? Colors.grey[500] : Colors.grey[400],
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ),
-          ),
-          if (field.isNormal != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: field.isNormal!
-                    ? (isDark
-                          ? const Color(0xFF064E3B)
-                          : const Color(0xFFDCFCE7))
-                    : (isDark
-                          ? const Color(0xFF7F1D1D)
-                          : const Color(0xFFFEE2E2)),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: field.isNormal!
-                      ? (isDark
-                            ? const Color(0xFF059669)
-                            : const Color(0xFF86EFAC))
-                      : (isDark
-                            ? const Color(0xFFDC2626)
-                            : const Color(0xFFFCA5A5)),
-                ),
-              ),
-              child: Text(
-                field.isNormal! ? 'Normal' : 'Abnormal',
-                style: TextStyle(
-                  color: field.isNormal!
-                      ? (isDark
-                            ? const Color(0xFF34D399)
-                            : const Color(0xFF166534))
-                      : (isDark
-                            ? const Color(0xFFF87171)
-                            : const Color(0xFF991B1B)),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
+  // Unused helpers removed
 }
 
 class _PdfViewerPage extends StatefulWidget {
