@@ -1171,14 +1171,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return [
       {
-        'icon': LucideIcons.clipboard,
-        'label': 'All Records',
-        'color': const Color(0xFF39A4E6),
-        'count': allReports.length,
-        'navigateTo': 'records',
-        'description': 'View all medical records',
-      },
-      {
         'icon': LucideIcons.droplet,
         'label': 'Lab Results',
         'color': const Color(0xFFFF6B9D),
@@ -1967,30 +1959,34 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'All Report Types',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: _isDarkMode
-                                    ? Colors.white
-                                    : const Color(0xFF111827),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'All Report Types',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: _isDarkMode
+                                      ? Colors.white
+                                      : const Color(0xFF111827),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Browse all medical report categories',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: _isDarkMode
-                                    ? Colors.grey[400]
-                                    : Colors.grey[500],
+                              const SizedBox(height: 4),
+                              Text(
+                                'Browse all medical report categories',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: _isDarkMode
+                                      ? Colors.grey[400]
+                                      : Colors.grey[500],
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         // Close Button
                         GestureDetector(
