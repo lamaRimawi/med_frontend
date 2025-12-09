@@ -5,6 +5,10 @@ class Report {
   final int totalFields;
   final List<ReportField> fields;
   final List<AdditionalField> additionalFields;
+  final String? patientName;
+  final int? patientAge;
+  final String? patientGender;
+  final String? reportType;
 
   Report({
     required this.reportId,
@@ -13,6 +17,10 @@ class Report {
     required this.totalFields,
     required this.fields,
     required this.additionalFields,
+    this.patientName,
+    this.patientAge,
+    this.patientGender,
+    this.reportType,
   });
 
   factory Report.fromJson(Map<String, dynamic> json) {
@@ -29,6 +37,12 @@ class Report {
               ?.map((e) => AdditionalField.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
+      patientName: json['patient_name'] as String?,
+      patientAge: json.containsKey('patient_age')
+          ? int.tryParse(json['patient_age'].toString())
+          : null,
+      patientGender: json['patient_gender'] as String?,
+      reportType: json['report_type'] as String?,
     );
   }
 }

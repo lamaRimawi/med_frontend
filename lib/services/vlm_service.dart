@@ -7,20 +7,20 @@ import '../models/extracted_report_data.dart';
 import 'api_client.dart';
 
 class VlmService {
-  static Future<ExtractedReportData> extractFromImageFile(
-    String filePath,
+  static Future<ExtractedReportData> extractFromImages(
+    List<String> filePaths,
   ) async {
     final client = ApiClient.instance;
 
-    print('VlmService: Uploading file: $filePath');
-    final http.Response res = await client.postMultipart(
+    print('VlmService: Uploading ${filePaths.length} files: $filePaths');
+    final http.Response res = await client.postMultipartMultiple(
       ApiConfig.vlmChat,
       auth: true,
-      filePath: filePath,
+      filePaths: filePaths,
     );
 
     print('VlmService: Response status: ${res.statusCode}');
-    // print('VlmService: Response body: ${res.body}');
+    print('VlmService: Response body: ${res.body}');
 
     // Handle duplicate report (409 Conflict)
     if (res.statusCode == 409) {
@@ -132,6 +132,34 @@ class VlmService {
       gender = reportData['patient_gender'].toString();
     }
     
+    // Improved logic: Look in entries if not found
+    if (age == 0) {
+        for (final e in entries) {
+            if (e is Map<String, dynamic>) {
+                 final name = (e['field_name'] ?? '').toString().toLowerCase();
+                 // Check for loose matches
+                 if (name == 'age' || name.contains('patient age') || name == 'years') {
+                      // Extract number from string like "25 Years"
+                      final val = e['field_value'].toString();
+                      final match = RegExp(r'(\d+)').firstMatch(val);
+                      if (match != null) {
+                        age = int.tryParse(match.group(1)!) ?? 0;
+                      }
+                 }
+            }
+        }
+    }
+    if (gender == 'Unknown') {
+         for (final e in entries) {
+            if (e is Map<String, dynamic>) {
+                 final name = (e['field_name'] ?? '').toString().toLowerCase();
+                 if (name == 'gender' || name == 'sex' || name.contains('patient gender')) {
+                      gender = e['field_value'].toString();
+                 }
+            }
+        }
+    }
+    
     // If not found, try to extract from patient_name or other fields
     // The backend might include "Female/20 Years" in the response
     if (age == 0 || gender == 'Unknown') {
@@ -172,6 +200,7 @@ class VlmService {
       recommendations: null,
       nextVisit: null,
       warnings: null,
+      debugRawJson: jsonEncode(reportData),
     );
   }
 

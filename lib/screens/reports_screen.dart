@@ -217,6 +217,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   String _getReportTitle(Report report) {
+    if (report.reportType != null && report.reportType!.isNotEmpty) {
+      return report.reportType!;
+    }
+    
     // Priority 1: Check for explicit "Report Type" or "Test Name" fields
     final titleField = report.fields.firstWhere(
       (f) =>
@@ -1584,7 +1588,7 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
 
     int retryCount = 0;
     // Increased retries to prevent premature error display
-    const maxRetries = 5;
+    const maxRetries = 3;
 
     while (retryCount < maxRetries) {
       try {
@@ -1592,6 +1596,8 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
         // Use the index from the backend if available, otherwise fallback to list index + 1
         final backendIndex = imageMap['index'] as int?;
         final fileIndex = backendIndex ?? (index + 1);
+
+        debugPrint('ReportViewer: Loading image index $index (backend fileIndex: $fileIndex)');
 
         final url =
             '${ApiConfig.baseUrl}${ApiConfig.reports}/${widget.report.reportId}/images/$fileIndex';
@@ -1606,7 +1612,7 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
 
         // Add timeout to prevent hanging
         final response = await request.send().timeout(
-          const Duration(seconds: 15),
+          const Duration(seconds: 30), // Increased timeout
         );
 
         if (response.statusCode == 200) {
@@ -1640,6 +1646,7 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
           }
 
           if (mounted) {
+            debugPrint('ReportViewer: Successfully loaded image $index');
             setState(() {
               _localFilePaths[index] = file.path;
               _isPdfMap[index] = isPdf;
@@ -1648,10 +1655,15 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
           }
           return; // Success
         } else {
+          debugPrint('ReportViewer: Failed with status ${response.statusCode}');
+          if (response.statusCode == 404) {
+             // If 404, maybe we shouldn't retry? But for now let's just throw
+             throw Exception('File not found (404)');
+          }
           throw Exception('Failed to download file: ${response.statusCode}');
         }
       } catch (e) {
-        debugPrint('Error downloading file (attempt ${retryCount + 1}): $e');
+        debugPrint('ReportViewer: Error downloading file (attempt ${retryCount + 1}): $e');
         retryCount++;
         if (retryCount >= maxRetries) {
           if (mounted) {
@@ -1824,6 +1836,19 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
           ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              _buildSection(context, 'Patient Information', [
+                _buildInfoTile(
+                  context,
+                  'Full Name',
+                  widget.report.patientName ?? 'Unknown',
+                ),
+                _buildInfoTile(
+                  context,
+                  'Age / Gender',
+                  '${widget.report.patientAge ?? 0} years • ${widget.report.patientGender ?? 'Unknown'}',
+                ),
+              ]),
+              const SizedBox(height: 24),
               _buildSection(context, 'Report Info', [
                 _buildInfoTile(context, 'Type', _getSmartReportType()),
                 _buildInfoTile(context, 'Date', widget.report.reportDate),

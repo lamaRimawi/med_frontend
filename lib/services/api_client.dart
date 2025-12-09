@@ -162,6 +162,42 @@ class ApiClient {
     return response;
   }
 
+  Future<http.Response> postMultipartMultiple(
+    String path, {
+    required List<String> filePaths,
+    Map<String, String>? fields,
+    bool auth = false,
+  }) async {
+    final request = http.MultipartRequest('POST', _uri(path));
+    
+    if (auth) {
+      final token = await _getToken();
+      if (token != null && token.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+    }
+
+    if (fields != null) {
+      request.fields.addAll(fields);
+    }
+
+    for (var filePath in filePaths) {
+      // Using 'file' key repeatedly. If backend expects 'files', this might need adjustment.
+      // But typically arrays are handled by repeating the key or 'file[]'.
+      request.files.add(await http.MultipartFile.fromPath('file', filePath));
+    }
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+    
+    if (response.statusCode == 401) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('jwt_token');
+      throw Exception('Unauthorized: Token expired');
+    }
+    return response;
+  }
+
   static T decodeJson<T>(http.Response res) {
     return json.decode(utf8.decode(res.bodyBytes)) as T;
   }

@@ -359,6 +359,29 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
                           ),
                           const SizedBox(width: 8),
                           _roundIconButton(
+                            LucideIcons.code, // Debug icon
+                            onTap: () {
+                              if (d.debugRawJson != null) {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Raw Backend Response'),
+                                    content: SingleChildScrollView(
+                                      child: SelectableText(d.debugRawJson!),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text('Close'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _roundIconButton(
                             LucideIcons.x,
                             onTap: () {
                               debugPrint('DEBUG: Close button tapped');

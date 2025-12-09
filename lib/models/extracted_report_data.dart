@@ -11,6 +11,7 @@ class ExtractedReportData {
   final List<String>? recommendations;
   final String? nextVisit;
   final List<String>? warnings;
+  final String? debugRawJson;
 
   ExtractedReportData({
     required this.reportType,
@@ -25,6 +26,7 @@ class ExtractedReportData {
     this.recommendations,
     this.nextVisit,
     this.warnings,
+    this.debugRawJson,
   });
 }
 

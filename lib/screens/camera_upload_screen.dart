@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:camera/camera.dart';
+import 'package:mediScan/services/document_scanner_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -39,20 +39,13 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
     with TickerProviderStateMixin {
   List<UploadedFile> capturedItems = [];
   ViewMode viewMode = ViewMode.camera;
-  bool showCamera = false;
-  bool showTutorial = false;
-  int tutorialStep = 0;
-  String? cameraError;
-  bool flashEnabled = false;
-  bool isCapturing = false;
   int viewerItemIndex = 0;
 
   // Toast State
   String? messageToast;
   Timer? _toastTimer;
 
-  CameraController? cameraController;
-  List<CameraDescription>? cameras;
+  final DocumentScannerService _scannerService = DocumentScannerService();
   final ImagePicker _picker = ImagePicker();
 
   // Processing state
@@ -60,203 +53,63 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
   String processingStatus = '';
   ExtractedReportData? extractedData;
 
-  final List<Map<String, String>> tutorialSteps = [
-    {
-      'title': 'Capture Documents',
-      'description':
-          'Tap the capture button to scan your medical reports. You can capture multiple pages.',
-      'highlight': 'capture-button',
-    },
-    {
-      'title': 'Upload from Gallery',
-      'description':
-          'Tap the gallery icon to select multiple images or PDF files from your device.',
-      'highlight': 'gallery-button',
-    },
-    {
-      'title': 'Review & Process',
-      'description':
-          'Review your captured items, add more, or delete unwanted ones before processing.',
-      'highlight': 'process-button',
-    },
-  ];
+
 
   @override
   void initState() {
     super.initState();
-    _initializeCamera();
-    _checkTutorial();
+    // _initializeCamera(); // Removed for native scanner
+    // _checkTutorial(); // Removed tutorial
   }
 
   @override
   void dispose() {
-    cameraController?.dispose();
+    // cameraController?.dispose();
     _toastTimer?.cancel();
     super.dispose();
   }
 
-  Future<void> _checkTutorial() async {
-    final prefs = await SharedPreferences.getInstance();
-    final hasSeenTutorial =
-        prefs.getBool('hasSeenCameraUploadTutorial') ?? false;
-    if (!hasSeenTutorial) {
-      await Future.delayed(const Duration(seconds: 2));
-      if (mounted) {
-        setState(() => showTutorial = true);
-      }
-    }
-  }
 
-  Future<void> _initializeCamera() async {
-    try {
-      final status = await Permission.camera.request();
-      if (!status.isGranted) {
-        setState(() {
-          cameraError =
-              'Camera permission denied. Please allow camera access in settings.';
-          showCamera = false;
-        });
-        return;
-      }
 
-      cameras = await availableCameras();
-      if (cameras == null || cameras!.isEmpty) {
-        setState(() {
-          cameraError = 'No camera found on this device.';
-          showCamera = false;
-        });
-        return;
-      }
-
-      // Default to back camera
-      final camera = cameras!.firstWhere(
-        (camera) => camera.lensDirection == CameraLensDirection.back,
-        orElse: () => cameras!.first,
-      );
-
-      cameraController = CameraController(
-        camera,
-        ResolutionPreset.high,
-        enableAudio: false,
-      );
-
-      await cameraController!.initialize();
-
-      if (mounted) {
-        setState(() {
-          showCamera = true;
-          cameraError = null;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        cameraError = 'Unable to access camera: ${e.toString()}';
-        showCamera = false;
-      });
-    }
-  }
-
-  Future<void> _toggleCameraLens() async {
-    if (cameras == null || cameras!.length < 2) return;
-
-    final lensDirection = cameraController?.description.lensDirection;
-    CameraDescription newCamera;
-
-    if (lensDirection == CameraLensDirection.back) {
-      newCamera = cameras!.firstWhere(
-        (c) => c.lensDirection == CameraLensDirection.front,
-      );
-      _showToast('Switched to front camera');
-    } else {
-      newCamera = cameras!.firstWhere(
-        (c) => c.lensDirection == CameraLensDirection.back,
-      );
-      _showToast('Switched to back camera');
-    }
-
-    if (cameraController != null) {
-      await cameraController!.dispose();
-    }
-
-    cameraController = CameraController(
-      newCamera,
-      ResolutionPreset.high,
-      enableAudio: false,
-    );
-
-    try {
-      await cameraController!.initialize();
-      setState(() {});
-    } catch (e) {
-      print('Error switching camera: $e');
-    }
-  }
-
-  Future<void> _toggleFlash() async {
-    if (cameraController == null) return;
-
-    try {
-      if (flashEnabled) {
-        await cameraController!.setFlashMode(FlashMode.off);
-        _showToast('Flash disabled');
-      } else {
-        await cameraController!.setFlashMode(FlashMode.torch);
-        _showToast('Flash enabled');
-      }
-      setState(() => flashEnabled = !flashEnabled);
-    } catch (e) {
-      print('Error toggling flash: $e');
-    }
-  }
-
-  void _showToast(String message) {
-    _toastTimer?.cancel();
-    setState(() => messageToast = message);
-    _toastTimer = Timer(const Duration(seconds: 2), () {
-      if (mounted) setState(() => messageToast = null);
-    });
-  }
-
-  Future<void> _capturePhoto() async {
-    if (cameraController == null ||
-        !cameraController!.value.isInitialized ||
-        isCapturing) {
-      return;
-    }
-
+  Future<void> _launchScanner() async {
     if (capturedItems.any((item) => item.type == 'application/pdf')) {
       _showToast('Cannot add images when a PDF is selected');
       return;
     }
 
-    setState(() => isCapturing = true);
-
     try {
-      final image = await cameraController!.takePicture();
-      final file = File(image.path);
+      final pictures = await _scannerService.scanDocument();
+      if (pictures.isEmpty) return;
 
-      // Simulate quality adjustment (in real app, use flutter_image_compress)
-      // For now, we just use the file as is
+      for (var path in pictures) {
+        final file = File(path);
+        // Ensure path is valid and file exists
+        if (!await file.exists()) continue;
 
-      final newItem = UploadedFile(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        name: 'medical-scan-${DateTime.now().millisecondsSinceEpoch}.jpg',
-        size: await file.length(),
-        type: 'image/jpeg',
-        path: file.path,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-      );
+        final newItem = UploadedFile(
+          id: DateTime.now().millisecondsSinceEpoch.toString() + path,
+          name: 'scan_${DateTime.now().millisecondsSinceEpoch}.jpg',
+          size: await file.length(),
+          type: 'image/jpeg',
+          path: path,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+        );
 
-      setState(() {
-        capturedItems.add(newItem);
-      });
-    } catch (e) {
-      debugPrint('Error capturing photo: $e');
-    } finally {
-      await Future.delayed(const Duration(milliseconds: 500));
-      if (mounted) {
-        setState(() => isCapturing = false);
+        setState(() {
+          capturedItems.add(newItem);
+        });
       }
+      
+      // If we captured something, we might want to switch to review mode or stay to capture more?
+      // Usually scanners allow batch, so we might have multiple.
+      // Let's show a toast.
+      if (pictures.isNotEmpty) {
+        _showToast('Added ${pictures.length} pages');
+      }
+
+    } catch (e) {
+      debugPrint('Error launching scanner: $e');
+      _showToast('Failed to launch scanner');
     }
   }
 
@@ -357,22 +210,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
     });
   }
 
-  void _completeTutorial() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('hasSeenCameraUploadTutorial', true);
-    setState(() {
-      showTutorial = false;
-      tutorialStep = 0;
-    });
-  }
 
-  void _nextTutorialStep() {
-    if (tutorialStep < tutorialSteps.length - 1) {
-      setState(() => tutorialStep++);
-    } else {
-      _completeTutorial();
-    }
-  }
 
   void _handleProcess() {
     setState(() {
@@ -413,7 +251,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
       });
       
       // Call backend
-      VlmService.extractFromImageFile(capturedItems.first.path)
+      VlmService.extractFromImages(capturedItems.map((e) => e.path).toList())
           .then((result) {
         debugPrint('Backend extraction successful!');
         if (!mounted) return;
@@ -811,34 +649,49 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
     }
   }
 
+  Widget _buildTopToolbar() {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: SafeArea(
+        child: Container(
+          height: 60,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(LucideIcons.x, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+              // Empty Container to balance the row if needed, or other icons
+              const SizedBox(width: 48),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildCameraScreen() {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Camera Preview
-          if (showCamera &&
-              cameraController != null &&
-              cameraController!.value.isInitialized)
-            Positioned.fill(child: CameraPreview(cameraController!))
-          else
-            _buildCameraLoading(),
+          // Background/Prompt
+          Center(
+             child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                   Icon(LucideIcons.scanLine, size: 80, color: Colors.white.withOpacity(0.5)),
+                   const SizedBox(height: 16),
+                   Text("Tap the capture button to start scanning", style: TextStyle(color: Colors.white.withOpacity(0.5))),
+                ],
+             ),
+          ),
 
-          // Document Frame
-          if (showCamera) _buildDocumentFrame(),
-
-          // Flash Effect
-          if (isCapturing)
-            Positioned.fill(
-              child: Container(
-                color: Colors.white,
-              ).animate().fadeIn(duration: 50.ms).fadeOut(duration: 300.ms),
-            ),
-
-          // Tutorial Overlay
-          if (showTutorial && showCamera) _buildTutorialOverlay(),
-
-          // Top Toolbar
+          // Top Toolbar (Close button only)
           _buildTopToolbar(),
 
           // Bottom Controls
@@ -894,343 +747,18 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
     );
   }
 
-  Widget _buildTutorialOverlay() {
-    final step = tutorialSteps[tutorialStep];
-    return Stack(
-      children: [
-        // Dimmed Background
-        Positioned.fill(
-          child: Container(
-            color: Colors.black.withOpacity(0.8),
-          ).animate().fadeIn(),
-        ),
-
-        // Spotlight (Simplified implementation using positioned holes or just overlay logic)
-        // For simplicity in Flutter, we'll just highlight the area with a border/glow
-
-        // Tutorial Card
-        Center(
-          child: Container(
-            margin: const EdgeInsets.all(32),
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: widget.isDarkMode ? const Color(0xFF1F2937) : Colors.white,
-              borderRadius: BorderRadius.circular(32),
-              border: Border.all(color: Colors.white.withOpacity(0.2)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.5),
-                  blurRadius: 20,
-                  spreadRadius: 5,
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF39A4E6).withOpacity(0.4),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    LucideIcons.info,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                ).animate(onPlay: (c) => c.repeat()).shake(delay: 2.seconds),
-                const SizedBox(height: 24),
-                Text(
-                  step['title']!,
-                  style: TextStyle(
-                    color: widget.isDarkMode ? Colors.white : Colors.black,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  step['description']!,
-                  style: TextStyle(
-                    color: widget.isDarkMode
-                        ? Colors.grey[400]
-                        : Colors.grey[600],
-                    fontSize: 16,
-                    height: 1.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(tutorialSteps.length, (index) {
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: index == tutorialStep ? 32 : 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: index == tutorialStep
-                            ? const Color(0xFF39A4E6)
-                            : Colors.grey[300],
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    );
-                  }),
-                ),
-                const SizedBox(height: 32),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: _completeTutorial,
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: widget.isDarkMode
-                              ? Colors.white.withOpacity(0.05)
-                              : Colors.grey[100],
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        child: Text(
-                          'Skip',
-                          style: TextStyle(
-                            color: widget.isDarkMode
-                                ? Colors.grey[300]
-                                : Colors.grey[700],
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _nextTutorialStep,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: const Color(0xFF39A4E6),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 4,
-                          shadowColor: const Color(0xFF39A4E6).withOpacity(0.4),
-                        ),
-                        child: Text(
-                          tutorialStep < tutorialSteps.length - 1
-                              ? 'Next'
-                              : 'Got It!',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCameraLoading() {
-    return Center(
-      child: cameraError != null
-          ? Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.2),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.red.withOpacity(0.5),
-                      width: 2,
-                    ),
-                  ),
-                  child: const Icon(
-                    LucideIcons.alertCircle,
-                    size: 48,
-                    color: Colors.red,
-                  ),
-                ).animate().scale(),
-                const SizedBox(height: 24),
-                const Text(
-                  'Camera Error',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    cameraError!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: _initializeCamera,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF39A4E6),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: const Text('Try Again'),
-                ),
-              ],
-            )
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  width: 64,
-                  height: 64,
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation(Color(0xFF39A4E6)),
-                    strokeWidth: 4,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Starting Camera...',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-    );
-  }
-
-  Widget _buildDocumentFrame() {
-    return Positioned.fill(
-      child: Padding(
-        padding: EdgeInsets.only(
-          top: 120,
-          bottom: capturedItems.isNotEmpty ? 240 : 140,
-          left: 32,
-          right: 32,
-        ),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFF39A4E6), width: 2),
-            ),
-          ).animate(onPlay: (c) => c.repeat(reverse: true)),
-      ),
-    );
-  }
-
-  Widget _buildTopToolbar() {
-    return Positioned(
-      top: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        padding: const EdgeInsets.only(
-          top: 48,
-          bottom: 24,
-          left: 24,
-          right: 24,
-        ),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.black.withOpacity(0.8), Colors.transparent],
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            GestureDetector(
-              onTap: widget.onClose ?? () => Navigator.of(context).maybePop(),
-              behavior: HitTestBehavior.opaque,
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.4),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withOpacity(0.1)),
-                ),
-                child: const Icon(LucideIcons.x, color: Colors.white),
-              ),
-            ),
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: _toggleFlash,
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    margin: const EdgeInsets.only(right: 12),
-                    decoration: BoxDecoration(
-                      color: flashEnabled
-                          ? const Color(0xFFFBBF24).withOpacity(0.9)
-                          : Colors.black.withOpacity(0.4),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: flashEnabled
-                            ? const Color(0xFFFBBF24).withOpacity(0.5)
-                            : Colors.white.withOpacity(0.1),
-                      ),
-                    ),
-                    child: Icon(
-                      flashEnabled ? LucideIcons.zap : LucideIcons.zapOff,
-                      color: flashEnabled ? Colors.black : Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: _toggleCameraLens,
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    margin: const EdgeInsets.only(right: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.4),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withOpacity(0.1)),
-                    ),
-                    child: const Icon(
-                      LucideIcons.switchCamera,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
+  void _showToast(String message) {
+    setState(() {
+      messageToast = message;
+    });
+    _toastTimer?.cancel();
+    _toastTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          messageToast = null;
+        });
+      }
+    });
   }
 
   Widget _buildBottomControls() {
@@ -1428,7 +956,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
 
                   // Capture Button
                   GestureDetector(
-                    onTap: _capturePhoto,
+                    onTap: _launchScanner,
                     child: Container(
                       width: 80,
                       height: 80,
@@ -1443,30 +971,24 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                           ),
                         ],
                       ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            width: 72,
-                            height: 72,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: const Color(0xFF39A4E6),
-                                width: 4,
-                              ),
+                      child: Center(
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: const Color(0xFF39A4E6),
+                              width: 4,
                             ),
                           ),
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            width: isCapturing ? 40 : 60,
-                            height: isCapturing ? 40 : 60,
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
+                          child: const Icon(
+                            LucideIcons.scanLine,
+                            color: Color(0xFF39A4E6),
+                            size: 32,
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
@@ -1578,13 +1100,13 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
 
                 final item = capturedItems[index];
                 return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          viewerItemIndex = index;
-                          viewMode = ViewMode.viewer;
-                        });
-                      },
-                      child: Stack(
+                  onTap: () {
+                    setState(() {
+                      viewerItemIndex = index;
+                      viewMode = ViewMode.viewer;
+                    });
+                  },
+                  child: Stack(
                         children: [
                           Container(
                             decoration: BoxDecoration(
@@ -1683,10 +1205,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                           ),
                         ],
                       ),
-                    )
-                    .animate()
-                    .fadeIn(delay: (index * 50).ms)
-                    .slideY(begin: 0.2, end: 0);
+                  ).animate().fadeIn(delay: (index * 50).ms).slideY(begin: 0.2, end: 0);
               },
             ),
           ),
