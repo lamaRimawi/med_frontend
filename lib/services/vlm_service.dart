@@ -154,7 +154,16 @@ class VlmService {
     
     // Try to get age and gender from separate fields if available
     if (reportData.containsKey('patient_age')) {
-      age = int.tryParse(reportData['patient_age'].toString()) ?? 0;
+      final ageStr = reportData['patient_age'].toString();
+      // Try direct parse first
+      age = int.tryParse(ageStr) ?? 0;
+      // If that fails, try to extract number from string like "20 Years"
+      if (age == 0) {
+        final match = RegExp(r'(\d+)').firstMatch(ageStr);
+        if (match != null) {
+          age = int.tryParse(match.group(1)!) ?? 0;
+        }
+      }
     }
     if (reportData.containsKey('patient_gender')) {
       gender = reportData['patient_gender'].toString();

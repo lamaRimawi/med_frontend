@@ -269,6 +269,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   String _getReportTitle(Report report) {
+    // Priority 0: Use report_name if available
+    if (report.reportName != null && report.reportName!.isNotEmpty) {
+      return report.reportName!;
+    }
+    
+    // Priority 1: Use report_type if available
     if (report.reportType != null && report.reportType!.isNotEmpty) {
       return report.reportType!;
     }
@@ -1151,38 +1157,23 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      ] else if (_currentUser != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          _currentUser!.fullName,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
                       ],
                       const SizedBox(height: 4),
-                      Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: 8,
-                        runSpacing: 4,
+                      Row(
                         children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
+                          Icon(
+                            LucideIcons.calendar,
+                            size: 12,
+                            color: isDark
+                                ? Colors.grey[400]
+                                : Colors.grey[500],
+                          ),
+                          const SizedBox(width: 4),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                LucideIcons.calendar,
-                                size: 12,
-                                color: isDark
-                                    ? Colors.grey[400]
-                                    : Colors.grey[500],
-                              ),
-                              const SizedBox(width: 4),
                               Text(
-                                report.reportDate,
+                                report.reportDate.split(' ')[0], // Date only
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: isDark
@@ -1190,26 +1181,17 @@ class _ReportsScreenState extends State<ReportsScreen> {
                                       : Colors.grey[500],
                                 ),
                               ),
+                              if (report.reportDate.contains(' '))
+                                Text(
+                                  report.reportDate.split(' ')[1], // Time only
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: isDark
+                                        ? Colors.grey[500]
+                                        : Colors.grey[600],
+                                  ),
+                                ),
                             ],
-                          ),
-                          Container(
-                            width: 4,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.grey[600]
-                                  : Colors.grey[300],
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          Text(
-                            '${report.totalFields} Fields',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: isDark
-                                  ? Colors.grey[400]
-                                  : Colors.grey[500],
-                            ),
                           ),
                         ],
                       ),
@@ -1235,12 +1217,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     () => _handleViewReport(report),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 _buildIconOnlyButton(
                   LucideIcons.share2,
                   () => _handleShareReport(report),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 _buildIconOnlyButton(
                   LucideIcons.download,
                   () => _handleDownloadReport(report),
@@ -1291,7 +1273,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: isDestructive
               ? (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2))

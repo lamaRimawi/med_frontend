@@ -4,6 +4,7 @@ class Report {
   final String createdAt;
   final int totalFields;
   final String? reportType;
+  final String? reportName;
   final List<ReportField> fields;
   final List<AdditionalField> additionalFields;
   final String? patientName;
@@ -16,6 +17,7 @@ class Report {
     required this.createdAt,
     required this.totalFields,
     this.reportType,
+    this.reportName,
     required this.fields,
     required this.additionalFields,
     this.patientName,
@@ -35,6 +37,7 @@ class Report {
           json['created_at'] as String? ?? DateTime.now().toIso8601String(),
       totalFields: json['total_fields'] as int? ?? fieldsList?.length ?? 0,
       reportType: json['report_type'] as String?,
+      reportName: json['report_name'] as String?,
       fields:
           fieldsList
               ?.map((e) => ReportField.fromJson(e as Map<String, dynamic>))
@@ -47,7 +50,19 @@ class Report {
           [],
       patientName: json['patient_name'] as String?,
       patientAge: json.containsKey('patient_age')
-          ? int.tryParse(json['patient_age'].toString())
+          ? () {
+              final ageStr = json['patient_age'].toString();
+              // Try direct parse first
+              var age = int.tryParse(ageStr);
+              // If that fails, try to extract number from string like "20 Years"
+              if (age == null) {
+                final match = RegExp(r'(\d+)').firstMatch(ageStr);
+                if (match != null) {
+                  age = int.tryParse(match.group(1)!);
+                }
+              }
+              return age;
+            }()
           : null,
       patientGender: json['patient_gender'] as String?,
     );

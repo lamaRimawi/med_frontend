@@ -254,85 +254,75 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
                   ),
                   child: Row(
                     children: [
+                      _roundIconButton(
+                        LucideIcons.arrowLeft,
+                        onTap: () {
+                          debugPrint('DEBUG: Back button tapped');
+                          widget.onBack();
+                        },
+                      ),
+                      const SizedBox(width: 12),
                       Expanded(
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _roundIconButton(
-                              LucideIcons.arrowLeft,
-                              onTap: () {
-                                debugPrint('DEBUG: Back button tapped');
-                                widget.onBack();
-                              },
+                            Text(
+                              'Medical Report',
+                              style: TextStyle(
+                                color: widget.isDarkMode
+                                    ? Colors.white
+                                    : Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Medical Report',
-                                    style: TextStyle(
-                                      color: widget.isDarkMode
-                                          ? Colors.white
-                                          : Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${d.reportType} • ${d.reportDate}',
-                                    style: TextStyle(
-                                      color: widget.isDarkMode
-                                          ? Colors.grey
-                                          : Colors.grey.shade700,
-                                      fontSize: 12,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ), // closes Column
-                            ), // closes inner Expanded
+                            const SizedBox(height: 2),
+                            Text(
+                              '${d.reportType} • ${d.reportDate}',
+                              style: TextStyle(
+                                color: widget.isDarkMode
+                                    ? Colors.grey
+                                    : Colors.grey.shade700,
+                                fontSize: 12,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ],
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Row(
-                        children: [
-                          _roundIconButton(
-                            LucideIcons.share2,
-                            onTap: () => setState(() => _shareOpen = true),
-                          ),
-                          const SizedBox(width: 8),
-                          _roundIconButton(
-                            LucideIcons.download,
-                            onTap: _exportTxt,
-                          ),
-                          const SizedBox(width: 8),
-                          _roundIconButton(
-                            LucideIcons.code, // Debug icon
-                            onTap: () {
-                              if (d.debugRawJson != null) {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('Raw Backend Response'),
-                                    content: SingleChildScrollView(
-                                      child: SelectableText(d.debugRawJson!),
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: const Text('Close'),
-                                      ),
-                                    ],
+                      _roundIconButton(
+                        LucideIcons.share2,
+                        onTap: () => setState(() => _shareOpen = true),
+                      ),
+                      const SizedBox(width: 8),
+                      _roundIconButton(
+                        LucideIcons.download,
+                        onTap: _exportTxt,
+                      ),
+                      const SizedBox(width: 8),
+                      _roundIconButton(
+                        LucideIcons.code, // Debug icon
+                        onTap: () {
+                          if (d.debugRawJson != null) {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Raw Backend Response'),
+                                content: SingleChildScrollView(
+                                  child: SelectableText(d.debugRawJson!),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('Close'),
                                   ),
-                                );
-                              }
-                            },
-                          ),
-                        ],
+                                ],
+                              ),
+                            );
+                          }
+                        },
                       ),
                     ],
                   ),

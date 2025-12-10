@@ -115,7 +115,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _getReportTitle(Report report) {
-    // Priority 0: Check if we have the type from timeline (Highest Priority)
+    // Priority -1: Use report_name if available (Highest Priority)
+    if (report.reportName != null && report.reportName!.isNotEmpty) {
+      return report.reportName!;
+    }
+    
+    // Priority 0: Check if we have the type from timeline
     if (_reportTypesMap.containsKey(report.reportId)) {
       final type = _reportTypesMap[report.reportId];
       if (type != null && type.isNotEmpty && type != 'General Report') {
