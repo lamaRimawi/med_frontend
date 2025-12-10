@@ -1130,11 +1130,14 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                                 ),
                                               ),
                                             ),
-                                            Text(
-                                              record.type,
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: subTextColor,
+                                            Flexible(
+                                              child: Text(
+                                                record.type,
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: subTextColor,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
                                           ],
