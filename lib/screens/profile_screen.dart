@@ -18,6 +18,7 @@ import 'timeline_screen.dart';
 import 'reports_screen.dart';
 import 'dark_mode_screen.dart';
 import 'settings_screen.dart';
+import '../config/api_config.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Function(String) onNavigate;
@@ -36,6 +37,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen>
     with TickerProviderStateMixin {
   String _currentScreen = 'main';
+  bool _isLoading = false;
   bool _showCountryPicker = false;
   bool _showCalendarDropdown = false;
   String _calendarView = 'day'; // 'day', 'month', 'year'
@@ -155,17 +157,47 @@ class _ProfileScreenState extends State<ProfileScreen>
     setState(() {
       _profileData['name'] = user.fullName;
       _profileData['email'] = user.email;
-      _profileData['phone'] = user.phoneNumber
-          .replaceFirst(RegExp(r'^\+[0-9]+'), '')
-          .trim();
+
+      // Improved Phone Parsing
+      String fullPhone = user.phoneNumber;
+      String phoneBody = fullPhone;
+      String prefix = '+962'; // Default fallback
+
+      // Regex to find country code (e.g. +962) and the rest
+      // Matches + followed by 1-4 digits, then optionally space, then the rest
+      final match = RegExp(r'^(\+\d{1,4})[\s-]*(.*)$').firstMatch(fullPhone);
+      
+      if (match != null) {
+        prefix = match.group(1) ?? '+962';
+        phoneBody = match.group(2) ?? '';
+      } else {
+         // Fallback cleaning if no + found
+         phoneBody = fullPhone.replaceFirst(RegExp(r'^\+'), '').trim();
+      }
+
+      _profileData['phonePrefix'] = prefix;
+      _profileData['phone'] = phoneBody.replaceAll(' ', '').trim();
+
       _profileData['dateOfBirth'] = user.dateOfBirth;
       _profileData['gender'] = user.gender ?? '';
       _profileData['medicalHistory'] = user.medicalHistory ?? '';
       _profileData['allergies'] = user.allergies ?? '';
+      // Use backend profile image if available, else fallback to DiceBear
+    if (user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty) {
+      if (user.profileImageUrl!.startsWith('http')) {
+        _profileData['avatar'] = user.profileImageUrl;
+      } else {
+        // Construct full URL connecting to backend
+        // Use ApiConfig.baseUrl but remove /api suffix if present
+        final baseUrl = ApiConfig.baseUrl.replaceAll('/api', '');
+        _profileData['avatar'] = '$baseUrl${user.profileImageUrl}';
+      }
+    } else {
       _profileData['avatar'] =
           'https://api.dicebear.com/7.x/avataaars/svg?seed=${user.firstName}';
-    });
-  }
+    }
+  });
+}
 
   int _selectedYear = DateTime.now().year;
   int _selectedMonth = DateTime.now().month - 1;
@@ -929,12 +961,8 @@ class _ProfileScreenState extends State<ProfileScreen>
 
                         const SizedBox(height: 20),
 
-                        _buildLabel('GENDER'),
-                        _buildTextField(
-                          LucideIcons.user,
-                          _profileData['gender'],
-                          (val) => setState(() => _profileData['gender'] = val),
-                        ),
+                        // Gender field removed as requested
+
                         const SizedBox(height: 20),
 
                         // Medical History and Allergies removed as requested
@@ -942,10 +970,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         GestureDetector(
                           onTap: () async {
                             // Validation
-                            if (_profileData['name']
-                                .toString()
-                                .trim()
-                                .isEmpty) {
+                            if (_profileData['name'].toString().trim().isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Please enter your full name'),
@@ -968,26 +993,19 @@ class _ProfileScreenState extends State<ProfileScreen>
                             }
 
                             // Phone validation
-                            final phone = _profileData['phone']
-                                .toString()
-                                .trim();
+                            final phone = _profileData['phone'].toString().trim();
                             if (phone.isNotEmpty && phone.length != 9) {
                               setState(
-                                () => _phoneError =
-                                    'Phone number must be 9 digits',
+                                () => _phoneError = 'Phone number must be 9 digits',
                               );
                               return;
                             }
                             setState(() => _phoneError = null);
                             
-                            if (_profileData['dateOfBirth']
-                                .toString()
-                                .isEmpty) {
+                            if (_profileData['dateOfBirth'].toString().isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text(
-                                    'Please select your date of birth',
-                                  ),
+                                  content: Text('Please select your date of birth'),
                                   backgroundColor: Colors.red,
                                 ),
                               );
@@ -995,58 +1013,51 @@ class _ProfileScreenState extends State<ProfileScreen>
                             }
 
                             try {
+                              setState(() => _isLoading = true);
+                              
                               // Split name into first and last
-                              final nameParts = _profileData['name']
-                                  .toString()
-                                  .trim()
-                                  .split(' ');
-                              final firstName = nameParts.isNotEmpty
-                                  ? nameParts.first
-                                  : '';
-                              final lastName = nameParts.length > 1
-                                  ? nameParts.sublist(1).join(' ')
-                                  : '';
+                              final nameParts = _profileData['name'].toString().trim().split(' ');
+                              final firstName = nameParts.isNotEmpty ? nameParts.first : '';
+                              final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
                                 
-                                // Format Date of Birth to YYYY-MM-DD
-                                String formattedDob = '';
-                                try {
-                                    // Parse from "d MMM yyyy" format (e.g. "1 Jan 2024") to YYYY-MM-DD
-                                    // We can reuse the stored day/month/year if available or parse string
-                                    // Since we have _selectedYear, _selectedMonth, _selectedDay, use them securely if match
-                                    // Or parse the string
-                                    final dobStr = _profileData['dateOfBirth'].toString();
-                                    final parts = dobStr.split(' ');
-                                    if (parts.length == 3) {
-                                        final day = int.parse(parts[0]);
-                                        final monthStr = parts[1];
-                                        final year = int.parse(parts[2]);
-                                        
-                                        final months = [
-                                          'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-                                        ];
-                                        final month = months.indexOf(monthStr) + 1;
-                                        
-                                        formattedDob = '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
-                                    } else {
-                                        formattedDob = dobStr; // Fallback
-                                    }
-                                } catch (e) {
-                                    print('Error formatting date: $e');
-                                    formattedDob = _profileData['dateOfBirth'].toString();
-                                }
+                              // Format Date of Birth to YYYY-MM-DD
+                              String formattedDob = '';
+                              try {
+                                  final dobStr = _profileData['dateOfBirth'].toString();
+                                  final parts = dobStr.split(' ');
+                                  if (parts.length == 3) {
+                                      final monthStr = parts[1];
+                                      final months = [
+                                        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                                      ];
+                                      if (months.contains(monthStr)) {
+                                          final day = int.parse(parts[0]);
+                                          final year = int.parse(parts[2]);
+                                          final month = months.indexOf(monthStr) + 1;
+                                          formattedDob = '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
+                                      } else {
+                                          formattedDob = dobStr;
+                                      }
+                                  } else {
+                                      formattedDob = dobStr; // Fallback
+                                  }
+                              } catch (e) {
+                                  print('Error formatting date: $e');
+                                  formattedDob = _profileData['dateOfBirth'].toString();
+                              }
 
-                                await UserService().updateUserProfile({
-                                  'first_name': firstName,
-                                  'last_name': lastName,
-                                  'phone_number':
-                                      '${_profileData['phonePrefix']}${_profileData['phone']}',
-                                  'date_of_birth': formattedDob,
-                                  'gender': _profileData['gender'],
-                                  'medical_history':
-                                      _profileData['medicalHistory'],
-                                  'allergies': _profileData['allergies'],
-                                });
+                              final Map<String, String> updateData = {
+                                'first_name': firstName,
+                                'last_name': lastName,
+                                'phone_number': '${_profileData['phonePrefix']}${_profileData['phone']}',
+                                'date_of_birth': formattedDob,
+                                // Gender removed
+                                'medical_history': _profileData['medicalHistory']?.toString() ?? '',
+                                'allergies': _profileData['allergies']?.toString() ?? '',
+                              };
+
+                              await UserService().updateUserProfile(updateData, imageFile: _imageFile);
 
                               // Refresh data
                               await _loadUserData();
@@ -1054,9 +1065,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text(
-                                      'Profile updated successfully',
-                                    ),
+                                    content: Text('Profile updated successfully'),
                                     backgroundColor: Color(0xFF10B981),
                                   ),
                                 );
@@ -1069,12 +1078,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text(
-                                      'Failed to update profile: $e',
-                                    ),
-                                    backgroundColor: Colors.red,
+                                    content: Text('Failed to update profile: $e'),
+                                    backgroundColor: const Color(0xFFFF4444),
                                   ),
                                 );
+                              }
+                            } finally {
+                              if (mounted) {
+                                setState(() => _isLoading = false);
                               }
                             }
                           },
@@ -1096,16 +1107,27 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 ),
                               ],
                             ),
-                            child: const Center(
-                              child: Text(
-                                'Save Changes',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                            child: _isLoading 
+                              ? const Center(
+                                  child: SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                )
+                              : const Center(
+                                  child: Text(
+                                    'Save Changes',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
                           ),
                         ),
                       ],
