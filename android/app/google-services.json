@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "947609033338",
+    "project_id": "madiscan-c7cae",
+    "storage_bucket": "madiscan-c7cae.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:947609033338:android:cb9df6e249851f954c79c3",
+        "android_client_info": {
+          "package_name": "com.healthtrack.health_track"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "947609033338-tvvpjselq79oc1olvbfh2emeo8d06f4d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.healthtrack.health_track",
+            "certificate_hash": "9debf0527602446ec6a6aaba28d22f918ebe3159"
+          }
+        },
+        {
+          "client_id": "947609033338-4fufsknkus1lj684p24mal444jue0etd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlBO94DeodStSc1NBY_ahMS1UBdJC-oCk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "947609033338-4fufsknkus1lj684p24mal444jue0etd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

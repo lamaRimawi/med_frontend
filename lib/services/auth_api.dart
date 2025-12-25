@@ -75,6 +75,66 @@ class AuthApi {
     }
   }
 
+  static Future<(bool success, String? message)> loginWithGoogle(
+      String idToken) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('jwt_token');
+
+    final client = ApiClient.instance;
+
+    final res = await client.post(
+      ApiConfig.googleLogin,
+      body: json.encode({'id_token': idToken}),
+    );
+
+    if (res.statusCode == 200 || res.statusCode == 201) {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      final token = data['access_token'] as String?;
+      if (token == null || token.isEmpty) {
+        return (false, 'No access token in response');
+      }
+      await prefs.setString('jwt_token', token);
+      return (true, null);
+    }
+
+    try {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      return (false, data['message']?.toString() ?? 'Google login failed');
+    } catch (_) {
+      return (false, 'Google login failed (${res.statusCode})');
+    }
+  }
+
+  static Future<(bool success, String? message)> loginWithFacebook(
+      String accessToken) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('jwt_token');
+
+    final client = ApiClient.instance;
+
+    final res = await client.post(
+      ApiConfig.facebookLogin,
+      body: json.encode({'access_token': accessToken}),
+    );
+
+    if (res.statusCode == 200 || res.statusCode == 201) {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      final token = data['access_token'] as String?;
+      if (token == null || token.isEmpty) {
+        return (false, 'No access token in response');
+      }
+      await prefs.setString('jwt_token', token);
+      return (true, null);
+    }
+
+    try {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      return (false, data['message']?.toString() ?? 'Facebook login failed');
+    } catch (_) {
+      return (false, 'Facebook login failed (${res.statusCode})');
+    }
+  }
+
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('jwt_token');

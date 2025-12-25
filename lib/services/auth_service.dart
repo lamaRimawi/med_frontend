@@ -1,4 +1,6 @@
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,27 +10,51 @@ class AuthService {
   // Biometric Authentication
   static final LocalAuthentication _localAuth = LocalAuthentication();
 
-  // Google Sign-In (Placeholder - requires Firebase setup)
+  // Google Sign-In with Firebase
+  static final GoogleSignIn _googleSignIn = GoogleSignIn();
+  static final FirebaseAuth _auth = FirebaseAuth.instance;
+
   static Future<Map<String, dynamic>?> signInWithGoogle() async {
     try {
-      // TODO: Implement Google Sign-In with Firebase Auth
-      // For now, return a simulated response
       print('Google Sign-In initiated');
-      print('Note: Requires Firebase configuration to work');
+      
+      // Trigger the authentication flow
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return null; // User cancelled
 
-      // Simulate a delay
-      await Future.delayed(const Duration(seconds: 1));
+      // Obtain the auth details from the request
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
-      // Return null to indicate not configured
+      // Create a new credential
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Once signed in, return the UserCredential
+      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+      final User? user = userCredential.user;
+
+      if (user != null) {
+        print('Google Sign-In successful: ${user.email}');
+        return {
+          'id': user.uid,
+          'email': user.email,
+          'displayName': user.displayName,
+          'photoUrl': user.photoURL,
+          'idToken': googleAuth.idToken, // To send to backend
+        };
+      }
       return null;
     } catch (error) {
       print('Google Sign-In Error: $error');
-      return null;
+      rethrow;
     }
   }
 
   static Future<void> signOutGoogle() async {
-    print('Google Sign-Out');
+    await _googleSignIn.signOut();
+    await _auth.signOut();
   }
 
   // Facebook Login
@@ -51,13 +77,17 @@ class AuthService {
         //   body: {'accessToken': result.accessToken?.tokenString},
         // );
 
-        return userData;
+        return {
+          ...userData,
+          'accessToken': result.accessToken?.tokenString,
+        };
       } else {
-        print('Facebook Login failed: ${result.status}');
+        print('Facebook Login failed: status=${result.status}, message=${result.message}');
         return null;
       }
-    } catch (error) {
-      print('Facebook Login Error: $error');
+    } catch (e, stack) {
+      print('Facebook Login Exception: $e');
+      print('Stack Trace: $stack');
       return null;
     }
   }
@@ -106,21 +136,20 @@ class AuthService {
 
       final bool didAuthenticate = await _localAuth.authenticate(
         localizedReason: 'Please authenticate to access your account',
+        options: const AuthenticationOptions(
+          stickyAuth: true,
+          biometricOnly: true,
+        ),
       );
 
       return didAuthenticate;
-    } on LocalAuthException catch (e) {
+    } on PlatformException catch (e) {
       if (e.code == 'noCredentialsSet') {
         throw 'No fingerprints enrolled. Please add a fingerprint in your phone settings.';
       } else if (e.code == 'notAvailable') {
         throw 'Biometric security is not available on this device.';
       }
       throw 'Biometric error: ${e.code}';
-    } on PlatformException catch (e) {
-      if (e.code == 'noCredentialsSet') {
-        throw 'No fingerprints enrolled. Please add a fingerprint in your phone settings.';
-      }
-      rethrow;
     } catch (e) {
       rethrow;
     }

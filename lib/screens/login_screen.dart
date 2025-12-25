@@ -24,9 +24,11 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  bool _showPassword = false;
+  bool _obscurePassword = true;
   String? _alertMessage;
   bool _isAlertError = true;
+  String _biometricType = 'Fingerprint';
+  IconData _biometricIcon = LucideIcons.fingerprint;
 
   bool get _isDarkMode =>
       ThemeProvider.of(context)?.themeMode == ThemeMode.dark ?? false;
@@ -136,39 +138,61 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       if (provider == 'Google') {
-        final result = await AuthService.signInWithGoogle();
-        if (result != null && mounted) {
-          setState(() {
-            _alertMessage =
-                'Signed in with Google: ${result['email'] ?? 'User'}';
-            _isAlertError = false;
-            _isLoading = false;
-          });
-          Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) Navigator.pushReplacementNamed(context, '/home');
-          });
-        } else {
+        final userData = await AuthService.signInWithGoogle();
+        if (userData != null && mounted) {
+          // REAL LOGIN: Send userData['idToken'] to your backend 
+          final (success, message) = await AuthApi.loginWithGoogle(userData['idToken']);
+          
           if (mounted) {
-            setState(() {
-              _alertMessage = 'Google Sign-In requires Firebase configuration';
-              _isAlertError = true;
-              _isLoading = false;
-            });
+            if (success) {
+              setState(() {
+                _alertMessage = 'Signed in as ${userData['email']}';
+                _isAlertError = false;
+                _isLoading = false;
+              });
+              Future.delayed(const Duration(milliseconds: 800), () {
+                if (mounted) Navigator.pushReplacementNamed(context, '/home');
+              });
+            } else {
+              setState(() {
+                _alertMessage = message ?? 'Backend login failed';
+                _isAlertError = true;
+                _isLoading = false;
+              });
+            }
           }
+
+        } else {
+          setState(() => _isLoading = false);
         }
       } else if (provider == 'Facebook') {
         final userData = await AuthService.signInWithFacebook();
         if (userData != null && mounted) {
-          setState(() {
-            _alertMessage =
-                'Signed in with Facebook: ${userData['email'] ?? userData['name']}';
-            _isAlertError = false;
-            _isLoading = false;
-          });
-          Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) Navigator.pushReplacementNamed(context, '/home');
-          });
+          // REAL LOGIN: Send accessToken to your backend
+          final (success, message) =
+              await AuthApi.loginWithFacebook(userData['accessToken']);
+
+          if (mounted) {
+            if (success) {
+              setState(() {
+                _alertMessage =
+                    'Signed in with Facebook: ${userData['email'] ?? userData['name']}';
+                _isAlertError = false;
+                _isLoading = false;
+              });
+              Future.delayed(const Duration(seconds: 2), () {
+                if (mounted) Navigator.pushReplacementNamed(context, '/home');
+              });
+            } else {
+              setState(() {
+                _alertMessage = message ?? 'Facebook backend login failed';
+                _isAlertError = true;
+                _isLoading = false;
+              });
+            }
+          }
         } else {
+
           if (mounted) {
             setState(() {
               _alertMessage = 'Facebook Login cancelled or failed';
@@ -177,7 +201,7 @@ class _LoginScreenState extends State<LoginScreen> {
             });
           }
         }
-      } else if (provider == 'Fingerprint') {
+      } else if (provider == _biometricType) {
         // Check if enabled first
         final prefs = await SharedPreferences.getInstance();
         final isEnabled = prefs.getBool('biometric_enabled') ?? false;
@@ -359,9 +383,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     icon: LucideIcons.lock,
                     controller: _passwordController,
                     isPassword: true,
-                    showPassword: _showPassword,
+                    showPassword: !_obscurePassword,
                     onTogglePassword: () =>
-                        setState(() => _showPassword = !_showPassword),
+                        setState(() => _obscurePassword = !_obscurePassword),
                     validateOnChange: true,
                     validator: Validators.validatePassword,
                   ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
@@ -449,8 +473,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       _buildSocialButton(LucideIcons.facebook, 'Facebook'),
                       const SizedBox(width: 24),
                       _buildSocialButton(
-                        LucideIcons.fingerprint,
-                        'Fingerprint',
+                        _biometricIcon,
+                        _biometricType,
                       ),
                     ],
                   ).animate().fadeIn(delay: 1000.ms).moveY(begin: 20, end: 0),

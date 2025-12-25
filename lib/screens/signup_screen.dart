@@ -149,37 +149,62 @@ class _SignupScreenState extends State<SignupScreen> {
     
     try {
       if (provider == 'Google') {
-        final result = await AuthService.signInWithGoogle();
-        if (result != null && mounted) {
-          setState(() {
-            _alertMessage = 'Signed up with Google: ${result['email'] ?? 'User'}';
-            _isAlertError = false;
-            _isLoading = false;
-          });
-          Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) Navigator.pushReplacementNamed(context, '/login');
-          });
-        } else {
+        final userData = await AuthService.signInWithGoogle();
+        if (userData != null && mounted) {
+          // REAL LOGIN/SIGNUP: Send userData['idToken'] to your backend
+          final (success, message) = await AuthApi.loginWithGoogle(userData['idToken']);
+          
           if (mounted) {
-            setState(() {
-              _alertMessage = 'Google Sign-In requires Firebase configuration';
-              _isAlertError = true;
-              _isLoading = false;
-            });
+            if (success) {
+              setState(() {
+                _alertMessage = 'Signed up with Google as ${userData['email']}';
+                _isAlertError = false;
+                _isLoading = false;
+              });
+              Future.delayed(const Duration(milliseconds: 1500), () {
+                if (mounted) Navigator.pushReplacementNamed(context, '/home');
+              });
+            } else {
+              setState(() {
+                _alertMessage = message ?? 'Backend synchronization failed';
+                _isAlertError = true;
+                _isLoading = false;
+              });
+            }
           }
+
+        } else {
+          setState(() => _isLoading = false);
         }
       } else if (provider == 'Facebook') {
         final userData = await AuthService.signInWithFacebook();
         if (userData != null && mounted) {
-          setState(() {
-            _alertMessage = 'Signed up with Facebook: ${userData["email"] ?? userData["name"]}';
-            _isAlertError = false;
-            _isLoading = false;
-          });
-          Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) Navigator.pushReplacementNamed(context, '/login');
-          });
+          // REAL SIGNUP/LOGIN: Send accessToken to your backend
+          final (success, message) =
+              await AuthApi.loginWithFacebook(userData['accessToken']);
+
+          if (mounted) {
+            if (success) {
+              setState(() {
+                _alertMessage =
+                    'Signed up with Facebook: ${userData['email'] ?? userData['name']}';
+                _isAlertError = false;
+                _isLoading = false;
+              });
+
+              Future.delayed(const Duration(seconds: 2), () {
+                if (mounted) Navigator.pushReplacementNamed(context, '/home');
+              });
+            } else {
+              setState(() {
+                _alertMessage = message ?? 'Facebook backend synchronization failed';
+                _isAlertError = true;
+                _isLoading = false;
+              });
+            }
+          }
         } else {
+
           if (mounted) {
             setState(() {
               _alertMessage = 'Facebook Login cancelled or failed';

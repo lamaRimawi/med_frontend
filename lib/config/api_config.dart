@@ -11,6 +11,8 @@ class ApiConfig {
   static const String resendVerification = '/auth/resend-verification';
   static const String resetPassword = '/auth/reset-password';
   static const String changePassword = '/auth/change-password';
+  static const String googleLogin = '/auth/google';
+  static const String facebookLogin = '/auth/facebook';
   static const String vlmChat = '/vlm/chat';
   static const String userProfile = '/users/profile';
   static const String deleteAccount = '/users/delete-account';
