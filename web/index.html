@@ -29,8 +29,32 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>health_track</title>
+  <title>MediScan</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Google Sign-In -->
+  <meta name="google-signin-client_id" content="947609033338-4fufsknkus1lj684p24mal444jue0etd.apps.googleusercontent.com">
+
+  <!-- Facebook SDK -->
+  <script>
+    window.fbAsyncInit = function() {
+      FB.init({
+        appId      : '869063912491178',
+        cookie     : true,
+        xfbml      : true,
+        version    : 'v12.0'
+      });
+      FB.AppEvents.logPageView();
+    };
+
+    (function(d, s, id){
+       var js, fjs = d.getElementsByTagName(s)[0];
+       if (d.getElementById(id)) {return;}
+       js = d.createElement(s); js.id = id;
+       js.src = "https://connect.facebook.net/en_US/sdk.js";
+       fjs.parentNode.insertBefore(js, fjs);
+     }(document, 'script', 'facebook-jssdk'));
+  </script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
