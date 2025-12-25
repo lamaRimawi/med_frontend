@@ -167,7 +167,7 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
   Widget build(BuildContext context) {
     final isDark = _isDarkMode;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: Stack(
         children: [
           const MedicalBackground(),
@@ -265,7 +265,7 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
   Widget _buildSearchField() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
@@ -277,6 +277,7 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
       ),
       child: TextField(
         controller: _searchController,
+        style: TextStyle(color: _isDarkMode ? Colors.white : Colors.black),
         onChanged: (value) {
           setState(() => _isSearching = value.isNotEmpty);
         },
@@ -303,9 +304,9 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: const Color(0xFFE9F6FE)),
+        border: Border.all(color: _isDarkMode ? const Color(0xFF2A2A2A) : const Color(0xFFE9F6FE)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.03),

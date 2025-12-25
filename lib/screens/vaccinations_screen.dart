@@ -190,8 +190,9 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: Stack(
         children: [
           const MedicalBackground(),
@@ -213,9 +214,9 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildTitleRow(),
+                            _buildTitleRow(isDark),
                             const SizedBox(height: 32),
-                            _buildSectionHeader('Immunisation history'),
+                            _buildSectionHeader('Immunisation history', isDark),
                             const SizedBox(height: 12),
                             ..._history.asMap().entries.map(
                               (entry) => Animate(
@@ -230,7 +231,7 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
                                     duration: Duration(milliseconds: 250),
                                   ),
                                 ],
-                                child: _buildHistoryRow(entry.value, entry.key),
+                                child: _buildHistoryRow(entry.value, entry.key, isDark),
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -239,7 +240,7 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
                               () => _toggleAddForm('history'),
                             ),
                             const SizedBox(height: 32),
-                            _buildSectionHeader('Next Immunisations due'),
+                            _buildSectionHeader('Next Immunisations due', isDark),
                             const SizedBox(height: 12),
                             ..._next.asMap().entries.map(
                               (entry) => Animate(
@@ -254,7 +255,7 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
                                     duration: Duration(milliseconds: 250),
                                   ),
                                 ],
-                                child: _buildNextRow(entry.value, entry.key),
+                                child: _buildNextRow(entry.value, entry.key, isDark),
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -268,7 +269,7 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
                     ],
                   ),
                 ),
-                _buildModal(),
+                _buildModal(isDark),
               ],
             ),
           ),
@@ -278,15 +279,19 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
   }
 
   Widget _buildHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(left: 24, right: 24, top: 12, bottom: 28),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : null,
+        gradient: isDark
+            ? null
+            : const LinearGradient(
+                colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
       ),
       child: Column(
         children: [
@@ -319,13 +324,17 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
     );
   }
 
-  Widget _buildTitleRow() {
+  Widget _buildTitleRow(bool isDark) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text(
+        Text(
           'Vaccinations',
-          style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.w700,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
         ),
         IconButton(
           onPressed: () => setState(() => _editMode = !_editMode),
@@ -339,13 +348,17 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(String title, bool isDark) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           title,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+            color: isDark ? Colors.white70 : Colors.black87,
+          ),
         ),
         const Row(
           children: [
@@ -373,17 +386,21 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
     );
   }
 
-  Widget _buildHistoryRow(VaccinationRecord record, int index) {
+  Widget _buildHistoryRow(VaccinationRecord record, int index, bool isDark) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
           child: Text(
             record.name,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
           ),
         ),
-        _buildDateTriplet(record),
+        _buildDateTriplet(record, isDark),
         if (_editMode)
           IconButton(
             icon: const Icon(LucideIcons.x, color: Colors.redAccent, size: 20),
@@ -393,11 +410,11 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
     );
   }
 
-  Widget _buildNextRow(VaccinationRecord record, int index) {
+  Widget _buildNextRow(VaccinationRecord record, int index, bool isDark) {
     final isPlanned = record.isPlanned;
     final content = isPlanned
         ? _buildPlannedDate(record)
-        : _buildDateTriplet(record);
+        : _buildDateTriplet(record, isDark);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -408,7 +425,9 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w500,
-              color: isPlanned ? const Color(0xFF39A4E6) : Colors.black87,
+              color: isPlanned
+                  ? const Color(0xFF39A4E6)
+                  : (isDark ? Colors.white : Colors.black87),
             ),
           ),
         ),
@@ -422,12 +441,16 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
     );
   }
 
-  Widget _buildDateTriplet(VaccinationRecord record) {
+  Widget _buildDateTriplet(VaccinationRecord record, bool isDark) {
+    final style = TextStyle(color: isDark ? Colors.white : Colors.black87);
     return Row(
       children: [
-        SizedBox(width: 28, child: Center(child: Text(record.day))),
-        SizedBox(width: 28, child: Center(child: Text(record.month))),
-        SizedBox(width: 28, child: Center(child: Text(record.year))),
+        SizedBox(
+            width: 28, child: Center(child: Text(record.day, style: style))),
+        SizedBox(
+            width: 28, child: Center(child: Text(record.month, style: style))),
+        SizedBox(
+            width: 28, child: Center(child: Text(record.year, style: style))),
       ],
     );
   }
@@ -472,7 +495,7 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
     );
   }
 
-  Widget _buildModal() {
+  Widget _buildModal(bool isDark) {
     return IgnorePointer(
       ignoring: !_showAddForm,
       child: AnimatedOpacity(
@@ -494,7 +517,7 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
                       padding: const EdgeInsets.all(24),
                       margin: const EdgeInsets.symmetric(horizontal: 24),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                         borderRadius: BorderRadius.circular(32),
                         boxShadow: [
                           BoxShadow(
@@ -533,6 +556,7 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
                             label: 'Vaccine Name',
                             hint: 'e.g., COVID-19',
                             errorKey: 'name',
+                            isDark: isDark,
                           ),
                           const SizedBox(height: 16),
                           Row(
@@ -545,6 +569,7 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
                                   maxLength: 2,
                                   errorKey: 'day',
                                   keyboardType: TextInputType.number,
+                                  isDark: isDark,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -556,6 +581,7 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
                                   maxLength: 2,
                                   errorKey: 'month',
                                   keyboardType: TextInputType.number,
+                                  isDark: isDark,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -567,6 +593,7 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
                                   maxLength: 2,
                                   errorKey: 'year',
                                   keyboardType: TextInputType.number,
+                                  isDark: isDark,
                                 ),
                               ),
                             ],
@@ -630,22 +657,32 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
     required String errorKey,
     int? maxLength,
     TextInputType keyboardType = TextInputType.text,
+    required bool isDark,
   }) {
     final errorMessage = _errors[errorKey] ?? '';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+        Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: isDark ? Colors.white70 : Colors.black87,
+          ),
+        ),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
           maxLength: maxLength,
           keyboardType: keyboardType,
+          style: TextStyle(color: isDark ? Colors.white : Colors.black),
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle:
+                TextStyle(color: isDark ? Colors.white30 : Colors.black38),
             counterText: '',
             filled: true,
-            fillColor: Colors.grey.shade100,
+            fillColor: isDark ? const Color(0xFF121212) : Colors.grey.shade100,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(18),
               borderSide: BorderSide(

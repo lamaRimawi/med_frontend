@@ -81,8 +81,9 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: Stack(
         children: [
           const MedicalBackground(),
@@ -101,7 +102,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSectionTitle('What is your gender'),
+                        _buildSectionTitle('What is your gender', isDark),
                         const SizedBox(height: 12),
                         Row(
                           children: ["Male", "Female", "Other"].map((gender) {
@@ -124,7 +125,11 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                                             end: Alignment.bottomCenter,
                                           )
                                         : null,
-                                    color: selected ? null : Colors.white,
+                                    color: selected
+                                        ? null
+                                        : (isDark
+                                            ? const Color(0xFF1E1E1E)
+                                            : Colors.white),
                                     borderRadius: BorderRadius.circular(30),
                                     border: Border.all(
                                       color: const Color(0xFF39A4E6),
@@ -210,7 +215,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                               setState(() => _height = value.round()),
                         ),
                         const SizedBox(height: 32),
-                        _buildSectionTitle('What is your blood type'),
+                        _buildSectionTitle('What is your blood type', isDark),
                         const SizedBox(height: 12),
                         GridView.builder(
                           shrinkWrap: true,
@@ -241,7 +246,9 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                                     : null,
                                 color: selected
                                     ? null
-                                    : const Color(0xFFE9F6FE),
+                                    : (isDark
+                                        ? const Color(0xFF1E1E1E)
+                                        : const Color(0xFFE9F6FE)),
                                 borderRadius: BorderRadius.circular(18),
                                 boxShadow: selected
                                     ? [
@@ -279,15 +286,21 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                         ),
                         const SizedBox(height: 32),
                         
-                        _buildSectionTitle('Medical Document'),
+                        const SizedBox(height: 32),
+                        
+                        _buildSectionTitle('Medical Document', isDark),
                         const SizedBox(height: 12),
                         Container(
                           width: double.infinity,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF0F9FF),
+                            color: isDark
+                                ? const Color(0xFF1E1E1E)
+                                : const Color(0xFFF0F9FF),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: const Color(0xFF39A4E6).withOpacity(0.3),
+                              color: isDark
+                                  ? const Color(0xFF2A2A2A)
+                                  : const Color(0xFF39A4E6).withOpacity(0.3),
                               width: 1,
                             ),
                           ),
@@ -367,15 +380,19 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
   }
 
   Widget _buildHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(left: 24, right: 24, top: 12, bottom: 28),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : null,
+        gradient: isDark
+            ? null
+            : const LinearGradient(
+                colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
       ),
       child: Column(
         children: [
@@ -408,13 +425,13 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String text) {
+  Widget _buildSectionTitle(String text, bool isDark) {
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w600,
-        color: Colors.black87,
+        color: isDark ? Colors.white : Colors.black87,
       ),
     );
   }
@@ -430,10 +447,11 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
     required int divisions,
     required ValueChanged<double> onChanged,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle(label),
+        _buildSectionTitle(label, isDark),
         const SizedBox(height: 12),
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
@@ -442,7 +460,8 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
             overlayShape: SliderComponentShape.noOverlay,
             thumbColor: Colors.white,
             activeTrackColor: const Color(0xFF39A4E6),
-            inactiveTrackColor: const Color(0xFFE9F6FE),
+            inactiveTrackColor:
+                isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE9F6FE),
             valueIndicatorTextStyle: const TextStyle(color: Color(0xFF39A4E6)),
           ),
           child: Slider(

@@ -788,10 +788,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Widget build(BuildContext context) {
     final isDark = _isDarkMode;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: Stack(
         children: [
-          // Background Gradient
+          // Background Gradient (Unified Black for Dark Mode)
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -799,9 +799,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 end: Alignment.bottomRight,
                 colors: isDark
                     ? [
-                        const Color(0xFF1E293B),
-                        const Color(0xFF0F172A),
-                        const Color(0xFF1E293B),
+                        const Color(0xFF121212),
+                        const Color(0xFF121212),
+                        const Color(0xFF121212),
                       ]
                     : [
                         const Color(0xFFEFF6FF),
@@ -840,11 +840,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark
-            ? const Color(0xFF1E293B).withOpacity(0.9)
+            ? const Color(0xFF1E1E1E).withOpacity(0.9)
             : Colors.white.withOpacity(0.8),
         border: Border(
           bottom: BorderSide(
-            color: isDark ? const Color(0xFF334155) : Colors.grey[100]!,
+            color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[100]!,
           ),
         ),
       ),
@@ -875,11 +875,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF334155) : Colors.white,
+                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: isDark
-                              ? const Color(0xFF475569)
+                              ? const Color(0xFF2A2A2A)
                               : Colors.grey[200]!,
                         ),
                       ),
@@ -931,14 +931,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         color: _showFilters || _filterType != 'all'
                             ? const Color(0xFF39A4E6)
                             : isDark
-                            ? const Color(0xFF334155)
+                            ? const Color(0xFF1E1E1E)
                             : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: _showFilters || _filterType != 'all'
                               ? const Color(0xFF39A4E6)
                               : isDark
-                              ? const Color(0xFF475569)
+                              ? const Color(0xFF2A2A2A)
                               : Colors.grey[200]!,
                         ),
                       ),
@@ -1090,10 +1090,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark ? const Color(0xFF334155) : Colors.grey[100]!,
+          color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[100]!,
         ),
         boxShadow: [
           BoxShadow(
@@ -1277,7 +1277,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         decoration: BoxDecoration(
           color: isDestructive
               ? (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2))
-              : (isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
+              : (isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF1F5F9)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(
@@ -1304,7 +1304,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             margin: const EdgeInsets.all(24),
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
@@ -1452,10 +1452,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final isDark = _isDarkMode;
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF334155) : Colors.grey[100],
+        color: isDark ? const Color(0xFF121212) : Colors.grey[100],
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? const Color(0xFF475569) : Colors.grey[300]!,
+          color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[300]!,
           width: 1.5,
         ),
       ),
@@ -2087,10 +2087,10 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
 
     return Scaffold(
       backgroundColor: isDark
-          ? const Color(0xFF0F172A)
+          ? const Color(0xFF121212)
           : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: Icon(

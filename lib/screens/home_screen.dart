@@ -439,7 +439,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: _isDarkMode
-          ? const Color(0xFF0F172A)
+          ? const Color(0xFF121212)
           : const Color(0xFFF9FAFB),
       extendBody: true,
       body: body,
@@ -514,7 +514,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: _isDarkMode ? const Color(0xFF1F2937) : Colors.white,
+                    color: _isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
@@ -543,7 +543,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: _isDarkMode ? const Color(0xFF1F2937) : Colors.white,
+                    color: _isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
@@ -610,13 +610,13 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         height: 56,
         decoration: BoxDecoration(
-          color: _isDarkMode ? const Color(0xFF1F2937) : Colors.white,
+          color: _isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: _isSearchFocused
                 ? const Color(0xFF39A4E6)
                 : (_isDarkMode
-                      ? const Color(0xFF374151)
+                      ? const Color(0xFF2A2A2A)
                       : const Color(0xFFE5E7EB)),
             width: 2,
           ),
@@ -664,7 +664,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 24,
                   decoration: BoxDecoration(
                     color: _isDarkMode
-                        ? const Color(0xFF374151)
+                        ? const Color(0xFF2A2A2A)
                         : const Color(0xFFE5E7EB),
                     shape: BoxShape.circle,
                   ),

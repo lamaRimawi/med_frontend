@@ -80,7 +80,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           constraints: const BoxConstraints(maxWidth: 300),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: widget.isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+            color: widget.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
@@ -393,7 +393,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           constraints: const BoxConstraints(maxWidth: 340),
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: widget.isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+            color: widget.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
@@ -1086,7 +1086,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
 
     return Scaffold(
       backgroundColor: widget.isDarkMode
-          ? const Color(0xFF0F172A)
+          ? const Color(0xFF121212)
           : Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,

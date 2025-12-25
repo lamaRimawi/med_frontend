@@ -53,8 +53,9 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: Stack(
         children: [
           const MedicalBackground(),
@@ -73,7 +74,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildTitle(),
+                        _buildTitle(isDark),
                         const SizedBox(height: 24),
                         _buildEditableCard(
                           title: 'In Control',
@@ -82,6 +83,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                           onEditToggle: () => setState(
                             () => _isEditingControl = !_isEditingControl,
                           ),
+                          isDark: isDark,
                         ),
                         const SizedBox(height: 24),
                         _buildEditableCard(
@@ -91,9 +93,10 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                           onEditToggle: () => setState(
                             () => _isEditingTreatment = !_isEditingTreatment,
                           ),
+                          isDark: isDark,
                         ),
                         const SizedBox(height: 32),
-                        _buildDoctorsSection(),
+                        _buildDoctorsSection(isDark),
                       ],
                     ),
                   ),
@@ -107,14 +110,18 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
   }
 
   Widget _buildHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.only(left: 24, right: 24, top: 12, bottom: 28),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : null,
+        gradient: isDark
+            ? null
+            : const LinearGradient(
+                colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
       ),
       child: Column(
         children: [
@@ -143,20 +150,23 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
     );
   }
 
-  Widget _buildTitle() {
+  Widget _buildTitle(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
+      children: [
         Text(
           'Medical History',
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: Colors.black87,
+            color: isDark ? Colors.white : Colors.black87,
           ),
         ),
-        SizedBox(height: 8),
-        Divider(color: Color(0xFFE9F6FE), thickness: 1),
+        const SizedBox(height: 8),
+        Divider(
+          color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE9F6FE),
+          thickness: 1,
+        ),
       ],
     );
   }
@@ -166,6 +176,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
     required TextEditingController controller,
     required bool isEditing,
     required VoidCallback onEditToggle,
+    required bool isDark,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,7 +184,13 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+            Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white70 : Colors.black87,
+              ),
+            ),
             TextButton.icon(
               onPressed: onEditToggle,
               icon: Icon(
@@ -192,9 +209,11 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFFE9F6FE)),
+            border: Border.all(
+              color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE9F6FE),
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.03),
@@ -207,7 +226,11 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
             controller: controller,
             enabled: isEditing,
             maxLines: null,
-            style: const TextStyle(fontSize: 13, height: 1.4),
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.4,
+              color: isDark ? Colors.white : Colors.black,
+            ),
             decoration: const InputDecoration.collapsed(hintText: ''),
           ),
         ),
@@ -215,7 +238,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
     );
   }
 
-  Widget _buildDoctorsSection() {
+  Widget _buildDoctorsSection(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -266,9 +289,13 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFFE9F6FE)),
+                        border: Border.all(
+                          color: isDark
+                              ? const Color(0xFF2A2A2A)
+                              : const Color(0xFFE9F6FE),
+                        ),
                       ),
                       child: Row(
                         children: [

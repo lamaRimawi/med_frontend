@@ -21,7 +21,7 @@ class ModernBottomNavBar extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B).withOpacity(0.95) : Colors.white.withOpacity(0.95),
+        color: isDark ? const Color(0xFF1E1E1E).withOpacity(0.95) : Colors.white.withOpacity(0.95),
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(

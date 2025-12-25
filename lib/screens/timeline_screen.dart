@@ -207,13 +207,13 @@ class _TimelineScreenState extends State<TimelineScreen> {
   Widget build(BuildContext context) {
     final isDark = widget.isDarkMode;
 
-    // Dark Mode Palette (Deep Twilight)
+    // Dark Mode Palette (Unified Black/Grey)
     const darkBgGradient = LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
       colors: [
-         Color(0xFF2E335A), // Deep twilight blue
-         Color(0xFF1C1B33), // Darker night
+         Color(0xFF121212), // Material Dark Background
+         Color(0xFF121212), // Solid consistency
       ],
     );
 
@@ -233,6 +233,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+      backgroundColor: isDark ? const Color(0xFF121212) : null, // Fallback
       body: Container(
         decoration: BoxDecoration(gradient: bgGradient),
         child: SafeArea(
@@ -379,7 +380,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
   Widget _buildChartSection(bool isDark, Color textColor, Color? subTextColor) {
     final cardColor = isDark 
-        ? const Color(0xFF48319D).withOpacity(0.2) 
+        ? const Color(0xFF1E1E1E).withOpacity(0.8) 
         : Colors.white.withOpacity(0.7);
     
     final borderColor = isDark 
@@ -458,7 +459,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     key: _metricButtonKey,
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
+                      color: isDark ? const Color(0xFF2A2A2A) : Colors.black.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
@@ -849,7 +850,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withOpacity(0.05) : Colors.white.withOpacity(0.7),
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white.withOpacity(0.7),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: isDark ? Colors.white.withOpacity(0.1) : Colors.white),
         boxShadow: isDark ? null : [
@@ -889,7 +890,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
   Widget _buildHistoryList(bool isDark, Color textColor, Color? subTextColor) {
     final cardColor = isDark 
-        ? const Color(0xFF48319D).withOpacity(0.2) 
+        ? const Color(0xFF1E1E1E).withOpacity(0.8) 
         : Colors.white.withOpacity(0.7);
 
     return Container(

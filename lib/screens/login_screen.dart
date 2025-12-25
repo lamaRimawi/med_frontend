@@ -212,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final isDark = _isDarkMode;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: Stack(
         children: [
           AnimatedBubbleBackground(isDark: isDark),
@@ -395,7 +395,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: isDark
-                                ? const Color(0xFF1E293B)
+                                ? const Color(0xFF1E1E1E)
                                 : Colors.white,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(

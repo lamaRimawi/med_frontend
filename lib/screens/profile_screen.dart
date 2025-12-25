@@ -324,7 +324,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = _isDarkMode;
-    final bgColor = isDark ? const Color(0xFF030712) : Colors.white;
+    final bgColor = isDark ? const Color(0xFF121212) : Colors.white;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -388,7 +388,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
     return Scaffold(
       backgroundColor: isDark
-          ? const Color(0xFF0F172A)
+          ? const Color(0xFF121212)
           : const Color(0xFFF5F5F5),
       body: Column(
         children: [
@@ -555,7 +555,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     backgroundColor: Colors.transparent,
                     builder: (context) => Container(
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(24),
                           topRight: Radius.circular(24),
@@ -669,7 +669,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -721,7 +721,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF9FAFB),
+          color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF9FAFB),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -767,7 +767,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF9FAFB),
+        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF9FAFB),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(

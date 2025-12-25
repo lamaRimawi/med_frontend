@@ -117,8 +117,9 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: Stack(
         children: [
           const MedicalBackground(),
@@ -140,14 +141,14 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildPatientInfo(),
+                            _buildPatientInfo(isDark),
                             const SizedBox(height: 24),
-                            const Text(
+                            Text(
                               'Allergies',
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.black87,
+                                color: isDark ? Colors.white : Colors.black87,
                               ),
                             ),
                             const SizedBox(height: 6),
@@ -178,10 +179,14 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
                                   margin: const EdgeInsets.only(bottom: 16),
                                   padding: const EdgeInsets.all(18),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: isDark
+                                        ? const Color(0xFF1E1E1E)
+                                        : Colors.white,
                                     borderRadius: BorderRadius.circular(26),
                                     border: Border.all(
-                                      color: const Color(0xFFE9F6FE),
+                                      color: isDark
+                                          ? const Color(0xFF2A2A2A)
+                                          : const Color(0xFFE9F6FE),
                                     ),
                                     boxShadow: [
                                       BoxShadow(
@@ -234,8 +239,10 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
                                             const SizedBox(height: 6),
                                             Text(
                                               allergy.symptoms,
-                                              style: const TextStyle(
-                                                color: Colors.black87,
+                                              style: TextStyle(
+                                                color: isDark
+                                                    ? Colors.white70
+                                                    : Colors.black87,
                                                 height: 1.4,
                                               ),
                                             ),
@@ -291,7 +298,7 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
                     ],
                   ),
                 ),
-                _buildAddAllergyModal(),
+                _buildAddAllergyModal(isDark),
               ],
             ),
           ),
@@ -301,15 +308,19 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
   }
 
   Widget _buildHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(left: 24, right: 24, top: 12, bottom: 28),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : null,
+        gradient: isDark
+            ? null
+            : const LinearGradient(
+                colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
       ),
       child: Column(
         children: [
@@ -342,7 +353,7 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
     );
   }
 
-  Widget _buildPatientInfo() {
+  Widget _buildPatientInfo(bool isDark) {
     return Column(
       children: [
         const Text(
@@ -354,7 +365,9 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        Container(color: const Color(0xFFE9F6FE), height: 1),
+        Container(
+            color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE9F6FE),
+            height: 1),
         const SizedBox(height: 18),
         GridView(
           shrinkWrap: true,
@@ -366,19 +379,21 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
             childAspectRatio: 3.6,
           ),
           children: [
-            _buildInfoItem('Gender', widget.patientData.gender),
-            _buildInfoItem('Blood Type', widget.patientData.bloodType),
-            _buildInfoItem('Age', '${widget.patientData.age} Years'),
-            _buildInfoItem('Weight', '${widget.patientData.weight} kg'),
+            _buildInfoItem('Gender', widget.patientData.gender, isDark),
+            _buildInfoItem('Blood Type', widget.patientData.bloodType, isDark),
+            _buildInfoItem('Age', '${widget.patientData.age} Years', isDark),
+            _buildInfoItem('Weight', '${widget.patientData.weight} kg', isDark),
           ],
         ),
         const SizedBox(height: 18),
-        Container(color: const Color(0xFFE9F6FE), height: 1),
+        Container(
+            color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE9F6FE),
+            height: 1),
       ],
     );
   }
 
-  Widget _buildInfoItem(String label, String value) {
+  Widget _buildInfoItem(String label, String value, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -395,7 +410,7 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
     );
   }
 
-  Widget _buildAddAllergyModal() {
+  Widget _buildAddAllergyModal(bool isDark) {
     return IgnorePointer(
       ignoring: !_showAddForm,
       child: AnimatedOpacity(
@@ -417,7 +432,7 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
                       width: MediaQuery.of(context).size.width * 0.85,
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                         borderRadius: BorderRadius.circular(30),
                         boxShadow: [
                           BoxShadow(
@@ -453,6 +468,7 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
                             label: 'Allergy Name',
                             controller: _nameController,
                             hint: 'e.g., Penicillin',
+                            isDark: isDark,
                           ),
                           const SizedBox(height: 16),
                           _buildModalField(
@@ -460,6 +476,7 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
                             controller: _symptomsController,
                             hint: 'Describe symptoms...',
                             maxLines: 4,
+                            isDark: isDark,
                           ),
                           const SizedBox(height: 24),
                           Row(
@@ -524,14 +541,15 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
     required TextEditingController controller,
     required String hint,
     int maxLines = 1,
+    required bool isDark,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.black87,
+          style: TextStyle(
+            color: isDark ? Colors.white70 : Colors.black87,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -540,10 +558,13 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
           controller: controller,
           maxLines: maxLines,
           onChanged: (_) => setState(() {}),
+          style: TextStyle(color: isDark ? Colors.white : Colors.black),
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle:
+                TextStyle(color: isDark ? Colors.white30 : Colors.black38),
             filled: true,
-            fillColor: Colors.grey.shade100,
+            fillColor: isDark ? const Color(0xFF121212) : Colors.grey.shade100,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(18),
               borderSide: BorderSide.none,

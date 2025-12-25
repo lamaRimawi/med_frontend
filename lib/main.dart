@@ -130,11 +130,12 @@ class _MyAppState extends State<MyApp> {
               seedColor: const Color(0xFF39A4E6),
               primary: const Color(0xFF39A4E6),
               brightness: Brightness.dark,
+              surface: const Color(0xFF121212), // Ensure surface matches
             ),
             useMaterial3: true,
             fontFamily: 'Inter',
-            scaffoldBackgroundColor: const Color(0xFF0F172A),
-            cardColor: const Color(0xFF1E293B),
+            scaffoldBackgroundColor: const Color(0xFF121212), // Unified Black/Grey
+            cardColor: const Color(0xFF1E1E1E),
             appBarTheme: const AppBarTheme(
               backgroundColor: Color(0xFF1E1E1E),
               foregroundColor: Colors.white,

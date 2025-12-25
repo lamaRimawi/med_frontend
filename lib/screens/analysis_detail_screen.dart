@@ -60,7 +60,7 @@ class AnalysisDetailScreen extends StatelessWidget {
             as Map<String, dynamic>;
     final List<dynamic> sections = data['sections'] as List<dynamic>;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: Stack(
         children: [
           const MedicalBackground(),
@@ -91,17 +91,18 @@ class AnalysisDetailScreen extends StatelessWidget {
                         const SizedBox(height: 16),
                         Text(
                           data['description'] as String,
-                          style: const TextStyle(
-                            color: Colors.black87,
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : Colors.black87,
                             height: 1.5,
                           ),
                         ),
                         const SizedBox(height: 20),
                         Text(
                           data['subtitle'] as String,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : Colors.black87,
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -122,10 +123,14 @@ class AnalysisDetailScreen extends StatelessWidget {
                               margin: const EdgeInsets.only(bottom: 20),
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: isDark
+                                    ? const Color(0xFF1E1E1E)
+                                    : Colors.white,
                                 borderRadius: BorderRadius.circular(24),
                                 border: Border.all(
-                                  color: const Color(0xFFE9F6FE),
+                                  color: isDark
+                                      ? const Color(0xFF2A2A2A)
+                                      : const Color(0xFFE9F6FE),
                                 ),
                                 boxShadow: [
                                   BoxShadow(
@@ -157,9 +162,11 @@ class AnalysisDetailScreen extends StatelessWidget {
                                           Expanded(
                                             child: Text(
                                               item['name'] as String,
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontSize: 14,
-                                                color: Colors.black87,
+                                                color: isDark
+                                                    ? Colors.white
+                                                    : Colors.black87,
                                               ),
                                             ),
                                           ),
@@ -173,10 +180,12 @@ class AnalysisDetailScreen extends StatelessWidget {
                                           ),
                                           Text(
                                             item['value'] as String,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w600,
-                                              color: Colors.black87,
+                                              color: isDark
+                                                  ? Colors.white
+                                                  : Colors.black87,
                                             ),
                                           ),
                                         ],
@@ -205,7 +214,7 @@ class AnalysisDetailScreen extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.only(left: 24, right: 24, top: 12, bottom: 24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : const Color(0xFF39A4E6),
+        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFF39A4E6),
       ),
       child: Column(
         children: [
