@@ -521,34 +521,55 @@ class _SignupScreenState extends State<SignupScreen> {
                   // Divider
                   Row(
                     children: [
-                      Expanded(child: Divider(color: Colors.grey[200])),
+                      Expanded(
+                        child: Divider(
+                          color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200],
+                          thickness: 1,
+                        ),
+                      ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
+                            color: isDark
+                                ? const Color(0xFF1E1E1E)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(
+                              color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200]!,
+                            ),
                           ),
                           child: Text(
                             'or sign up with',
-                            style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                            style: TextStyle(
+                              color: isDark ? Colors.grey[500] : Colors.grey[400],
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ),
-                      Expanded(child: Divider(color: Colors.grey[200])),
+                      Expanded(
+                        child: Divider(
+                          color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200],
+                          thickness: 1,
+                        ),
+                      ),
                     ],
                   ).animate().fadeIn(delay: 1100.ms),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
 
                   // Social Login
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       _buildSocialButton(LucideIcons.chrome, 'Google'),
-                      const SizedBox(width: 20),
+                      const SizedBox(width: 24),
                       _buildSocialButton(LucideIcons.facebook, 'Facebook'),
                     ],
                   ).animate().fadeIn(delay: 1200.ms).moveY(begin: 20, end: 0),

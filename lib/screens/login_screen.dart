@@ -9,6 +9,7 @@ import '../widgets/theme_toggle.dart';
 import '../utils/validators.dart';
 import '../services/auth_service.dart';
 import '../services/auth_api.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool isReturningUser;
@@ -177,24 +178,39 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         }
       } else if (provider == 'Fingerprint') {
-        final authenticated = await AuthService.authenticateWithBiometrics();
-        if (authenticated && mounted) {
+        // Check if enabled first
+        final prefs = await SharedPreferences.getInstance();
+        final isEnabled = prefs.getBool('biometric_enabled') ?? false;
+
+        if (!isEnabled) {
+           if (!mounted) return;
+           setState(() {
+             _alertMessage = 'Biometric login is not enabled in Settings';
+             _isAlertError = true;
+             _isLoading = false;
+           });
+           return;
+        }
+
+        final (success, message) = await AuthService.loginWithBiometrics();
+        
+        if (!mounted) return;
+
+        if (success) {
           setState(() {
-            _alertMessage = 'Biometric authentication successful!';
+            _alertMessage = 'Biometric login successful!';
             _isAlertError = false;
             _isLoading = false;
           });
-          Future.delayed(const Duration(seconds: 2), () {
+          Future.delayed(const Duration(milliseconds: 800), () {
             if (mounted) Navigator.pushReplacementNamed(context, '/home');
           });
         } else {
-          if (mounted) {
-            setState(() {
-              _alertMessage = 'Biometric authentication failed';
-              _isAlertError = true;
-              _isLoading = false;
-            });
-          }
+          setState(() {
+            _alertMessage = message ?? 'Biometric login failed';
+            _isAlertError = true;
+            _isLoading = false;
+          });
         }
       }
     } catch (e) {
@@ -383,52 +399,55 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       Expanded(
                         child: Divider(
-                          color: isDark ? Colors.grey[700] : Colors.grey[200],
+                          color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200],
+                          thickness: 1,
                         ),
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
+                            horizontal: 16,
+                            vertical: 8,
                           ),
                           decoration: BoxDecoration(
                             color: isDark
                                 ? const Color(0xFF1E1E1E)
                                 : Colors.white,
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(30),
                             border: Border.all(
-                              color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
+                              color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200]!,
                             ),
                           ),
                           child: Text(
                             'or sign in with',
                             style: TextStyle(
-                              color: isDark ? Colors.grey[400] : Colors.grey[400],
+                              color: isDark ? Colors.grey[500] : Colors.grey[400],
                               fontSize: 13,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
                       ),
                       Expanded(
                         child: Divider(
-                          color: isDark ? Colors.grey[700] : Colors.grey[200],
+                          color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200],
+                          thickness: 1,
                         ),
                       ),
                     ],
                   ).animate().fadeIn(delay: 900.ms),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
 
                   // Social Login
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       _buildSocialButton(LucideIcons.chrome, 'Google'),
-                      const SizedBox(width: 20),
+                      const SizedBox(width: 24),
                       _buildSocialButton(LucideIcons.facebook, 'Facebook'),
-                      const SizedBox(width: 20),
+                      const SizedBox(width: 24),
                       _buildSocialButton(
                         LucideIcons.fingerprint,
                         'Fingerprint',

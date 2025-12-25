@@ -61,6 +61,8 @@ class AuthApi {
       
       // Save the password locally after successful login
       await prefs.setString('user_password', password);
+      // Save the email locally for biometric login
+      await prefs.setString('user_email', email);
       
       return (true, null);
     }

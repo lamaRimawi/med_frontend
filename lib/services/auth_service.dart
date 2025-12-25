@@ -1,6 +1,8 @@
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'auth_api.dart';
 
 class AuthService {
   // Biometric Authentication
@@ -107,9 +109,20 @@ class AuthService {
       );
 
       return didAuthenticate;
+    } on LocalAuthException catch (e) {
+      if (e.code == 'noCredentialsSet') {
+        throw 'No fingerprints enrolled. Please add a fingerprint in your phone settings.';
+      } else if (e.code == 'notAvailable') {
+        throw 'Biometric security is not available on this device.';
+      }
+      throw 'Biometric error: ${e.code}';
     } on PlatformException catch (e) {
-      print('Biometric authentication error: $e');
-      return false;
+      if (e.code == 'noCredentialsSet') {
+        throw 'No fingerprints enrolled. Please add a fingerprint in your phone settings.';
+      }
+      rethrow;
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -127,5 +140,43 @@ class AuthService {
       return 'Biometric';
     }
     return 'Biometric';
+  }
+  static Future<(bool success, String? message)> loginWithBiometrics() async {
+    try {
+      final authenticated = await authenticateWithBiometrics();
+      if (!authenticated) {
+        return (false, 'Biometric authentication failed');
+      }
+
+      // Check for stored credentials
+      final prefs = await SharedPreferences.getInstance();
+      final jwtToken = prefs.getString('jwt_token');
+      
+      // If we have a valid token, we might check if it's expired or just let them in.
+      // But typically, "Login with Biometrics" implies re-authenticating to get a fresh session 
+      // OR mostly just bypassing the UI form if the token is valid.
+      // However, if the token is expired, we need the PASSWORD to re-login.
+      // AuthApi.login stores 'user_password' in SharedPrefs (insecure but requested 'functionality').
+      
+      final savedPassword = prefs.getString('user_password');
+      // For email, we might need to store it too or decode from token (if possible).
+      // Let's check if we save email. User model has email.
+      // We can also save email in login.
+      final savedEmail = prefs.getString('user_email');
+
+      if (savedEmail != null && savedPassword != null) {
+        // Perform unexpected backend login
+        return await AuthApi.login(email: savedEmail, password: savedPassword);
+      } else if (jwtToken != null) {
+         // Fallback: If only token exists (maybe no restart), verify profile
+         final (success, _, msg) = await AuthApi.getUserProfile();
+         if (success) return (true, null);
+         return (false, 'Session expired. Please log in with password.');
+      } else {
+        return (false, 'No credentials found. Log in with password first.');
+      }
+    } catch (e) {
+      return (false, 'Error: $e');
+    }
   }
 }

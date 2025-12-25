@@ -4,10 +4,33 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../services/user_service.dart';
 import '../services/auth_api.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'password_manager_screen.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool _biometricEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBiometricSettings();
+  }
+
+  Future<void> _loadBiometricSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _biometricEnabled = prefs.getBool('biometric_enabled') ?? false;
+      });
+    }
+  }
 
   void _showDeleteAccountDialog(BuildContext context, bool isDark) {
     final passwordController = TextEditingController();
@@ -298,6 +321,15 @@ class SettingsScreen extends StatelessWidget {
                   isDark,
                 ),
                 const SizedBox(height: 12),
+                // Biometric Toggle
+                _buildSwitchSettingItem(
+                  context,
+                  LucideIcons.fingerprint,
+                  'Biometric Login',
+                  const Color(0xFF39A4E6),
+                  isDark,
+                ),
+                const SizedBox(height: 12),
                 _buildSettingItem(
                   context,
                   LucideIcons.key,
@@ -327,6 +359,71 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSwitchSettingItem(
+    BuildContext context,
+    IconData icon,
+    String title,
+    Color iconColor,
+    bool isDark,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2A2A2A) : Colors.grey.withOpacity(0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white : const Color(0xFF111827),
+              ),
+            ),
+          ),
+          Switch(
+            value: _biometricEnabled,
+            onChanged: (value) async {
+              setState(() {
+                _biometricEnabled = value;
+              });
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setBool('biometric_enabled', value);
+            },
+            activeColor: const Color(0xFF39A4E6),
           ),
         ],
       ),
