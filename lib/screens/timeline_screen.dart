@@ -48,7 +48,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
   }
 
   // Demo Data Flag
-  final bool _useDemoData = true;
+  final bool _useDemoData = false;
 
   Future<void> _loadTimelineData() async {
     setState(() {
@@ -56,18 +56,12 @@ class _TimelineScreenState extends State<TimelineScreen> {
       _errorMessage = null;
     });
 
-    if (_useDemoData) {
-      // Simulate network delay
-      await Future.delayed(const Duration(milliseconds: 800));
-      
-      setState(() {
-        _availableMetrics = ['Hemoglobin', 'WBC', 'Glucose', 'Platelets', 'Cholesterol'];
-        _isLoading = false;
-      });
-      
-      _selectMetric('Hemoglobin');
-      return;
-    }
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    // Removed Demo Data Logic
 
     try {
       // 1. Fetch the timeline to get report IDs
@@ -132,14 +126,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
       _touchedSpotIndex = null;
     });
 
-    if (_useDemoData) {
-       await Future.delayed(const Duration(milliseconds: 600));
-       setState(() {
-         _trendData = _generateDemoTrends(metric);
-         _isMetricLoading = false;
-       });
-       return;
-    }
+    // Removed Demo Data Logic
 
     try {
       // Use the specific API for trends if possible, or extract from cache
@@ -173,33 +160,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
     }
   }
 
-  List<TrendDataPoint> _generateDemoTrends(String metric) {
-    if (metric == 'Hemoglobin') {
-      return [
-        TrendDataPoint(date: '2025-01-15', value: 13.2, rawValue: '13.2', unit: 'g/dL', isNormal: true, reportId: 1),
-        TrendDataPoint(date: '2025-02-10', value: 12.8, rawValue: '12.8', unit: 'g/dL', isNormal: true, reportId: 2),
-        TrendDataPoint(date: '2025-03-20', value: 11.5, rawValue: '11.5', unit: 'g/dL', isNormal: false, reportId: 3),
-        TrendDataPoint(date: '2025-04-05', value: 12.0, rawValue: '12.0', unit: 'g/dL', isNormal: true, reportId: 4),
-        TrendDataPoint(date: '2025-05-12', value: 13.5, rawValue: '13.5', unit: 'g/dL', isNormal: true, reportId: 5),
-        TrendDataPoint(date: '2025-06-25', value: 14.1, rawValue: '14.1', unit: 'g/dL', isNormal: true, reportId: 6),
-      ];
-    } else if (metric == 'WBC') {
-       return [
-        TrendDataPoint(date: '2025-01-15', value: 6.5, rawValue: '6.5', unit: 'x10^9/L', isNormal: true, reportId: 1),
-        TrendDataPoint(date: '2025-02-10', value: 7.2, rawValue: '7.2', unit: 'x10^9/L', isNormal: true, reportId: 2),
-        TrendDataPoint(date: '2025-03-20', value: 11.0, rawValue: '11.0', unit: 'x10^9/L', isNormal: false, reportId: 3), // High infection?
-        TrendDataPoint(date: '2025-04-05', value: 8.5, rawValue: '8.5', unit: 'x10^9/L', isNormal: true, reportId: 4),
-      ];
-    } else {
-       // Random generic data
-       return [
-        TrendDataPoint(date: '2025-01-15', value: 95, rawValue: '95', unit: 'mg/dL', isNormal: true, reportId: 1),
-        TrendDataPoint(date: '2025-02-15', value: 98, rawValue: '98', unit: 'mg/dL', isNormal: true, reportId: 2),
-        TrendDataPoint(date: '2025-03-15', value: 105, rawValue: '105', unit: 'mg/dL', isNormal: false, reportId: 3),
-        TrendDataPoint(date: '2025-04-15', value: 92, rawValue: '92', unit: 'mg/dL', isNormal: true, reportId: 4),
-      ];
-    }
-  }
+
 
   // --- UI Builders ---
 
