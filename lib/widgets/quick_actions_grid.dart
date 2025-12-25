@@ -77,7 +77,7 @@ class QuickActionsGrid extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: isDarkMode ? Colors.white : const Color(0xFF0F172A),
+                    color: isDarkMode ? Colors.white : Colors.black87,
                   ),
                 ),
                 GestureDetector(

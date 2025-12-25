@@ -805,7 +805,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   // --- Personal Info Screen ---
   Widget _buildPersonalInfoScreen() {
     final isDark = _isDarkMode;
-    final bgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF9FAFB);
+    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF9FAFB);
 
     return Container(
       color: bgColor,
@@ -2125,7 +2125,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   // --- Placeholder Screen ---
   Widget _buildPlaceholderScreen(String title, IconData icon, String message) {
     final isDark = _isDarkMode;
-    final bgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF9FAFB);
+    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF9FAFB);
 
     return Container(
       color: bgColor,

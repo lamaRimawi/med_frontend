@@ -153,11 +153,12 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: Stack(
         children: [
-          const AnimatedBubbleBackground(),
+          AnimatedBubbleBackground(isDark: isDark),
           // Header
           Positioned(
             top: 0,
@@ -295,6 +296,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                         controller: _controllers[index],
                         focusNode: _focusNodes[index],
                         onChanged: (value) => _onCodeChanged(value, index),
+                        isDark: isDark,
                       );
                     }),
                   ).animate().fadeIn(delay: 700.ms).moveY(begin: 20, end: 0),
@@ -341,11 +343,13 @@ class _OTPField extends StatefulWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
   final ValueChanged<String> onChanged;
+  final bool isDark;
 
   const _OTPField({
     required this.controller,
     required this.focusNode,
     required this.onChanged,
+    required this.isDark,
   });
 
   @override
@@ -381,12 +385,14 @@ class _OTPFieldState extends State<_OTPField> {
           height: 56,
           margin: const EdgeInsets.symmetric(horizontal: 4),
           decoration: BoxDecoration(
-            color: _isFocused ? Colors.white : const Color(0xFFF9FAFB),
+            color: _isFocused 
+                ? (widget.isDark ? const Color(0xFF1E1E1E) : Colors.white) 
+                : (widget.isDark ? const Color(0xFF121212) : const Color(0xFFF9FAFB)),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: _isFocused
                   ? const Color(0xFF39A4E6)
-                  : const Color(0xFFE5E7EB),
+                  : (widget.isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE5E7EB)),
               width: _isFocused ? 2 : 1.5,
             ),
             boxShadow: _isFocused
@@ -411,10 +417,10 @@ class _OTPFieldState extends State<_OTPField> {
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
             maxLength: 1,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF39A4E6),
+              color: const Color(0xFF39A4E6), // Keep blue text for OTP
             ),
             decoration: const InputDecoration(
               counterText: '',

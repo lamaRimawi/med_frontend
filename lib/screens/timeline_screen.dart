@@ -544,7 +544,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     maxHeight: maxMenuHeight,
                   ),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B).withOpacity(0.95) : Colors.white.withOpacity(0.95),
+                    color: isDark ? const Color(0xFF1E1E1E).withOpacity(0.95) : Colors.white.withOpacity(0.95),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.white.withOpacity(0.1)),
                     boxShadow: [
@@ -766,7 +766,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
         ],
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
-             getTooltipColor: (touchedSpot) => isDark ? const Color(0xFF1E293B) : Colors.white,
+             getTooltipColor: (touchedSpot) => isDark ? const Color(0xFF1E1E1E) : Colors.white,
              getTooltipItems: (touchedSpots) {
               return touchedSpots.map((LineBarSpot touchedSpot) {
                 final point = _trendData[touchedSpot.x.toInt()];

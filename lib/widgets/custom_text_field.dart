@@ -119,7 +119,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
             color: _isDarkMode
-                ? const Color(0xFF1E293B)
+                ? const Color(0xFF1E1E1E)
                 : const Color(0xFFF9FAFB).withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(

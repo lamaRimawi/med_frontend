@@ -75,10 +75,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: Stack(
         children: [
-          const AnimatedBubbleBackground(),
+          AnimatedBubbleBackground(isDark: isDark),
 
           // Header
           Positioned(

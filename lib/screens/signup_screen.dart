@@ -202,11 +202,12 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: Stack(
         children: [
-          const AnimatedBubbleBackground(),
+          AnimatedBubbleBackground(isDark: isDark),
 
           // Header
           Positioned(
@@ -368,12 +369,12 @@ class _SignupScreenState extends State<SignupScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF9FAFB),
+                        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF9FAFB),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: Validators.validateDateOfBirth(_dateOfBirth) != null
                               ? Colors.red.withOpacity(0.5)
-                              : const Color(0xFFE5E7EB),
+                              : (isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE5E7EB)),
                           width: 1.5,
                         ),
                       ),
@@ -403,7 +404,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                       ? 'Select your date of birth'
                                       : '${_dateOfBirth!.day.toString().padLeft(2, '0')}/${_dateOfBirth!.month.toString().padLeft(2, '0')}/${_dateOfBirth!.year}',
                                   style: TextStyle(
-                                    color: _dateOfBirth == null ? Colors.grey[400] : Colors.black87,
+                                    color: _dateOfBirth == null 
+                                        ? (isDark ? Colors.grey[500] : Colors.grey[400]) 
+                                        : (isDark ? Colors.white : Colors.black87),
                                     fontSize: 16,
                                     fontWeight: _dateOfBirth == null ? FontWeight.normal : FontWeight.w500,
                                   ),
@@ -524,9 +527,9 @@ class _SignupScreenState extends State<SignupScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.grey[200]!),
+                            border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
                           ),
                           child: Text(
                             'or sign up with',
