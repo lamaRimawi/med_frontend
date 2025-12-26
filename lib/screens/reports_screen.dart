@@ -1543,6 +1543,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
         : (_getFieldValue('patient name', report) ??
         _getFieldValue('patient', report) ??
         _getFieldValue('name', report) ??
+        _getFieldValue('full name', report) ??
+        _currentUser?.fullName ??
         'Not Specified');
     
     // Additional Patient Info

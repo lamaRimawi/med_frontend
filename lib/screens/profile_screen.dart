@@ -13,6 +13,7 @@ import '../models/user_model.dart';
 import '../services/auth_api.dart';
 import '../services/user_service.dart';
 import '../services/reports_service.dart';
+import '../services/api_client.dart';
 import '../models/report_model.dart';
 import 'timeline_screen.dart';
 import 'reports_screen.dart';
@@ -39,6 +40,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     with TickerProviderStateMixin {
   String _currentScreen = 'main';
   bool _isLoading = false;
+  String? _token; // Added to store token for image headers
   bool _showCountryPicker = false;
   bool _showCalendarDropdown = false;
   String _calendarView = 'day'; // 'day', 'month', 'year'
@@ -59,12 +61,56 @@ class _ProfileScreenState extends State<ProfileScreen>
   Future<void> _pickImage() async {
     final XFile? pickedFile = await _picker.pickImage(
       source: ImageSource.gallery,
+      imageQuality: 70, // Optimize image size
     );
     if (pickedFile != null) {
+      final file = File(pickedFile.path);
       setState(() {
-        _imageFile = File(pickedFile.path);
+        _imageFile = file;
+        _isLoading = true;
       });
-      // Save image path to SharedPreferences
+
+      try {
+        // Upload to backend via UserService
+        await UserService().updateUserProfile({}, imageFile: file);
+        
+        // Refresh profile to get the new backend URL
+        final user = await UserService().getUserProfile();
+        if (mounted) {
+          _updateLocalUserState(user);
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                   const Icon(LucideIcons.checkCircle, color: Colors.white, size: 20),
+                   const SizedBox(width: 12),
+                   const Text('Profile picture updated successfully'),
+                ],
+              ),
+              backgroundColor: const Color(0xFF10B981),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          );
+        }
+      } catch (e) {
+        debugPrint('Error uploading profile image: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to upload image to server: $e'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+
+      // Save image path to SharedPreferences as local cache
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('profile_image_path', pickedFile.path);
     }
@@ -122,6 +168,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                             _profileData['avatar']?.isNotEmpty == true
                                 ? _profileData['avatar']
                                 : 'https://api.dicebear.com/7.x/avataaars/png?seed=Maria',
+                            headers: _token != null ? {'Authorization': 'Bearer $_token'} : null,
                             fit: BoxFit.contain,
                             loadingBuilder: (context, child, loadingProgress) {
                               if (loadingProgress == null) return child;
@@ -234,6 +281,9 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Future<void> _loadUserData() async {
     try {
+      // Fetch token for authenticated image loading
+      _token = await ApiClient.instance.getToken();
+      
       // Try to fetch from backend first
       final user = await UserService().getUserProfile();
       if (mounted) {
@@ -585,6 +635,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                                       true
                                                   ? _profileData['avatar']
                                                   : 'https://api.dicebear.com/7.x/avataaars/png?seed=Maria',
+                                              headers: _token != null ? {'Authorization': 'Bearer $_token'} : null,
                                             ),
                                       fit: BoxFit.cover,
                                     ),

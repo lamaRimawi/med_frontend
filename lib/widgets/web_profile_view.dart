@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:io';
 import '../services/user_service.dart';
 import '../models/user_model.dart';
+import '../services/api_client.dart';
 import '../config/api_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
@@ -27,6 +28,7 @@ class _WebProfileViewState extends State<WebProfileView> {
   String _currentView = 'main'; // 'main', 'edit', 'privacy', 'help'
   bool _isLoading = false;
   File? _imageFile;
+  String? _token;
   final ImagePicker _picker = ImagePicker();
 
   // Form controllers for edit profile
@@ -92,6 +94,7 @@ class _WebProfileViewState extends State<WebProfileView> {
   Future<void> _loadUserData() async {
     setState(() => _isLoading = true);
     try {
+      _token = await ApiClient.instance.getToken();
       final user = await UserService().getUserProfile();
       if (mounted) {
         _updateLocalUserState(user);
@@ -287,6 +290,7 @@ class _WebProfileViewState extends State<WebProfileView> {
                                     ? ClipOval(
                                         child: Image.network(
                                           _profileData['avatar']!,
+                                          headers: _token != null ? {'Authorization': 'Bearer $_token'} : null,
                                           fit: BoxFit.cover,
                                           width: 90,
                                           height: 90,
@@ -494,6 +498,7 @@ class _WebProfileViewState extends State<WebProfileView> {
                               ? ClipOval(
                                   child: Image.network(
                                     _profileData['avatar']!,
+                                    headers: _token != null ? {'Authorization': 'Bearer $_token'} : null,
                                     fit: BoxFit.cover,
                                     width: 120,
                                     height: 120,
