@@ -19,7 +19,6 @@ import 'reports_screen.dart';
 import 'dark_mode_screen.dart';
 import 'settings_screen.dart';
 import 'password_manager_screen.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../config/api_config.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -2282,54 +2281,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                   'Absolutely! You can share any analyzed report as a PDF or image using the "Share" button within the report details.',
                   isDark,
                 ),
-                const SizedBox(height: 32),
-                _buildSectionHeader('CONTACT US'),
-                _buildSecurityItem(
-                  LucideIcons.mail,
-                  'Email Support',
-                  'support@mediscan.com',
-                  onTap: () => _launchURL('mailto:support@mediscan.com'),
-                ),
-                const SizedBox(height: 16),
-                _buildSecurityItem(
-                  LucideIcons.phone,
-                  'Call Us',
-                  '+1 (800) MEDI-SCAN',
-                  onTap: () => _launchURL('tel:+18006334722'),
-                ),
-                const SizedBox(height: 16),
-                _buildSecurityItem(
-                  LucideIcons.messageSquare,
-                  'Live Chat',
-                  'Chat with our support team',
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Live Chat coming soon!')),
-                    );
-                  },
-                ),
-                const SizedBox(height: 32),
-                _buildSectionHeader('ABOUT APP'),
-                _buildSecurityItem(
-                  LucideIcons.info,
-                  'App Version',
-                  'v1.2.4 (Build 108)',
-                  onTap: () {},
-                ),
-                const SizedBox(height: 16),
-                _buildSecurityItem(
-                  LucideIcons.fileText,
-                  'Terms of Service',
-                  'Read our app terms',
-                  onTap: () => _launchURL('https://mediscan.com/terms'),
-                ),
-                const SizedBox(height: 16),
-                _buildSecurityItem(
-                  LucideIcons.shieldCheck,
-                  'Privacy Policy',
-                  'How we handle your data',
-                  onTap: () => _launchURL('https://mediscan.com/privacy'),
-                ),
                 const SizedBox(height: 24),
               ],
             ),
@@ -2380,17 +2331,6 @@ class _ProfileScreenState extends State<ProfileScreen>
         ),
       ),
     );
-  }
-
-  Future<void> _launchURL(String urlString) async {
-    final Uri url = Uri.parse(urlString);
-    if (!await launchUrl(url)) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not launch $urlString')),
-        );
-      }
-    }
   }
 
   Widget _buildGenderSelector() {
