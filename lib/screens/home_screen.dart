@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../widgets/theme_toggle.dart';
+import '../widgets/next_gen_background.dart';
 import '../widgets/animated_bubble_background.dart';
 import '../models/user_model.dart';
 import 'medical_record_screen.dart';
@@ -17,6 +18,10 @@ import '../widgets/modern_bottom_nav_bar.dart';
 import '../widgets/web_sidebar.dart';
 import '../widgets/web_dashboard_view.dart';
 import '../widgets/web_profile_view.dart';
+import '../widgets/web_reports_view.dart';
+import '../widgets/web_timeline_view.dart';
+import '../widgets/web_camera_upload_view.dart';
+import '../services/user_service.dart';
 import 'package:flutter/foundation.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -269,11 +274,23 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadUserData() async {
-    final user = await User.loadFromPrefs();
-    if (mounted) {
-      setState(() {
-        _currentUser = user;
-      });
+    try {
+      // Try to load from server first
+      final userService = UserService();
+      final user = await userService.getUserProfile();
+      if (mounted) {
+        setState(() {
+          _currentUser = user;
+        });
+      }
+    } catch (e) {
+      // Fallback to local storage if server fails
+      final user = await User.loadFromPrefs();
+      if (mounted) {
+        setState(() {
+          _currentUser = user;
+        });
+      }
     }
   }
 
@@ -445,54 +462,70 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context, constraints) {
         final bool isDesktop = constraints.maxWidth > 900;
 
-        if (isDesktop && !_showCameraUpload) {
+        if (isDesktop) {
           return Scaffold(
             backgroundColor: _isDarkMode ? const Color(0xFF121212) : const Color(0xFFF9FAFB),
-            body: Row(
-              children: [
-                WebSidebar(
-                  selectedIndex: _selectedIndex,
-                  onTabSelected: (index) {
-                    setState(() {
-                      _selectedIndex = index;
-                      _showProfile = index == 4;
-                      _showReports = index == 1;
-                      _showTimeline = index == 3;
-                      _showRecords = false;
-                    });
-                  },
-                  user: _currentUser,
-                  isDarkMode: _isDarkMode,
-                  onLogout: () {
-                    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-                  },
-                ),
-                Expanded(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: _showReports 
-                      ? ReportsScreen(onBack: () => setState(() => _showReports = false))
-                      : _showTimeline 
-                        ? TimelineScreen(onBack: () => setState(() => _showTimeline = false), isDarkMode: _isDarkMode)
-                        : _showProfile 
-                          ? WebProfileView(
-                              isDarkMode: _isDarkMode,
-                              onLogout: () => Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false),
-                            )
-                          : WebDashboardView(
-                              user: _currentUser,
-                              isDarkMode: _isDarkMode,
-                              searchQuery: _searchQuery,
-                              onSearchChanged: (val) => setState(() => _searchQuery = val),
-                              reports: _reports,
-                              onUploadTap: () => setState(() => _showCameraUpload = true),
-                              onToggleNotifications: () => setState(() => _showNotifications = !_showNotifications),
-                              showNotifications: _showNotifications,
-                            ),
+            body: _showCameraUpload
+                ? WebCameraUploadView(
+                    isDarkMode: _isDarkMode,
+                    onClose: () => setState(() => _showCameraUpload = false),
+                  )
+                : NextGenBackground(
+                    isDarkMode: _isDarkMode,
+                    child: Row(
+                      children: [
+                      WebSidebar(
+                        selectedIndex: _selectedIndex,
+                        onTabSelected: (index) {
+                          setState(() {
+                            _selectedIndex = index;
+                            _showProfile = index == 4;
+                            _showReports = index == 1;
+                            _showTimeline = index == 3;
+                            _showCameraUpload = index == 2;
+                            _showRecords = false;
+                          });
+                        },
+                        user: _currentUser,
+                        isDarkMode: _isDarkMode,
+                        onLogout: () {
+                          Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                        },
+                      ),
+                      Expanded(
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: _showReports 
+                            ? WebReportsView(
+                                isDarkMode: _isDarkMode,
+                                onBack: () => setState(() => _showReports = false),
+                              )
+                            : _showTimeline 
+                              ? WebTimelineView(
+                                  isDarkMode: _isDarkMode,
+                                  onBack: () => setState(() => _showTimeline = false),
+                                )
+                              : _showProfile 
+                                ? WebProfileView(
+                                    isDarkMode: _isDarkMode,
+                                    onLogout: () => Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false),
+                                    onProfileUpdated: () => _loadUserData(),
+                                  )
+                                : WebDashboardView(
+                                    user: _currentUser,
+                                    isDarkMode: _isDarkMode,
+                                    searchQuery: _searchQuery,
+                                    onSearchChanged: (val) => setState(() => _searchQuery = val),
+                                    reports: _reports,
+                                    onUploadTap: () => setState(() => _showCameraUpload = true),
+                                    onToggleNotifications: () => setState(() => _showNotifications = !_showNotifications),
+                                    showNotifications: _showNotifications,
+                                  ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
           );
         }
 
