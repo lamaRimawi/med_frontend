@@ -11,6 +11,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:file_saver/file_saver.dart';
+import 'package:open_file/open_file.dart';
 import 'package:http/http.dart' as http;
 import 'package:mediScan/models/extracted_report_data.dart'; // For TestResult
 import 'package:mediScan/widgets/report_content_widget.dart';
@@ -534,227 +535,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
   }
 
-  Future<void> _handleDownloadReport(Report report) async {
-    try {
-      // Request storage permission first
-      if (Platform.isAndroid) {
-        final androidInfo = await DeviceInfoPlugin().androidInfo;
-        if (androidInfo.version.sdkInt <= 32) {
-          var status = await Permission.storage.status;
-          if (!status.isGranted) {
-            status = await Permission.storage.request();
-          }
-        } else {
-          // Android 13+
-          var photosStatus = await Permission.photos.status;
-          if (!photosStatus.isGranted) {
-            await Permission.photos.request();
-          }
-        }
-      }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Downloading Report #${report.reportId}...'),
-          duration: const Duration(seconds: 1),
-        ),
-      );
-
-      final images = await ReportsService().getReportImages(report.reportId);
-      if (images.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('No files to download')));
-        }
-        return;
-      }
-
-      final token = await ApiClient.instance.getToken();
-      final tempDir = await getTemporaryDirectory();
-
-      int successCount = 0;
-      int failCount = 0;
-
-      for (var i = 0; i < images.length; i++) {
-        try {
-          final imageMap = images[i];
-          final backendIndex = imageMap['index'] as int?;
-          final fileIndex = backendIndex ?? (i + 1);
-
-          final imageUrl =
-              '${ApiConfig.baseUrl}${ApiConfig.reports}/${report.reportId}/images/$fileIndex';
-
-          final response = await http.get(
-            Uri.parse(imageUrl),
-            headers: token != null ? {'Authorization': 'Bearer $token'} : null,
-          );
-
-          if (response.statusCode == 200) {
-            // Determine extension from Content-Type
-            String extension = 'jpg';
-            final contentType = response.headers['content-type'];
-            bool isPdf = false;
-
-            if (contentType != null) {
-              if (contentType.contains('pdf')) {
-                extension = 'pdf';
-                isPdf = true;
-              } else if (contentType.contains('png')) {
-                extension = 'png';
-              } else if (contentType.contains('jpeg') ||
-                  contentType.contains('jpg')) {
-                extension = 'jpg';
-              }
-            }
-
-            // Construct filename
-            String filename =
-                imageMap['filename'] as String? ??
-                'report_${report.reportId}_$i';
-            // Remove existing extension if present to avoid double extension
-            if (filename.toLowerCase().endsWith('.$extension')) {
-              filename = filename.substring(
-                0,
-                filename.length - (extension.length + 1),
-              );
-            }
-            // Sanitize
-            filename = filename.replaceAll(RegExp(r'[^\w\s\.-]'), '_');
-            final saveFilename = '$filename.$extension';
-
-            final filePath = '${tempDir.path}/$saveFilename';
-            final file = File(filePath);
-            await file.writeAsBytes(response.bodyBytes);
-
-            bool saved = false;
-
-            // 1. Try Gallery (Images only)
-            String? lastError;
-            if (!isPdf) {
-              try {
-                await Gal.putImage(filePath, album: 'Medical Reports');
-                saved = true;
-              } catch (e) {
-                lastError = 'Gallery: $e';
-                debugPrint('Gallery save failed: $e');
-              }
-            }
-
-            // 2. If not saved to gallery (PDF or failed), try FileSaver
-            if (!saved) {
-              try {
-                MimeType mime = MimeType.other;
-                if (isPdf)
-                  mime = MimeType.pdf;
-                else if (extension == 'png')
-                  mime = MimeType.png;
-                else if (extension == 'jpg' || extension == 'jpeg')
-                  mime = MimeType.jpeg;
-
-                await FileSaver.instance.saveFile(
-                  name: filename,
-                  bytes: response.bodyBytes,
-                  ext: extension,
-                  mimeType: mime,
-                );
-                saved = true;
-              } catch (e) {
-                lastError = 'FileSaver: $e';
-                debugPrint('FileSaver failed: $e');
-              }
-            }
-
-            // 3. If still not saved and on Android, try manual copy as last resort
-            if (!saved && Platform.isAndroid) {
-              try {
-                final downloadDir = Directory('/storage/emulated/0/Download');
-                if (!await downloadDir.exists()) {
-                  // This might fail on Android 11+
-                  try {
-                    await downloadDir.create(recursive: true);
-                  } catch (_) {}
-                }
-
-                if (await downloadDir.exists()) {
-                  final newPath = '${downloadDir.path}/$saveFilename';
-                  String uniquePath = newPath;
-                  int counter = 1;
-                  while (await File(uniquePath).exists()) {
-                    uniquePath =
-                        '${downloadDir.path}/${filename}_$counter.$extension';
-                    counter++;
-                  }
-
-                  await file.copy(uniquePath);
-                  saved = true;
-                } else {
-                  lastError = 'Download folder not accessible';
-                }
-              } catch (e) {
-                lastError = 'Manual copy: $e';
-                debugPrint('Download folder save failed: $e');
-              }
-            }
-
-            if (saved) {
-              successCount++;
-            } else {
-              failCount++;
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Failed to save $filename: $lastError'),
-                  ),
-                );
-              }
-            }
-          } else {
-            failCount++;
-          }
-        } catch (e) {
-          debugPrint('Download error: $e');
-          failCount++;
-        }
-      }
-
-      if (mounted) {
-        if (successCount > 0) {
-          String message = 'Saved $successCount files successfully';
-          if (failCount > 0) {
-            message += ' ($failCount failed)';
-          }
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(message),
-              backgroundColor: const Color(0xFF10B981),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Failed to save files. Please try Sharing instead.',
-              ),
-              backgroundColor: Colors.red,
-              action: SnackBarAction(
-                label: 'Share',
-                textColor: Colors.white,
-                onPressed: () => _handleShareReport(report),
-              ),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
-    }
-  }
 
   void _resetForm() {
     setState(() {
@@ -1532,6 +1313,114 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return null;
   }
 
+  Future<void> _handleDownloadReport(Report report) async {
+    try {
+      // Request permissions
+      if (Platform.isAndroid) {
+        final androidInfo = await DeviceInfoPlugin().androidInfo;
+        if (androidInfo.version.sdkInt <= 32) {
+          var status = await Permission.storage.status;
+          if (!status.isGranted) {
+            status = await Permission.storage.request();
+            if (!status.isGranted) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Storage permission is required to save PDF'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+              return;
+            }
+          }
+        }
+        // For Android 13+, FileSaver handles scoped storage automatically
+      }
+
+      if (!mounted) return;
+
+      // Fetch fresh, full report details to ensure we have all extracted data
+      // The list view might have a partial object
+      Report fullReport = report;
+      try {
+        final fetched = await ReportsService().getReport(report.reportId);
+        if (fetched != null) {
+          fullReport = fetched;
+        }
+      } catch (e) {
+        debugPrint('Could not fetch full report details, using list item: $e');
+      }
+
+      if (!mounted) return;
+
+      // Generate PDF using existing helper
+      final file = await _generatePdf(fullReport);
+      final bytes = await file.readAsBytes();
+
+      String fileName = 'MediScan_Report_${report.reportId}';
+      if (report.reportDate.isNotEmpty) {
+        // sanitize date for filename
+        final dateStr =
+            report.reportDate.split(' ')[0].replaceAll(RegExp(r'[^\w-]'), '_');
+        fileName += '_$dateStr';
+      }
+
+      // Save file
+      final path = await FileSaver.instance.saveFile(
+        name: fileName,
+        bytes: bytes,
+        ext: 'pdf',
+        mimeType: MimeType.pdf,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(LucideIcons.checkCircle, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Report saved successfully',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: const Color(0xFF10B981),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            elevation: 8,
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'OPEN',
+              textColor: Colors.white,
+              onPressed: () {
+                OpenFile.open(path);
+              },
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error generating/saving PDF: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving PDF: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   String? _getSmartReportType([Report? report]) {
     // List of keys to look for in priority order
     final keys = [
@@ -1582,6 +1471,20 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Future<File> _generatePdf(Report report) async {
     final pdf = pw.Document();
 
+    // Load font
+    final fontData = await DefaultAssetBundle.of(context)
+        .load("assets/fonts/Amiri-Regular.ttf");
+    final ttf = pw.Font.ttf(fontData);
+    
+    final fontBoldData = await DefaultAssetBundle.of(context)
+        .load("assets/fonts/Amiri-Bold.ttf");
+    final ttfBold = pw.Font.ttf(fontBoldData);
+
+    // Load Logo
+    final logoData = await DefaultAssetBundle.of(context)
+        .load("assets/images/logo_3.png");
+    final logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
+
     // Filter fields like in the UI
     final validFields = report.fields.where((f) {
       return f.fieldValue.trim().isNotEmpty &&
@@ -1590,109 +1493,345 @@ class _ReportsScreenState extends State<ReportsScreen> {
           f.fieldValue.toLowerCase() != 'none';
     }).toList();
 
+    // App Brand Color
+    final brandColor = PdfColor.fromInt(0xFF39A4E6);
+    final lightBrandColor = PdfColor.fromInt(0xFFE0F2FE); // Very light blue
+
+    // Get Data - STRICTLY from extracted fields
+    String displayDate = _getFieldValue('collection date', report) ??
+        _getFieldValue('sample date', report) ??
+        _getFieldValue('specimen date', report) ??
+        _getFieldValue('examination date', report) ??
+        _getFieldValue('result date', report) ??
+        _getFieldValue('report date', report) ??
+        _getFieldValue('date', report) ??
+        ''; 
+
+    // Only fallback to metadata date if absolutely no date found in text
+    if (displayDate.isEmpty) {
+       // If the metadata date looks different from "just now" (upload time), it might be valid. 
+       // But user specifically said "from the report". 
+       // We'll keep report.reportDate as a last resort but try to format it nicely.
+       displayDate = report.reportDate;
+    }
+    
+    // Normalize date
+    if (displayDate.isNotEmpty) {
+       try {
+         if (displayDate.contains('T')) {
+           displayDate = displayDate.split('T')[0];
+         } else if (displayDate.contains(' ')) {
+           if (displayDate.length > 12) { // Likely has time
+              displayDate = displayDate.split(' ')[0];
+           }
+         }
+         // Remove any non-date characters if needed, or keeping it simple
+       } catch (_) {}
+    }
+
+    // Helper for RTL Text
+    pw.TextDirection getTextDirection(String text) {
+      return RegExp(r'[\u0600-\u06FF]').hasMatch(text)
+          ? pw.TextDirection.rtl
+          : pw.TextDirection.ltr;
+    }
+
+    // Patient Name
+    final patientName =
+        report.patientName != null && report.patientName!.toLowerCase() != 'unknown' && report.patientName!.isNotEmpty
+        ? report.patientName!
+        : (_getFieldValue('patient name', report) ??
+        _getFieldValue('patient', report) ??
+        _getFieldValue('name', report) ??
+        _getFieldValue('full name', report) ??
+        _currentUser?.fullName ??
+        'Not Specified');
+    
+    // Additional Patient Info
+    final dob = _getFieldValue('dob', report) ?? _getFieldValue('date of birth', report) ?? _getFieldValue('birth date', report);
+    final age = report.patientAge?.toString() ?? _getFieldValue('age', report);
+    final gender = report.patientGender ?? _getFieldValue('gender', report) ?? _getFieldValue('sex', report);
+
+    String patientDetails = '';
+    if (age != null) patientDetails += 'Age: $age';
+    if (gender != null) patientDetails += (patientDetails.isNotEmpty ? '  •  ' : '') + gender;
+    if (dob != null) patientDetails += (patientDetails.isNotEmpty ? '\n' : '') + 'DOB: $dob';
+
+
+    final doctorName = _getFieldValue('doctor', report) ??
+        _getFieldValue('doctor name', report);
+    final hospitalName = _getFieldValue('hospital', report) ??
+        _getFieldValue('clinic', report);
+    
+    // Determine report type
+    String reportType = report.reportType ?? _getSmartReportType(report) ?? "General Report";
+    if (reportType == "General Report") {
+       final testName = _getFieldValue('test name', report) ?? _getFieldValue('study', report);
+       if (testName != null) reportType = testName;
+    }
+
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(40),
+        theme: pw.ThemeData.withFont(
+          base: ttf,
+        ),
         build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Header(
-                level: 0,
-                child: pw.Text(
-                  'Medical Report',
-                  style: pw.TextStyle(
-                    fontSize: 24,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-              ),
-              pw.SizedBox(height: 20),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text('Date: ${report.reportDate}'),
-                  pw.Text('ID: #${report.reportId}'),
-                ],
-              ),
-              pw.SizedBox(height: 10),
-              pw.Text(
-                'Type: ${_getSmartReportType(report) ?? "General Report"}',
-              ),
-              if (_getFieldValue('doctor', report) != null)
-                pw.Text('Doctor: ${_getFieldValue('doctor', report)}'),
-              if (_getFieldValue('hospital', report) != null)
-                pw.Text('Hospital: ${_getFieldValue('hospital', report)}'),
-
-              pw.Divider(),
-              pw.SizedBox(height: 20),
-
-              if (validFields.isNotEmpty) ...[
-                pw.Text(
-                  'Extracted Data',
-                  style: pw.TextStyle(
-                    fontSize: 18,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-                pw.SizedBox(height: 10),
-                pw.Table.fromTextArray(
-                  context: context,
-                  headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                  headerDecoration: const pw.BoxDecoration(
-                    color: PdfColors.grey300,
-                  ),
-                  rowDecoration: const pw.BoxDecoration(
-                    border: pw.Border(
-                      bottom: pw.BorderSide(color: PdfColors.grey100),
+          return [
+            // Header with Logo
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: pw.CrossAxisAlignment.center,
+              children: [
+                pw.Image(logoImage, width: 40, height: 40),
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    pw.Text(
+                      'MediScan',
+                      style: pw.TextStyle(
+                        fontSize: 16,
+                        fontWeight: pw.FontWeight.bold,
+                        color: brandColor,
+                        font: ttf,
+                      ),
                     ),
-                  ),
-                  data: <List<String>>[
-                    <String>['Field', 'Value', 'Unit', 'Status'],
-                    ...validFields.map(
-                      (field) => [
-                        _formatFieldName(field.fieldName),
-                        field.fieldValue,
-                        field.fieldUnit ?? '',
-                        field.isNormal == true
-                            ? 'Normal'
-                            : (field.isNormal == false ? 'Abnormal' : '-'),
-                      ],
+                    pw.Text(
+                      'Personal Medical Record',
+                      style: pw.TextStyle(
+                        fontSize: 10,
+                        color: PdfColors.grey600,
+                        font: ttf,
+                      ),
                     ),
                   ],
-                  cellAlignments: {
-                    0: pw.Alignment.centerLeft,
-                    1: pw.Alignment.centerLeft,
-                    2: pw.Alignment.centerLeft,
-                    3: pw.Alignment.center,
-                  },
                 ),
-              ] else
-                pw.Text('No extracted data available.'),
+              ],
+            ),
+            pw.SizedBox(height: 20),
+            pw.Divider(color: brandColor, thickness: 2),
+            pw.SizedBox(height: 20),
 
-              pw.Spacer(),
-              pw.Divider(),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            // Report Title & Meta
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Expanded(child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'MEDICAL REPORT',
+                      style: pw.TextStyle(
+                        fontSize: 10,
+                        color: PdfColors.grey500,
+                        fontWeight: pw.FontWeight.bold,
+                        font: ttf,
+                      ),
+                    ),
+                    pw.SizedBox(height: 4),
+                    pw.Text(
+                      reportType,
+                      style: pw.TextStyle(
+                        fontSize: 20,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.black,
+                        font: ttf,
+                      ),
+                    ),
+                  ],
+                )),
+                pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: pw.BoxDecoration(
+                    color: lightBrandColor,
+                    borderRadius: pw.BorderRadius.circular(4),
+                  ),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Text(
+                        'DATE',
+                        style: pw.TextStyle(
+                          fontSize: 8,
+                          fontWeight: pw.FontWeight.bold,
+                          color: brandColor,
+                          font: ttf,
+                        ),
+                      ),
+                      pw.Text(
+                        displayDate,
+                        style: pw.TextStyle(
+                          fontSize: 12,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.black,
+                          font: ttf,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 30),
+
+            // Patient & Doctor Info Grid
+            pw.Container(
+              padding: const pw.EdgeInsets.all(16),
+              decoration: pw.BoxDecoration(
+                border: pw.Border.all(color: PdfColors.grey200),
+                borderRadius: pw.BorderRadius.circular(8),
+              ),
+              child: pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text(
-                    'Generated by HealthTrack',
-                    style: const pw.TextStyle(
-                      color: PdfColors.grey,
-                      fontSize: 10,
+                  pw.Expanded(
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text('PATIENT', style: pw.TextStyle(fontSize: 8, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold, font: ttfBold)),
+                        pw.SizedBox(height: 4),
+                        pw.Text(
+                          patientName,
+                          textDirection: getTextDirection(patientName),
+                          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, font: ttfBold),
+                        ),
+                        if (patientDetails.isNotEmpty) ...[
+                          pw.SizedBox(height: 2),
+                          pw.Text(
+                             patientDetails,
+                             textDirection: getTextDirection(patientDetails),
+                             style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700, font: ttf),
+                          ),
+                        ]
+                      ],
                     ),
                   ),
-                  pw.Text(
-                    DateTime.now().toString().split('.')[0],
-                    style: const pw.TextStyle(
-                      color: PdfColors.grey,
-                      fontSize: 10,
+                  if (doctorName != null && doctorName.isNotEmpty && doctorName.toLowerCase() != 'n/a')
+                  pw.Expanded(
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text('DOCTOR', style: pw.TextStyle(fontSize: 8, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold, font: ttfBold)),
+                        pw.SizedBox(height: 4),
+                         pw.Text(
+                          doctorName,
+                          textDirection: getTextDirection(doctorName),
+                          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, font: ttfBold),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (hospitalName != null && hospitalName.isNotEmpty && hospitalName.toLowerCase() != 'n/a')
+                  pw.Expanded(
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text('HOSPITAL/CLINIC', style: pw.TextStyle(fontSize: 8, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold, font: ttfBold)),
+                        pw.SizedBox(height: 4),
+                         pw.Text(
+                          hospitalName,
+                          textDirection: getTextDirection(hospitalName),
+                          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, font: ttfBold),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-            ],
-          );
+            ),
+            pw.SizedBox(height: 30),
+
+            if (validFields.isNotEmpty) ...[
+              pw.Text(
+                'EXTRACTED RESULTS',
+                style: pw.TextStyle(
+                  fontSize: 12,
+                  fontWeight: pw.FontWeight.bold,
+                  color: brandColor,
+                  font: ttf,
+                ),
+              ),
+              pw.SizedBox(height: 10),
+              pw.Table.fromTextArray(
+                context: context,
+                border: pw.TableBorder(
+                  horizontalInside: pw.BorderSide(color: PdfColors.grey200, width: 0.5),
+                  bottom: pw.BorderSide(color: PdfColors.grey200, width: 0.5),
+                ),
+                headerDecoration: pw.BoxDecoration(
+                  color: lightBrandColor,
+                  borderRadius: const pw.BorderRadius.vertical(top: pw.Radius.circular(4)),
+                ),
+                headerStyle: pw.TextStyle(
+                  color: brandColor,
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                  font: ttf,
+                ),
+                cellStyle: pw.TextStyle(
+                  fontSize: 10,
+                  color: PdfColors.grey800,
+                  font: ttf,
+                ),
+                cellPadding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                data: <List<String>>[
+                  <String>['TEST NAME', 'VALUE', 'UNIT', 'STATUS'],
+                  ...validFields.map(
+                    (field) => [
+                      _formatFieldName(field.fieldName),
+                      field.fieldValue,
+                      field.fieldUnit ?? '-',
+                      field.isNormal == true ? 'Normal' : (field.isNormal == false ? 'Abnormal' : '-'),
+                    ],
+                  ),
+                ],
+                cellAlignments: {
+                  0: pw.Alignment.centerLeft,
+                  1: pw.Alignment.centerLeft,
+                  2: pw.Alignment.centerLeft,
+                  3: pw.Alignment.center,
+                },
+              ),
+            ] else
+              pw.Container(
+                padding: const pw.EdgeInsets.all(20),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.grey100,
+                  borderRadius: pw.BorderRadius.circular(8),
+                ),
+                child: pw.Center(
+                  child: pw.Text(
+                    'No extracted data available for this report.',
+                    style: pw.TextStyle(color: PdfColors.grey600, font: ttf),
+                  ),
+                ),
+              ),
+
+            pw.Spacer(),
+            pw.Divider(color: PdfColors.grey300),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                  'Generated by MediScan',
+                  style: pw.TextStyle(
+                    color: PdfColors.grey500,
+                    fontSize: 8,
+                    font: ttf,
+                  ),
+                ),
+                pw.Text(
+                  'Report ID: #${report.reportId}',
+                  style: pw.TextStyle(
+                    color: PdfColors.grey500,
+                    fontSize: 8,
+                    font: ttf,
+                  ),
+                ),
+              ],
+            ),
+          ];
         },
       ),
     );
@@ -1949,12 +2088,13 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
     }
   }
 
-  String? _getFieldValue(String key) {
+  String? _getFieldValue(String key, [Report? report]) {
+    final targetReport = report ?? widget.report;
     final normalizedKey = key.toLowerCase().replaceAll('_', ' ');
 
     // Try to find in fields
     try {
-      final field = widget.report.fields.firstWhere(
+      final field = targetReport.fields.firstWhere(
         (f) => f.fieldName
             .toLowerCase()
             .replaceAll('_', ' ')
@@ -1972,7 +2112,7 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
 
     // Try to find in additional fields
     try {
-      final addField = widget.report.additionalFields.firstWhere(
+      final addField = targetReport.additionalFields.firstWhere(
         (f) => f.fieldName
             .toLowerCase()
             .replaceAll('_', ' ')
@@ -2112,7 +2252,7 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
           unselectedLabelColor: Colors.grey,
           indicatorColor: const Color(0xFF39A4E6),
           tabs: const [
-            Tab(text: 'Files'),
+            Tab(text: 'Original Document'),
             Tab(text: 'Extracted Data'),
           ],
         ),

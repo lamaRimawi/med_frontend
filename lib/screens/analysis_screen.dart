@@ -87,9 +87,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   }
 
   void _handleDownload(AnalysisItem item) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Downloading ${item.name} report...')),
-    );
+    // Redundant snackbar removed as per user request
   }
 
   void _handleTestTap(AnalysisItem item) {

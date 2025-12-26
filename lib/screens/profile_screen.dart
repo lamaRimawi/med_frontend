@@ -13,11 +13,13 @@ import '../models/user_model.dart';
 import '../services/auth_api.dart';
 import '../services/user_service.dart';
 import '../services/reports_service.dart';
+import '../services/api_client.dart';
 import '../models/report_model.dart';
 import 'timeline_screen.dart';
 import 'reports_screen.dart';
 import 'dark_mode_screen.dart';
 import 'settings_screen.dart';
+import 'password_manager_screen.dart';
 import '../config/api_config.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -38,11 +40,16 @@ class _ProfileScreenState extends State<ProfileScreen>
     with TickerProviderStateMixin {
   String _currentScreen = 'main';
   bool _isLoading = false;
+  String? _token; // Added to store token for image headers
   bool _showCountryPicker = false;
   bool _showCalendarDropdown = false;
   String _calendarView = 'day'; // 'day', 'month', 'year'
   bool _notificationsEnabled = true;
   bool _twoFactorEnabled = false;
+  bool _biometricEnabled = false;
+  bool _shareMedicalData = true;
+  bool _profileVisible = true;
+  bool _privacyLoading = false;
 
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
@@ -54,15 +61,159 @@ class _ProfileScreenState extends State<ProfileScreen>
   Future<void> _pickImage() async {
     final XFile? pickedFile = await _picker.pickImage(
       source: ImageSource.gallery,
+      imageQuality: 70, // Optimize image size
     );
     if (pickedFile != null) {
+      final file = File(pickedFile.path);
       setState(() {
-        _imageFile = File(pickedFile.path);
+        _imageFile = file;
+        _isLoading = true;
       });
-      // Save image path to SharedPreferences
+
+      try {
+        // Upload to backend via UserService
+        await UserService().updateUserProfile({}, imageFile: file);
+        
+        // Refresh profile to get the new backend URL
+        final user = await UserService().getUserProfile();
+        if (mounted) {
+          _updateLocalUserState(user);
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                   const Icon(LucideIcons.checkCircle, color: Colors.white, size: 20),
+                   const SizedBox(width: 12),
+                   const Text('Profile picture updated successfully'),
+                ],
+              ),
+              backgroundColor: const Color(0xFF10B981),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          );
+        }
+      } catch (e) {
+        debugPrint('Error uploading profile image: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to upload image to server: $e'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+
+      // Save image path to SharedPreferences as local cache
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('profile_image_path', pickedFile.path);
     }
+  }
+
+  void _showProfileImageViewer(BuildContext context) {
+    final isDark = _isDarkMode;
+    
+    showDialog(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            // Close button
+            Positioned(
+              top: 40,
+              right: 20,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    LucideIcons.x,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+              ),
+            ),
+            // Image viewer
+            Center(
+              child: InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Container(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.9,
+                    maxHeight: MediaQuery.of(context).size.height * 0.8,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: _imageFile != null
+                        ? Image.file(
+                            _imageFile!,
+                            fit: BoxFit.contain,
+                          )
+                        : Image.network(
+                            _profileData['avatar']?.isNotEmpty == true
+                                ? _profileData['avatar']
+                                : 'https://api.dicebear.com/7.x/avataaars/png?seed=Maria',
+                            headers: _token != null ? {'Authorization': 'Bearer $_token'} : null,
+                            fit: BoxFit.contain,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                      : null,
+                                  color: const Color(0xFF39A4E6),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                padding: const EdgeInsets.all(40),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      LucideIcons.imageOff,
+                                      size: 64,
+                                      color: Colors.grey[400],
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Unable to load image',
+                                      style: TextStyle(
+                                        color: Colors.grey[400],
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // Profile Data
@@ -122,11 +273,17 @@ class _ProfileScreenState extends State<ProfileScreen>
     setState(() {
       _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
       _twoFactorEnabled = prefs.getBool('two_factor_enabled') ?? false;
+      _biometricEnabled = prefs.getBool('biometric_enabled') ?? false;
+      _shareMedicalData = prefs.getBool('share_medical_data') ?? true;
+      _profileVisible = prefs.getBool('profile_visible') ?? true;
     });
   }
 
   Future<void> _loadUserData() async {
     try {
+      // Fetch token for authenticated image loading
+      _token = await ApiClient.instance.getToken();
+      
       // Try to fetch from backend first
       final user = await UserService().getUserProfile();
       if (mounted) {
@@ -163,16 +320,34 @@ class _ProfileScreenState extends State<ProfileScreen>
       String phoneBody = fullPhone;
       String prefix = '+962'; // Default fallback
 
-      // Regex to find country code (e.g. +962) and the rest
-      // Matches + followed by 1-4 digits, then optionally space, then the rest
-      final match = RegExp(r'^(\+\d{1,4})[\s-]*(.*)$').firstMatch(fullPhone);
-      
-      if (match != null) {
-        prefix = match.group(1) ?? '+962';
-        phoneBody = match.group(2) ?? '';
-      } else {
-         // Fallback cleaning if no + found
-         phoneBody = fullPhone.replaceFirst(RegExp(r'^\+'), '').trim();
+      // Better prefix matching based on available country codes
+      bool prefixFound = false;
+      // Sort prefixes by length descending to match longest first (+970 before +9)
+      final sortedCodes = List<Map<String, String>>.from(_countryCodes)
+        ..sort((a, b) => b['code']!.length.compareTo(a['code']!.length));
+
+      for (final country in sortedCodes) {
+        final code = country['code']!;
+        if (fullPhone.startsWith(code)) {
+          prefix = code;
+          phoneBody = fullPhone.substring(code.length).trim();
+          prefixFound = true;
+          break;
+        }
+      }
+
+      if (!prefixFound) {
+        // Regex to find country code (e.g. +962) and the rest
+        // Matches + followed by 1-4 digits, then optionally space, then the rest
+        final match = RegExp(r'^(\+\d{1,4})[\s-]*(.*)$').firstMatch(fullPhone);
+        
+        if (match != null) {
+          prefix = match.group(1) ?? '+962';
+          phoneBody = match.group(2) ?? '';
+        } else {
+          // Fallback cleaning if no + found
+          phoneBody = fullPhone.replaceFirst(RegExp(r'^\+'), '').trim();
+        }
       }
 
       _profileData['phonePrefix'] = prefix;
@@ -365,18 +540,10 @@ class _ProfileScreenState extends State<ProfileScreen>
           onBack: () => setState(() => _currentScreen = 'main'),
           isDarkMode: _isDarkMode,
         );
-      case 'privacy':
-        return _buildPlaceholderScreen(
-          'Privacy & Security',
-          LucideIcons.lock,
-          'Privacy settings coming soon',
-        );
+      case 'settings':
+        return _buildSettingsPrivacyScreen();
       case 'support':
-        return _buildPlaceholderScreen(
-          'Help & Support',
-          LucideIcons.headphones,
-          'Support options coming soon',
-        );
+        return _buildHelpSupportScreen();
       default:
         return const SizedBox.shrink();
     }
@@ -385,172 +552,184 @@ class _ProfileScreenState extends State<ProfileScreen>
   // --- Main Profile Screen ---
   Widget _buildMainProfileScreen() {
     final isDark = _isDarkMode;
+    final topPadding = MediaQuery.of(context).padding.top;
+    
+    final backgroundColor = isDark ? const Color(0xFF18181B) : const Color(0xFFF2F4F7);
+    final textColor = isDark ? Colors.white : const Color(0xFF101828);
+    final subTextColor = isDark ? const Color(0xFFA1A1AA) : const Color(0xFF667085);
 
     return Scaffold(
-      backgroundColor: isDark
-          ? const Color(0xFF121212)
-          : const Color(0xFFF5F5F5),
-      body: Column(
-        children: [
-          // Blue Header with User Info
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: Column(
-                children: [
-                  // Header with title aligned left
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'My Profile',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
+      backgroundColor: backgroundColor,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Header Section
+            Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                // Curved Background (Simpler, Neater)
+                ClipPath(
+                  clipper: ProfileHeaderClipper(), // Reverted to simple clipper
+                  child: Container(
+                    height: 300, 
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF0EA5E9), Color(0xFF2563EB)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    child: SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        child: Align(
+                          alignment: Alignment.topCenter,
+                          child: Text(
+                            'My Profile',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
+                ),
 
-                  // Profile Picture and User Info
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-                    child: Row(
-                      children: [
-                        // Profile Picture
-                        Stack(
+                // Profile Image & Info
+                Positioned(
+                  top: topPadding + 40,
+                  child: Column(
+                    children: [
+                      GestureDetector(
+                        onTap: () => _showProfileImageViewer(context),
+                        child: Stack(
+                          alignment: Alignment.bottomRight,
                           children: [
                             Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
+                              padding: const EdgeInsets.all(2.5), // Thinner border
+                              decoration: const BoxDecoration(
                                 shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.transparent,
-                                  width: 0,
-                                ),
-                                image: DecorationImage(
-                                  image: _imageFile != null
-                                      ? FileImage(_imageFile!) as ImageProvider
-                                      : const NetworkImage(
-                                          'https://api.dicebear.com/7.x/avataaars/png?seed=Maria',
-                                        ),
-                                  fit: BoxFit.cover,
+                                color: Colors.white,
+                              ),
+                              child: Hero(
+                                tag: 'profile_image',
+                                child: Container(
+                                  width: 110,
+                                  height: 110,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    image: DecorationImage(
+                                      image: _imageFile != null
+                                          ? FileImage(_imageFile!)
+                                              as ImageProvider
+                                          : NetworkImage(
+                                              _profileData['avatar']
+                                                          ?.isNotEmpty ==
+                                                      true
+                                                  ? _profileData['avatar']
+                                                  : 'https://api.dicebear.com/7.x/avataaars/png?seed=Maria',
+                                              headers: _token != null ? {'Authorization': 'Bearer $_token'} : null,
+                                            ),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: GestureDetector(
-                                onTap: _pickImage,
-                                child: Container(
-                                  width: 28,
-                                  height: 28,
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Color(0xFF39A4E6),
-                                  ),
-                                  child: const Icon(
-                                    LucideIcons.camera,
+                            // Clean Camera Button
+                            GestureDetector(
+                              onTap: _pickImage,
+                              child: Container(
+                                margin: const EdgeInsets.only(right: 6, bottom: 6),
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: const Color(0xFF0EA5E9),
+                                  border: Border.all(
                                     color: Colors.white,
-                                    size: 14,
+                                    width: 2.5,
                                   ),
+                                ),
+                                child: const Icon(
+                                  LucideIcons.camera,
+                                  color: Colors.white,
+                                  size: 15,
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(width: 16),
-
-                        // User Info
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _profileData['name'],
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _profileData['phone'].isNotEmpty
-                                    ? '${_profileData['phonePrefix'] ?? '+962'} ${_profileData['phone']}'
-                                    : '+962 79 123 4567',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                _profileData['email'],
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        (_profileData['name'] ?? '').split(' ').map((str) => str.isNotEmpty ? '${str[0].toUpperCase()}${str.substring(1)}' : '').join(' '),
+                        style: TextStyle(
+                          color: textColor, 
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                         ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _profileData['email'],
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9), // White for contrast on blue/dark
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
 
-          // Menu Items
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-              children: [
-                _buildMenuItem(
-                  LucideIcons.user,
-                  'Edit Profile',
-                  () => setState(() => _currentScreen = 'personal-info'),
-                ),
-                const SizedBox(height: 12),
-                _buildMenuItem(
-                  LucideIcons.lock,
-                  'Privacy Policy',
-                  () => setState(() => _currentScreen = 'privacy'),
-                ),
-                const SizedBox(height: 12),
-                _buildMenuItem(
-                  LucideIcons.settings,
-                  'Settings',
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SettingsScreen(),
-                    ),
+            const SizedBox(height: 10),
+
+            // Menu Items - Clean separate tiles
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  _buildSectionTitle('Account'),
+                  const SizedBox(height: 8),
+                  _buildMenuItem(
+                    LucideIcons.user,
+                    'Personal Information',
+                    'Edit name, phone, medical info',
+                    () => setState(() => _currentScreen = 'personal-info'),
                   ),
-                ),
-                const SizedBox(height: 12),
-                _buildMenuItem(
-                  LucideIcons.helpCircle,
-                  'Help',
-                  () => setState(() => _currentScreen = 'support'),
-                ),
-                const SizedBox(height: 12),
-                _buildMenuItem(LucideIcons.logOut, 'Logout', () async {
-                  // Show bottom sheet confirmation
-                  final shouldLogout = await showModalBottomSheet<bool>(
+                  const SizedBox(height: 12),
+                  _buildMenuItem(
+                    LucideIcons.shieldCheck,
+                    'Settings & Privacy',
+                    'Biometrics, notifications, security',
+                    () => setState(() => _currentScreen = 'settings'),
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Support'),
+                  const SizedBox(height: 8),
+                  _buildMenuItem(
+                    LucideIcons.lifeBuoy,
+                    'Help & Support',
+                    'FAQs, contact support',
+                    () => setState(() => _currentScreen = 'support'),
+                  ),
+
+                  const SizedBox(height: 32),
+                  
+                  // Logout Button
+                  TextButton(
+                    onPressed: () async {
+                      final shouldLogout = await showModalBottomSheet<bool>(
                     context: context,
                     backgroundColor: Colors.transparent,
                     builder: (context) => Container(
@@ -569,11 +748,22 @@ class _ProfileScreenState extends State<ProfileScreen>
                           Text(
                             'Are you sure you want to log out?',
                             style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                               color: isDark
                                   ? Colors.white
                                   : const Color(0xFF111827),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                           Text(
+                            'You will need to login again to access your account.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isDark
+                                  ? Colors.grey[400]
+                                  : Colors.grey[600],
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -585,15 +775,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                                   onTap: () => Navigator.pop(context, false),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
+                                      vertical: 16,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.transparent,
-                                      border: Border.all(
-                                        color: const Color(0xFF39A4E6),
-                                        width: 1.5,
-                                      ),
-                                      borderRadius: BorderRadius.circular(24),
+                                      color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF3F4F6),
+                                      borderRadius: BorderRadius.circular(16),
                                     ),
                                     child: Text(
                                       'Cancel',
@@ -602,7 +788,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                             ? Colors.white
                                             : const Color(0xFF111827),
                                         fontWeight: FontWeight.w600,
-                                        fontSize: 14,
+                                        fontSize: 15,
                                       ),
                                       textAlign: TextAlign.center,
                                     ),
@@ -615,18 +801,25 @@ class _ProfileScreenState extends State<ProfileScreen>
                                   onTap: () => Navigator.pop(context, true),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
+                                      vertical: 16,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF39A4E6),
-                                      borderRadius: BorderRadius.circular(24),
+                                      color: const Color(0xFFEF4444),
+                                      borderRadius: BorderRadius.circular(16),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFFEF4444).withOpacity(0.3),
+                                          blurRadius: 12,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
                                     ),
                                     child: const Text(
                                       'Yes, Logout',
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w600,
-                                        fontSize: 14,
+                                        fontSize: 15,
                                       ),
                                       textAlign: TextAlign.center,
                                     ),
@@ -641,39 +834,92 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ),
                   );
 
-                  // Only logout if user confirmed
-                  if (shouldLogout == true) {
-                    await User.clearFromPrefs();
-                    await AuthApi.logout();
-                    widget.onLogout();
-                  }
-                }, isLogout: true),
-              ],
+                      if (shouldLogout == true) {
+                        await User.clearFromPrefs();
+                        await AuthApi.logout();
+                        widget.onLogout();
+                      }
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      foregroundColor: const Color(0xFFEF4444),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(LucideIcons.logOut, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'Sign Out',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 4),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          title.toUpperCase(),
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+            color: _isDarkMode ? Colors.grey[500] : Colors.grey[400],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDivider(bool isDark) {
+    return Container(
+      height: 1,
+      color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey[100],
+    );
+  }
+  
+  // Reverted to standard list item but polished
   Widget _buildMenuItem(
     IconData icon,
     String title,
-    VoidCallback onTap, {
-    bool isLogout = false,
-  }) {
+    String subtitle,
+    VoidCallback onTap,
+  ) {
     final isDark = _isDarkMode;
+    final cardColor = isDark ? const Color(0xFF27272A) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF101828);
+    final subTextColor = isDark ? const Color(0xFFA1A1AA) : const Color(0xFF667085);
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: cardColor,
+          borderRadius: BorderRadius.circular(16), // Softer corners
+          border: Border.all(
+            color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFE5E7EB), // Subtle border
+            width: 1,
+          ),
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+             BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.2 : 0.02), // Very subtle shadow
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -684,30 +930,42 @@ class _ProfileScreenState extends State<ProfileScreen>
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFF39A4E6).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: const Color(0xFF0EA5E9).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: const Color(0xFF39A4E6), size: 22),
+              child: Icon(icon, color: const Color(0xFF0EA5E9), size: 20),
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: isLogout
-                      ? const Color(0xFF39A4E6)
-                      : (isDark ? Colors.white : const Color(0xFF111827)),
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                    ),
+                  ),
+                  if (subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: subTextColor,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-            if (!isLogout)
-              Icon(
-                LucideIcons.chevronRight,
-                color: isDark ? Colors.grey[600] : Colors.grey[400],
-                size: 20,
-              ),
+            Icon(
+              LucideIcons.chevronRight,
+              color: isDark ? Colors.grey[600] : Colors.grey[400],
+              size: 20,
+            ),
           ],
         ),
       ),
@@ -811,7 +1069,6 @@ class _ProfileScreenState extends State<ProfileScreen>
       color: bgColor,
       child: Stack(
         children: [
-          // Background Animation removed as requested
           SafeArea(
             child: Column(
               children: [
@@ -959,13 +1216,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                               : const SizedBox.shrink(),
                         ),
 
-                        const SizedBox(height: 20),
-
-                        // Gender field removed as requested
-
-                        const SizedBox(height: 20),
-
-                        // Medical History and Allergies removed as requested
                         const SizedBox(height: 32),
                         GestureDetector(
                           onTap: () async {
@@ -1052,9 +1302,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 'last_name': lastName,
                                 'phone_number': '${_profileData['phonePrefix']}${_profileData['phone']}',
                                 'date_of_birth': formattedDob,
-                                // Gender removed
-                                'medical_history': _profileData['medicalHistory']?.toString() ?? '',
-                                'allergies': _profileData['allergies']?.toString() ?? '',
                               };
 
                               await UserService().updateUserProfile(updateData, imageFile: _imageFile);
@@ -2122,7 +2369,500 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // --- Placeholder Screen ---
+
+  // --- Settings & Privacy Screen ---
+  Widget _buildSettingsPrivacyScreen() {
+    final isDark = _isDarkMode;
+    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF9FAFB);
+
+    return Container(
+      color: bgColor,
+      child: Column(
+        children: [
+          _buildScreenHeader('Settings & Privacy'),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
+              children: [
+                _buildSectionTitle('PREFERENCES'),
+                _buildSecurityItem(
+                  LucideIcons.bell,
+                  'Notifications',
+                  'Manage alerts and reminders',
+                  onTap: () => Navigator.pushNamed(context, '/notification-settings'),
+                ),
+                const SizedBox(height: 16),
+                _buildSecurityItem(
+                  LucideIcons.moon,
+                  'Dark Mode',
+                  'Customize your app appearance',
+                  onTap: () => Navigator.pushNamed(context, '/dark-mode-settings'),
+                ),
+                const SizedBox(height: 32),
+                _buildSectionTitle('SECURITY'),
+                _buildSecurityItem(
+                  LucideIcons.shield,
+                  'Password Manager',
+                  'Manage your saved passwords',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PasswordManagerScreen(),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildPrivacySwitchItem(
+                  LucideIcons.fingerprint,
+                  'Biometric Login',
+                  'Use fingerprint or face ID to login',
+                  _biometricEnabled,
+                  (val) async {
+                    setState(() => _biometricEnabled = val);
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('biometric_enabled', val);
+                  },
+                ),
+                const SizedBox(height: 16),
+                _buildPrivacySwitchItem(
+                  LucideIcons.shieldCheck,
+                  'Two-Factor Authentication',
+                  'Add an extra layer of security',
+                  _twoFactorEnabled,
+                  (val) async {
+                    setState(() => _twoFactorEnabled = val);
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('two_factor_enabled', val);
+                  },
+                ),
+                const SizedBox(height: 32),
+                _buildSectionTitle('PRIVACY'),
+                _buildPrivacySwitchItem(
+                  LucideIcons.share2,
+                  'Share Medical Data',
+                  'Allow doctors to view your history',
+                  _shareMedicalData,
+                  (val) async {
+                    setState(() => _shareMedicalData = val);
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('share_medical_data', val);
+                  },
+                ),
+                const SizedBox(height: 16),
+                _buildPrivacySwitchItem(
+                  LucideIcons.eye,
+                  'Profile Visibility',
+                  'Manage who can see your profile',
+                  _profileVisible,
+                  (val) async {
+                    setState(() => _profileVisible = val);
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('profile_visible', val);
+                  },
+                ),
+                const SizedBox(height: 32),
+                _buildSectionTitle('ACCOUNT'),
+                _buildSecurityItem(
+                  LucideIcons.userX,
+                  'Delete Account',
+                  'Permanently delete your data',
+                  isDestructive: true,
+                  onTap: () => _showDeleteAccountDialog(context, isDark),
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- Help & Support Screen ---
+  Widget _buildHelpSupportScreen() {
+    final isDark = _isDarkMode;
+    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF9FAFB);
+
+    return Container(
+      color: bgColor,
+      child: Column(
+        children: [
+          _buildScreenHeader('Help & Support'),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
+              children: [
+                _buildSectionTitle('COMMON QUESTIONS'),
+                _buildFAQTile(
+                  'How do I upload a medical report?',
+                  'Go to the Home screen and click on the "Camera" icon in the center of the navigation bar. You can then take a photo or upload a PDF.',
+                  isDark,
+                ),
+                const SizedBox(height: 12),
+                _buildFAQTile(
+                  'Is my data secure?',
+                  'Yes, we use industry-standard encryption to protect your data. You can manage your privacy settings in the Settings & Privacy section.',
+                  isDark,
+                ),
+                const SizedBox(height: 12),
+                _buildFAQTile(
+                  'Can I share my reports?',
+                  'Absolutely! You can share any analyzed report as a PDF or image using the "Share" button within the report details.',
+                  isDark,
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFAQTile(String question, String answer, bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF111827) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          title: Text(
+            question,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : const Color(0xFF111827),
+            ),
+          ),
+          iconColor: const Color(0xFF39A4E6),
+          collapsedIconColor: Colors.grey[400],
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Text(
+                answer,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[500],
+                  height: 1.5,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+
+  Widget _buildSecurityItem(
+    IconData icon,
+    String title,
+    String subtitle, {
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
+    final isDark = _isDarkMode;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF111827) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: (isDestructive ? Colors.red : const Color(0xFF39A4E6))
+                    .withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: isDestructive ? Colors.red : const Color(0xFF39A4E6),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF111827),
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              LucideIcons.chevronRight,
+              color: Colors.grey[400],
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrivacySwitchItem(
+    IconData icon,
+    String title,
+    String subtitle,
+    bool value,
+    ValueChanged<bool> onChanged,
+  ) {
+    final isDark = _isDarkMode;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF111827) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF39A4E6).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: const Color(0xFF39A4E6),
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : const Color(0xFF111827),
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: const Color(0xFF39A4E6),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showChangePasswordDialog() {
+    final isDark = _isDarkMode;
+    final oldController = TextEditingController();
+    final newController = TextEditingController();
+    final confirmController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Text(
+            'Change Password',
+            style: TextStyle(color: isDark ? Colors.white : const Color(0xFF111827)),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildDialogField(LucideIcons.lock, 'Old Password', oldController, true, isDark),
+              const SizedBox(height: 16),
+              _buildDialogField(LucideIcons.shield, 'New Password', newController, true, isDark),
+              const SizedBox(height: 16),
+              _buildDialogField(LucideIcons.checkCircle, 'Confirm Password', confirmController, true, isDark),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (newController.text != confirmController.text) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Passwords do not match')),
+                  );
+                  return;
+                }
+                
+                Navigator.pop(context);
+                setState(() => _privacyLoading = true);
+                
+                final (success, message) = await AuthApi.changePassword(
+                  email: _profileData['email'],
+                  oldPassword: oldController.text,
+                  newPassword: newController.text,
+                );
+                
+                setState(() => _privacyLoading = false);
+                
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(success ? 'Password changed successfully' : (message ?? 'Failed to change password')),
+                      backgroundColor: success ? Colors.green : Colors.red,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF39A4E6),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Change', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDialogField(IconData icon, String hint, TextEditingController controller, bool obscure, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF111827) : Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: obscure,
+        style: TextStyle(color: isDark ? Colors.white : Colors.black),
+        decoration: InputDecoration(
+          icon: Icon(icon, size: 20, color: Colors.grey[500]),
+          hintText: hint,
+          hintStyle: TextStyle(color: Colors.grey[500]),
+          border: InputBorder.none,
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context, bool isDark) {
+    final passwordController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text('Delete Account?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'This action is permanent and cannot be undone. Please enter your password to confirm.',
+              style: TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            _buildDialogField(LucideIcons.lock, 'Password', passwordController, true, isDark),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final password = passwordController.text;
+              if (password.isEmpty) return;
+
+              Navigator.pop(dialogContext);
+              
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const Center(child: CircularProgressIndicator()),
+              );
+
+              try {
+                await UserService().deleteAccount(password);
+                await AuthApi.logout();
+
+                if (context.mounted) {
+                  Navigator.pop(context); // Close loading
+                  Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Account deleted successfully'), backgroundColor: Colors.green),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.pop(context); // Close loading
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPlaceholderScreen(String title, IconData icon, String message) {
     final isDark = _isDarkMode;
     final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF9FAFB);
@@ -2334,4 +3074,24 @@ class _ProfileScreenState extends State<ProfileScreen>
       ],
     );
   }
+}
+
+class ProfileHeaderClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(0, size.height - 40); // Decreased from 60 for a neater look
+    path.quadraticBezierTo(
+      size.width / 2,
+      size.height,
+      size.width,
+      size.height - 40,
+    );
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }

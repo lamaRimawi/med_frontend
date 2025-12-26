@@ -39,9 +39,24 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Document scanned and PDF generated successfully!'),
-              backgroundColor: Color(0xFF10B981),
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(LucideIcons.checkCircle, color: Colors.white, size: 20),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      'Document scanned successfully',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: const Color(0xFF10B981),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              elevation: 8,
             ),
           );
         }

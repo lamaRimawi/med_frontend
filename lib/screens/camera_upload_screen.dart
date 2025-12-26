@@ -361,7 +361,25 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           
           if (error.contains('Unauthorized')) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Session expired. Please login again.')),
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(LucideIcons.alertCircle, color: Colors.white, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Session expired. Please login again.',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
+                ),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: const Color(0xFFEF4444),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                elevation: 8,
+              ),
             );
             Navigator.pushNamedAndRemoveUntil(
               context,
@@ -370,7 +388,25 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
             );
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Processing failed: $error')),
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(LucideIcons.xCircle, color: Colors.white, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Processing failed: $error',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
+                ),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: const Color(0xFFEF4444),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                elevation: 8,
+              ),
             );
             setState(() {
               viewMode = ViewMode.review;
@@ -499,12 +535,6 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                           );
                         } else {
                           // Fallback: go to reports list
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Opening reports list...'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
                           Navigator.of(context).popUntil((route) => route.isFirst);
                         }
                       },
