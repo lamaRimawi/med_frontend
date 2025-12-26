@@ -965,25 +965,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                               : const SizedBox.shrink(),
                         ),
 
-                        const SizedBox(height: 20),
-                        _buildLabel('GENDER'),
-                        _buildGenderSelector(),
-                        const SizedBox(height: 20),
-
-                        _buildLabel('MEDICAL HISTORY'),
-                        _buildTextField(
-                          LucideIcons.stethoscope,
-                          _profileData['medicalHistory']?.toString() ?? '',
-                          (val) => setState(() => _profileData['medicalHistory'] = val),
-                        ),
-                        const SizedBox(height: 20),
-
-                        _buildLabel('ALLERGIES'),
-                        _buildTextField(
-                          LucideIcons.alertTriangle,
-                          _profileData['allergies']?.toString() ?? '',
-                          (val) => setState(() => _profileData['allergies'] = val),
-                        ),
                         const SizedBox(height: 32),
                         GestureDetector(
                           onTap: () async {
@@ -1070,9 +1051,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 'last_name': lastName,
                                 'phone_number': '${_profileData['phonePrefix']}${_profileData['phone']}',
                                 'date_of_birth': formattedDob,
-                                'gender': _profileData['gender']?.toString() ?? '',
-                                'medical_history': _profileData['medicalHistory']?.toString() ?? '',
-                                'allergies': _profileData['allergies']?.toString() ?? '',
                               };
 
                               await UserService().updateUserProfile(updateData, imageFile: _imageFile);
@@ -2330,55 +2308,6 @@ class _ProfileScreenState extends State<ProfileScreen>
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildGenderSelector() {
-    final isDark = _isDarkMode;
-    final genders = ['Male', 'Female', 'Other'];
-    return Row(
-      children: genders.map((gender) {
-        final isSelected = _profileData['gender'] == gender;
-        return Expanded(
-          child: GestureDetector(
-            onTap: () => setState(() => _profileData['gender'] = gender),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFF39A4E6)
-                    : (isDark ? const Color(0xFF111827) : Colors.white),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isSelected
-                      ? const Color(0xFF39A4E6)
-                      : (isDark ? const Color(0xFF1F2937) : Colors.grey[200]!),
-                ),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: const Color(0xFF39A4E6).withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : [],
-              ),
-              child: Text(
-                gender,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: isSelected
-                      ? Colors.white
-                      : (isDark ? Colors.grey[400] : Colors.grey[600]),
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-            ),
-          ),
-        );
-      }).toList(),
     );
   }
 
