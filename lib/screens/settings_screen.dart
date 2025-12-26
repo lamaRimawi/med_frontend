@@ -167,9 +167,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             final password = passwordController.text;
                             if (password.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Please enter your password'),
-                                  backgroundColor: Colors.red,
+                                SnackBar(
+                                  content: Row(
+                                    children: [
+                                      const Icon(LucideIcons.alertCircle, color: Colors.white, size: 20),
+                                      const SizedBox(width: 12),
+                                      const Expanded(
+                                        child: Text(
+                                          'Please enter your password',
+                                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  behavior: SnackBarBehavior.floating,
+                                  backgroundColor: const Color(0xFFEF4444),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                                  elevation: 8,
                                 ),
                               );
                               return;
@@ -201,9 +216,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 );
                                 
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Account deleted successfully'),
-                                    backgroundColor: Color(0xFF10B981),
+                                  SnackBar(
+                                    content: Row(
+                                      children: [
+                                        const Icon(LucideIcons.checkCircle, color: Colors.white, size: 20),
+                                        const SizedBox(width: 12),
+                                        const Expanded(
+                                          child: Text(
+                                            'Account deleted successfully',
+                                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    behavior: SnackBarBehavior.floating,
+                                    backgroundColor: const Color(0xFF10B981),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                                    elevation: 8,
                                   ),
                                 );
                               }
@@ -211,13 +241,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               if (context.mounted) {
                                 // Close loading dialog
                                 Navigator.pop(context);
-                                
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Failed to delete account: $e'),
-                                    backgroundColor: const Color(0xFFFF4444),
-                                  ),
-                                );
+                                                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Row(
+                                        children: [
+                                          const Icon(LucideIcons.xCircle, color: Colors.white, size: 20),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              'Failed to delete account: $e',
+                                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      behavior: SnackBarBehavior.floating,
+                                      backgroundColor: const Color(0xFFEF4444),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                                      elevation: 8,
+                                    ),
+                                  );
                               }
                             }
                           },

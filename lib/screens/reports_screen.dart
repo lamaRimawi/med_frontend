@@ -1340,13 +1340,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Fetching report details...'),
-          duration: Duration(seconds: 1),
-        ),
-      );
-
       // Fetch fresh, full report details to ensure we have all extracted data
       // The list view might have a partial object
       Report fullReport = report;
@@ -1360,13 +1353,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
       }
 
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Generating PDF Report...'),
-          duration: Duration(seconds: 2),
-        ),
-      );
 
       // Generate PDF using existing helper
       final file = await _generatePdf(fullReport);
@@ -1391,13 +1377,31 @@ class _ReportsScreenState extends State<ReportsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Saved to Downloads: $fileName.pdf'),
+            content: Row(
+              children: [
+                const Icon(LucideIcons.checkCircle, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Report saved successfully',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            behavior: SnackBarBehavior.floating,
             backgroundColor: const Color(0xFF10B981),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            elevation: 8,
+            duration: const Duration(seconds: 4),
             action: SnackBarAction(
-              label: 'Open',
+              label: 'OPEN',
               textColor: Colors.white,
               onPressed: () {
-                // Try to open the file
                 OpenFile.open(path);
               },
             ),
