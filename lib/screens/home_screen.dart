@@ -14,6 +14,10 @@ import 'timeline_screen.dart';
 import 'reports_screen.dart';
 import '../widgets/report_type_badge.dart';
 import '../widgets/modern_bottom_nav_bar.dart';
+import '../widgets/web_sidebar.dart';
+import '../widgets/web_dashboard_view.dart';
+import '../widgets/web_profile_view.dart';
+import 'package:flutter/foundation.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -437,36 +441,91 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    return Scaffold(
-      backgroundColor: _isDarkMode
-          ? const Color(0xFF121212)
-          : const Color(0xFFF9FAFB),
-      extendBody: true,
-      body: body,
-      bottomNavigationBar: ModernBottomNavBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-            // Reset all flags first
-            _showProfile = false;
-            _showReports = false;
-            _showTimeline = false;
-            _showRecords = false;
-            _showCameraUpload = false;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isDesktop = constraints.maxWidth > 900;
 
-            // Set active flag
-            if (index == 1) {
-              _showReports = true;
-            } else if (index == 3) {
-              _showTimeline = true;
-            } else if (index == 4) {
-              _showProfile = true;
-            }
-          });
-        },
-        onCameraTap: () => setState(() => _showCameraUpload = true),
-      ),
+        if (isDesktop && !_showCameraUpload) {
+          return Scaffold(
+            backgroundColor: _isDarkMode ? const Color(0xFF121212) : const Color(0xFFF9FAFB),
+            body: Row(
+              children: [
+                WebSidebar(
+                  selectedIndex: _selectedIndex,
+                  onTabSelected: (index) {
+                    setState(() {
+                      _selectedIndex = index;
+                      _showProfile = index == 4;
+                      _showReports = index == 1;
+                      _showTimeline = index == 3;
+                      _showRecords = false;
+                    });
+                  },
+                  user: _currentUser,
+                  isDarkMode: _isDarkMode,
+                  onLogout: () {
+                    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                  },
+                ),
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: _showReports 
+                      ? ReportsScreen(onBack: () => setState(() => _showReports = false))
+                      : _showTimeline 
+                        ? TimelineScreen(onBack: () => setState(() => _showTimeline = false), isDarkMode: _isDarkMode)
+                        : _showProfile 
+                          ? WebProfileView(
+                              isDarkMode: _isDarkMode,
+                              onLogout: () => Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false),
+                            )
+                          : WebDashboardView(
+                              user: _currentUser,
+                              isDarkMode: _isDarkMode,
+                              searchQuery: _searchQuery,
+                              onSearchChanged: (val) => setState(() => _searchQuery = val),
+                              reports: _reports,
+                              onUploadTap: () => setState(() => _showCameraUpload = true),
+                              onToggleNotifications: () => setState(() => _showNotifications = !_showNotifications),
+                              showNotifications: _showNotifications,
+                            ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: _isDarkMode ? const Color(0xFF121212) : const Color(0xFFF9FAFB),
+          extendBody: true,
+          body: body,
+          bottomNavigationBar: ModernBottomNavBar(
+            currentIndex: _selectedIndex,
+            onTap: (index) {
+              setState(() {
+                _selectedIndex = index;
+                // Reset all flags first
+                _showProfile = false;
+                _showReports = false;
+                _showTimeline = false;
+                _showRecords = false;
+                _showCameraUpload = false;
+
+                // Set active flag
+                if (index == 1) {
+                  _showReports = true;
+                } else if (index == 3) {
+                  _showTimeline = true;
+                } else if (index == 4) {
+                  _showProfile = true;
+                }
+              });
+            },
+            onCameraTap: () => setState(() => _showCameraUpload = true),
+          ),
+        );
+      },
     );
   }
 

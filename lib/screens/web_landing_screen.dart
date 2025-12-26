@@ -44,16 +44,41 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
       backgroundColor: const Color(0xFF121212),
       extendBodyBehindAppBar: true,
       appBar: _buildHeader(),
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: Column(
-          children: [
-            _buildHeroSection(),
-            _buildFeaturesSection(),
-            _buildFooter(),
-          ],
+      body: Theme(
+        data: Theme.of(context).copyWith(
+          scrollbarTheme: ScrollbarThemeData(
+            thumbColor: WidgetStateProperty.all(const Color(0xFF39A4E6)),
+            trackColor: WidgetStateProperty.all(Colors.white.withOpacity(0.1)),
+            thickness: WidgetStateProperty.all(10.0),
+            radius: const Radius.circular(10),
+            thumbVisibility: WidgetStateProperty.all(true),
+          ),
+        ),
+        child: Scrollbar(
+          controller: _scrollController,
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            child: Column(
+              children: [
+                _buildHeroSection(),
+                _buildFeaturesSection(),
+                _buildFooter(),
+              ],
+            ),
+          ),
         ),
       ),
+      floatingActionButton: _isScrolled
+          ? FloatingActionButton(
+              onPressed: () => _scrollController.animateTo(
+                0,
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+              ),
+              backgroundColor: const Color(0xFF39A4E6),
+              child: const Icon(Icons.arrow_upward, color: Colors.white),
+            )
+          : null,
     );
   }
 

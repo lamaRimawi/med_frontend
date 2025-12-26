@@ -13,6 +13,8 @@ class CustomTextField extends StatefulWidget {
   final VoidCallback? onTogglePassword;
   final String? Function(String?)? validator;
   final bool validateOnChange;
+  final Color? labelColor;
+  final Color? hintColor;
 
   const CustomTextField({
     super.key,
@@ -26,6 +28,8 @@ class CustomTextField extends StatefulWidget {
     this.onTogglePassword,
     this.validator,
     this.validateOnChange = false,
+    this.labelColor,
+    this.hintColor,
   });
 
   @override
@@ -107,10 +111,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
           style: TextStyle(
             color: _hasError
                 ? const Color(0xFFEF4444)
-                : _isDarkMode
-                    ? Colors.grey[300]
-                    : const Color(0xFF374151),
-            fontWeight: FontWeight.w500,
+                : widget.labelColor ?? (_isDarkMode ? Colors.white : const Color(0xFF1F2937)),
+            fontWeight: FontWeight.bold,
             fontSize: 14,
           ),
         ),
@@ -119,11 +121,14 @@ class _CustomTextFieldState extends State<CustomTextField> {
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
             color: _isDarkMode
-                ? const Color(0xFF1E1E1E)
+                ? Colors.white.withOpacity(0.08) // More visible background
                 : const Color(0xFFF9FAFB).withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: _borderColor,
+              color: _hasError ? const Color(0xFFEF4444) : 
+                     _isValid ? const Color(0xFF10B981) :
+                     _isFocused ? const Color(0xFF39A4E6) :
+                     _isDarkMode ? Colors.white.withOpacity(0.2) : Colors.black12,
               width: _isFocused || _hasError || _isValid ? 2 : 1.5,
             ),
             boxShadow: _isFocused
@@ -134,15 +139,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                       offset: const Offset(0, 4),
                     ),
                   ]
-                : _hasError
-                    ? [
-                        BoxShadow(
-                          color: const Color(0xFFEF4444).withValues(alpha: 0.15),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : [],
+                : [],
           ),
           child: TextField(
             controller: widget.controller,
@@ -151,11 +148,12 @@ class _CustomTextFieldState extends State<CustomTextField> {
             keyboardType: widget.keyboardType,
             style: TextStyle(
               color: _isDarkMode ? Colors.white : const Color(0xFF1F2937),
+              fontSize: 16,
             ),
             decoration: InputDecoration(
               hintText: widget.placeholder,
               hintStyle: TextStyle(
-                color: _isDarkMode ? Colors.grey[500] : Colors.grey[400],
+                color: widget.hintColor ?? (_isDarkMode ? Colors.white.withValues(alpha: 0.6) : Colors.grey[500]),
               ),
               prefixIcon: Padding(
                 padding: const EdgeInsets.all(12),

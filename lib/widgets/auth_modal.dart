@@ -42,6 +42,7 @@ class _AuthModalState extends State<AuthModal> {
 
   DateTime? _dateOfBirth;
   bool _agreedToTerms = false;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -69,6 +70,7 @@ class _AuthModalState extends State<AuthModal> {
     _nameController.dispose();
     _phoneController.dispose();
     _confirmPasswordController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -264,9 +266,9 @@ class _AuthModalState extends State<AuthModal> {
             maxHeight: MediaQuery.of(context).size.height * 0.9,
           ),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
+            color: const Color(0xFF1A1F2C), // Deep navy/slate instead of plain dark grey
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withOpacity(0.05)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.6),
@@ -290,11 +292,26 @@ class _AuthModalState extends State<AuthModal> {
                   ),
                 ),
               Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: _isLogin ? _buildLoginForm() : _buildSignupForm(),
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    scrollbarTheme: ScrollbarThemeData(
+                      thumbColor: WidgetStateProperty.all(const Color(0xFF39A4E6)),
+                      trackColor: WidgetStateProperty.all(Colors.white.withOpacity(0.1)),
+                      thickness: WidgetStateProperty.all(10.0),
+                      radius: const Radius.circular(10),
+                      thumbVisibility: WidgetStateProperty.all(true),
+                    ),
+                  ),
+                  child: Scrollbar(
+                    controller: _scrollController,
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.fromLTRB(40, 30, 40, 50),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: _isLogin ? _buildLoginForm() : _buildSignupForm(),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -337,7 +354,7 @@ class _AuthModalState extends State<AuthModal> {
         child: Text(
           title,
           style: GoogleFonts.outfit(
-            color: isActive ? const Color(0xFF39A4E6) : Colors.white60,
+            color: isActive ? const Color(0xFF39A4E6) : Colors.white.withOpacity(0.9),
             fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
             fontSize: 17,
           ),
@@ -353,7 +370,7 @@ class _AuthModalState extends State<AuthModal> {
       children: [
         Text('Welcome Back', style: GoogleFonts.outfit(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
-        Text('Sign in to continue managing your health records.', style: GoogleFonts.outfit(color: Colors.white60, fontSize: 17)),
+        Text('Sign in to continue managing your health records.', style: GoogleFonts.outfit(color: Colors.white.withValues(alpha: 0.9), fontSize: 17)),
         const SizedBox(height: 35),
         CustomTextField(
           label: 'Email Address',
@@ -363,6 +380,8 @@ class _AuthModalState extends State<AuthModal> {
           keyboardType: TextInputType.emailAddress,
           validator: Validators.validateEmail,
           validateOnChange: true,
+          labelColor: Colors.white,
+          hintColor: Colors.black,
         ),
         const SizedBox(height: 24),
         CustomTextField(
@@ -374,6 +393,8 @@ class _AuthModalState extends State<AuthModal> {
           showPassword: !_obscurePassword,
           onTogglePassword: () => setState(() => _obscurePassword = !_obscurePassword),
           validator: Validators.validatePassword,
+          labelColor: Colors.white,
+          hintColor: Colors.black,
         ),
         const SizedBox(height: 15),
         Align(
@@ -403,7 +424,7 @@ class _AuthModalState extends State<AuthModal> {
       children: [
         Text('Create Account', style: GoogleFonts.outfit(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
-        Text('Join MediScan for real-time health insights.', style: GoogleFonts.outfit(color: Colors.white60, fontSize: 17)),
+        Text('Join MediScan for real-time health insights.', style: GoogleFonts.outfit(color: Colors.white.withValues(alpha: 0.9), fontSize: 17)),
         const SizedBox(height: 35),
         
         CustomTextField(
@@ -412,6 +433,8 @@ class _AuthModalState extends State<AuthModal> {
           icon: LucideIcons.user,
           controller: _nameController,
           validator: Validators.validateName,
+          labelColor: Colors.white,
+          hintColor: Colors.black,
         ),
         const SizedBox(height: 24),
         
@@ -422,6 +445,8 @@ class _AuthModalState extends State<AuthModal> {
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
           validator: Validators.validateEmail,
+          labelColor: Colors.white,
+          hintColor: Colors.black,
         ),
         const SizedBox(height: 24),
 
@@ -432,6 +457,8 @@ class _AuthModalState extends State<AuthModal> {
           controller: _phoneController,
           keyboardType: TextInputType.phone,
           validator: Validators.validatePhone,
+          labelColor: Colors.white,
+          hintColor: Colors.black,
         ),
         const SizedBox(height: 24),
 
@@ -447,6 +474,8 @@ class _AuthModalState extends State<AuthModal> {
           showPassword: !_obscurePassword,
           onTogglePassword: () => setState(() => _obscurePassword = !_obscurePassword),
           validator: Validators.validatePassword,
+          labelColor: Colors.white,
+          hintColor: Colors.black,
         ),
         const SizedBox(height: 24),
 
@@ -459,6 +488,8 @@ class _AuthModalState extends State<AuthModal> {
           showPassword: !_obscureConfirmPassword,
           onTogglePassword: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
           validator: (val) => Validators.validateConfirmPassword(val, _passwordController.text),
+          labelColor: Colors.white,
+          hintColor: Colors.black,
         ),
         const SizedBox(height: 32),
 
@@ -481,7 +512,7 @@ class _AuthModalState extends State<AuthModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Date of Birth *', style: GoogleFonts.outfit(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold)),
+        Text('Date of Birth *', style: GoogleFonts.outfit(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
         InkWell(
           onTap: () async {
@@ -505,9 +536,9 @@ class _AuthModalState extends State<AuthModal> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              color: const Color(0xFFF9FAFB).withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.black12, width: 1.5),
             ),
             child: Row(
               children: [
@@ -517,7 +548,7 @@ class _AuthModalState extends State<AuthModal> {
                   _dateOfBirth == null 
                     ? 'Select your birthday' 
                     : '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}',
-                  style: GoogleFonts.outfit(color: _dateOfBirth == null ? Colors.white38 : Colors.white, fontSize: 16),
+                  style: GoogleFonts.outfit(color: _dateOfBirth == null ? Colors.black.withValues(alpha: 0.7) : Colors.black, fontSize: 16),
                 ),
               ],
             ),
@@ -542,9 +573,9 @@ class _AuthModalState extends State<AuthModal> {
         Expanded(
           child: Wrap(
             children: [
-              Text('I agree to the ', style: GoogleFonts.outfit(color: Colors.white60, fontSize: 14)),
+              Text('I agree to the ', style: GoogleFonts.outfit(color: Colors.white, fontSize: 14)),
               Text('Terms & Conditions', style: GoogleFonts.outfit(color: const Color(0xFF39A4E6), fontSize: 14, fontWeight: FontWeight.bold)),
-              Text(' and ', style: GoogleFonts.outfit(color: Colors.white60, fontSize: 14)),
+              Text(' and ', style: GoogleFonts.outfit(color: Colors.white, fontSize: 14)),
               Text('Privacy Policy', style: GoogleFonts.outfit(color: const Color(0xFF39A4E6), fontSize: 14, fontWeight: FontWeight.bold)),
             ],
           ),
