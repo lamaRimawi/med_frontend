@@ -19,6 +19,7 @@ import 'reports_screen.dart';
 import 'dark_mode_screen.dart';
 import 'settings_screen.dart';
 import 'password_manager_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../config/api_config.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -45,6 +46,8 @@ class _ProfileScreenState extends State<ProfileScreen>
   bool _notificationsEnabled = true;
   bool _twoFactorEnabled = false;
   bool _biometricEnabled = false;
+  bool _shareMedicalData = true;
+  bool _profileVisible = true;
   bool _privacyLoading = false;
 
   File? _imageFile;
@@ -126,6 +129,8 @@ class _ProfileScreenState extends State<ProfileScreen>
       _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
       _twoFactorEnabled = prefs.getBool('two_factor_enabled') ?? false;
       _biometricEnabled = prefs.getBool('biometric_enabled') ?? false;
+      _shareMedicalData = prefs.getBool('share_medical_data') ?? true;
+      _profileVisible = prefs.getBool('profile_visible') ?? true;
     });
   }
 
@@ -390,11 +395,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       case 'settings':
         return _buildSettingsPrivacyScreen();
       case 'support':
-        return _buildPlaceholderScreen(
-          'Help & Support',
-          LucideIcons.headphones,
-          'Support options coming soon',
-        );
+        return _buildHelpSupportScreen();
       default:
         return const SizedBox.shrink();
     }
@@ -967,12 +968,27 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ),
 
                         const SizedBox(height: 20),
-
-                        // Gender field removed as requested
+                        _buildLabel('GENDER'),
+                        _buildGenderSelector(),
+                        const SizedBox(height: 20),
 
                         const SizedBox(height: 20),
 
-                        // Medical History and Allergies removed as requested
+                        _buildLabel('MEDICAL HISTORY'),
+                        _buildTextField(
+                          LucideIcons.stethoscope,
+                          _profileData['medicalHistory']?.toString() ?? '',
+                          (val) => setState(() => _profileData['medicalHistory'] = val),
+                        ),
+                        const SizedBox(height: 20),
+
+                        _buildLabel('ALLERGIES'),
+                        _buildTextField(
+                          LucideIcons.alertTriangle,
+                          _profileData['allergies']?.toString() ?? '',
+                          (val) => setState(() => _profileData['allergies'] = val),
+                        ),
+                        const SizedBox(height: 20),
                         const SizedBox(height: 32),
                         GestureDetector(
                           onTap: () async {
@@ -1059,7 +1075,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 'last_name': lastName,
                                 'phone_number': '${_profileData['phonePrefix']}${_profileData['phone']}',
                                 'date_of_birth': formattedDob,
-                                // Gender removed
+                                'gender': _profileData['gender']?.toString() ?? '',
                                 'medical_history': _profileData['medicalHistory']?.toString() ?? '',
                                 'allergies': _profileData['allergies']?.toString() ?? '',
                               };
@@ -2201,15 +2217,24 @@ class _ProfileScreenState extends State<ProfileScreen>
                   LucideIcons.share2,
                   'Share Medical Data',
                   'Allow doctors to view your history',
-                  true, // Mock
-                  (val) {},
+                  _shareMedicalData,
+                  (val) async {
+                    setState(() => _shareMedicalData = val);
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('share_medical_data', val);
+                  },
                 ),
                 const SizedBox(height: 16),
-                _buildSecurityItem(
+                _buildPrivacySwitchItem(
                   LucideIcons.eye,
                   'Profile Visibility',
                   'Manage who can see your profile',
-                  onTap: () {},
+                  _profileVisible,
+                  (val) async {
+                    setState(() => _profileVisible = val);
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('profile_visible', val);
+                  },
                 ),
                 const SizedBox(height: 32),
                 _buildSectionHeader('ACCOUNT'),
@@ -2226,6 +2251,198 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
         ],
       ),
+    );
+  }
+
+  // --- Help & Support Screen ---
+  Widget _buildHelpSupportScreen() {
+    final isDark = _isDarkMode;
+    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF9FAFB);
+
+    return Container(
+      color: bgColor,
+      child: Column(
+        children: [
+          _buildScreenHeader('Help & Support'),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
+              children: [
+                _buildSectionHeader('COMMON QUESTIONS'),
+                _buildFAQTile(
+                  'How do I upload a medical report?',
+                  'Go to the Home screen and click on the "Camera" icon in the center of the navigation bar. You can then take a photo or upload a PDF.',
+                  isDark,
+                ),
+                const SizedBox(height: 12),
+                _buildFAQTile(
+                  'Is my data secure?',
+                  'Yes, we use industry-standard encryption to protect your data. You can manage your privacy settings in the Settings & Privacy section.',
+                  isDark,
+                ),
+                const SizedBox(height: 12),
+                _buildFAQTile(
+                  'Can I share my reports?',
+                  'Absolutely! You can share any analyzed report as a PDF or image using the "Share" button within the report details.',
+                  isDark,
+                ),
+                const SizedBox(height: 32),
+                _buildSectionHeader('CONTACT US'),
+                _buildSecurityItem(
+                  LucideIcons.mail,
+                  'Email Support',
+                  'support@mediscan.com',
+                  onTap: () => _launchURL('mailto:support@mediscan.com'),
+                ),
+                const SizedBox(height: 16),
+                _buildSecurityItem(
+                  LucideIcons.phone,
+                  'Call Us',
+                  '+1 (800) MEDI-SCAN',
+                  onTap: () => _launchURL('tel:+18006334722'),
+                ),
+                const SizedBox(height: 16),
+                _buildSecurityItem(
+                  LucideIcons.messageSquare,
+                  'Live Chat',
+                  'Chat with our support team',
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Live Chat coming soon!')),
+                    );
+                  },
+                ),
+                const SizedBox(height: 32),
+                _buildSectionHeader('ABOUT APP'),
+                _buildSecurityItem(
+                  LucideIcons.info,
+                  'App Version',
+                  'v1.2.4 (Build 108)',
+                  onTap: () {},
+                ),
+                const SizedBox(height: 16),
+                _buildSecurityItem(
+                  LucideIcons.fileText,
+                  'Terms of Service',
+                  'Read our app terms',
+                  onTap: () => _launchURL('https://mediscan.com/terms'),
+                ),
+                const SizedBox(height: 16),
+                _buildSecurityItem(
+                  LucideIcons.shieldCheck,
+                  'Privacy Policy',
+                  'How we handle your data',
+                  onTap: () => _launchURL('https://mediscan.com/privacy'),
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFAQTile(String question, String answer, bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF111827) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          title: Text(
+            question,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : const Color(0xFF111827),
+            ),
+          ),
+          iconColor: const Color(0xFF39A4E6),
+          collapsedIconColor: Colors.grey[400],
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Text(
+                answer,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[500],
+                  height: 1.5,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launchURL(String urlString) async {
+    final Uri url = Uri.parse(urlString);
+    if (!await launchUrl(url)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not launch $urlString')),
+        );
+      }
+    }
+  }
+
+  Widget _buildGenderSelector() {
+    final isDark = _isDarkMode;
+    final genders = ['Male', 'Female', 'Other'];
+    return Row(
+      children: genders.map((gender) {
+        final isSelected = _profileData['gender'] == gender;
+        return Expanded(
+          child: GestureDetector(
+            onTap: () => setState(() => _profileData['gender'] = gender),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? const Color(0xFF39A4E6)
+                    : (isDark ? const Color(0xFF111827) : Colors.white),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected
+                      ? const Color(0xFF39A4E6)
+                      : (isDark ? const Color(0xFF1F2937) : Colors.grey[200]!),
+                ),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFF39A4E6).withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
+                    : [],
+              ),
+              child: Text(
+                gender,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: isSelected
+                      ? Colors.white
+                      : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
