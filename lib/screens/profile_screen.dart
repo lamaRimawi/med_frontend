@@ -163,16 +163,34 @@ class _ProfileScreenState extends State<ProfileScreen>
       String phoneBody = fullPhone;
       String prefix = '+962'; // Default fallback
 
-      // Regex to find country code (e.g. +962) and the rest
-      // Matches + followed by 1-4 digits, then optionally space, then the rest
-      final match = RegExp(r'^(\+\d{1,4})[\s-]*(.*)$').firstMatch(fullPhone);
-      
-      if (match != null) {
-        prefix = match.group(1) ?? '+962';
-        phoneBody = match.group(2) ?? '';
-      } else {
-         // Fallback cleaning if no + found
-         phoneBody = fullPhone.replaceFirst(RegExp(r'^\+'), '').trim();
+      // Better prefix matching based on available country codes
+      bool prefixFound = false;
+      // Sort prefixes by length descending to match longest first (+970 before +9)
+      final sortedCodes = List<Map<String, String>>.from(_countryCodes)
+        ..sort((a, b) => b['code']!.length.compareTo(a['code']!.length));
+
+      for (final country in sortedCodes) {
+        final code = country['code']!;
+        if (fullPhone.startsWith(code)) {
+          prefix = code;
+          phoneBody = fullPhone.substring(code.length).trim();
+          prefixFound = true;
+          break;
+        }
+      }
+
+      if (!prefixFound) {
+        // Regex to find country code (e.g. +962) and the rest
+        // Matches + followed by 1-4 digits, then optionally space, then the rest
+        final match = RegExp(r'^(\+\d{1,4})[\s-]*(.*)$').firstMatch(fullPhone);
+        
+        if (match != null) {
+          prefix = match.group(1) ?? '+962';
+          phoneBody = match.group(2) ?? '';
+        } else {
+          // Fallback cleaning if no + found
+          phoneBody = fullPhone.replaceFirst(RegExp(r'^\+'), '').trim();
+        }
       }
 
       _profileData['phonePrefix'] = prefix;
