@@ -18,6 +18,7 @@ import 'timeline_screen.dart';
 import 'reports_screen.dart';
 import 'dark_mode_screen.dart';
 import 'settings_screen.dart';
+import 'password_manager_screen.dart';
 import '../config/api_config.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -43,6 +44,8 @@ class _ProfileScreenState extends State<ProfileScreen>
   String _calendarView = 'day'; // 'day', 'month', 'year'
   bool _notificationsEnabled = true;
   bool _twoFactorEnabled = false;
+  bool _biometricEnabled = false;
+  bool _privacyLoading = false;
 
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
@@ -122,6 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     setState(() {
       _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
       _twoFactorEnabled = prefs.getBool('two_factor_enabled') ?? false;
+      _biometricEnabled = prefs.getBool('biometric_enabled') ?? false;
     });
   }
 
@@ -383,12 +387,8 @@ class _ProfileScreenState extends State<ProfileScreen>
           onBack: () => setState(() => _currentScreen = 'main'),
           isDarkMode: _isDarkMode,
         );
-      case 'privacy':
-        return _buildPlaceholderScreen(
-          'Privacy & Security',
-          LucideIcons.lock,
-          'Privacy settings coming soon',
-        );
+      case 'settings':
+        return _buildSettingsPrivacyScreen();
       case 'support':
         return _buildPlaceholderScreen(
           'Help & Support',
@@ -544,25 +544,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ),
                 const SizedBox(height: 12),
                 _buildMenuItem(
-                  LucideIcons.lock,
-                  'Privacy Policy',
-                  () => setState(() => _currentScreen = 'privacy'),
-                ),
-                const SizedBox(height: 12),
-                _buildMenuItem(
                   LucideIcons.settings,
-                  'Settings',
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SettingsScreen(),
-                    ),
-                  ),
+                  'Settings & Privacy',
+                  () => setState(() => _currentScreen = 'settings'),
                 ),
                 const SizedBox(height: 12),
                 _buildMenuItem(
                   LucideIcons.helpCircle,
-                  'Help',
+                  'Help & Support',
                   () => setState(() => _currentScreen = 'support'),
                 ),
                 const SizedBox(height: 12),
@@ -2141,6 +2130,419 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   // --- Placeholder Screen ---
+  // --- Settings & Privacy Screen ---
+  Widget _buildSettingsPrivacyScreen() {
+    final isDark = _isDarkMode;
+    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF9FAFB);
+
+    return Container(
+      color: bgColor,
+      child: Column(
+        children: [
+          _buildScreenHeader('Settings & Privacy'),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
+              children: [
+                _buildSectionHeader('PREFERENCES'),
+                _buildSecurityItem(
+                  LucideIcons.bell,
+                  'Notifications',
+                  'Manage alerts and reminders',
+                  onTap: () => Navigator.pushNamed(context, '/notification-settings'),
+                ),
+                const SizedBox(height: 16),
+                _buildSecurityItem(
+                  LucideIcons.moon,
+                  'Dark Mode',
+                  'Customize your app appearance',
+                  onTap: () => Navigator.pushNamed(context, '/dark-mode-settings'),
+                ),
+                const SizedBox(height: 32),
+                _buildSectionHeader('SECURITY'),
+                _buildSecurityItem(
+                  LucideIcons.shield,
+                  'Password Manager',
+                  'Manage your saved passwords',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PasswordManagerScreen(),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildPrivacySwitchItem(
+                  LucideIcons.fingerprint,
+                  'Biometric Login',
+                  'Use fingerprint or face ID to login',
+                  _biometricEnabled,
+                  (val) async {
+                    setState(() => _biometricEnabled = val);
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('biometric_enabled', val);
+                  },
+                ),
+                const SizedBox(height: 16),
+                _buildPrivacySwitchItem(
+                  LucideIcons.shieldCheck,
+                  'Two-Factor Authentication',
+                  'Add an extra layer of security',
+                  _twoFactorEnabled,
+                  (val) async {
+                    setState(() => _twoFactorEnabled = val);
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('two_factor_enabled', val);
+                  },
+                ),
+                const SizedBox(height: 32),
+                _buildSectionHeader('PRIVACY'),
+                _buildPrivacySwitchItem(
+                  LucideIcons.share2,
+                  'Share Medical Data',
+                  'Allow doctors to view your history',
+                  true, // Mock
+                  (val) {},
+                ),
+                const SizedBox(height: 16),
+                _buildSecurityItem(
+                  LucideIcons.eye,
+                  'Profile Visibility',
+                  'Manage who can see your profile',
+                  onTap: () {},
+                ),
+                const SizedBox(height: 32),
+                _buildSectionHeader('ACCOUNT'),
+                _buildSecurityItem(
+                  LucideIcons.userX,
+                  'Delete Account',
+                  'Permanently delete your data',
+                  isDestructive: true,
+                  onTap: () => _showDeleteAccountDialog(context, isDark),
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16, left: 4),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+          letterSpacing: 1.2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecurityItem(
+    IconData icon,
+    String title,
+    String subtitle, {
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
+    final isDark = _isDarkMode;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF111827) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: (isDestructive ? Colors.red : const Color(0xFF39A4E6))
+                    .withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: isDestructive ? Colors.red : const Color(0xFF39A4E6),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF111827),
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              LucideIcons.chevronRight,
+              color: Colors.grey[400],
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrivacySwitchItem(
+    IconData icon,
+    String title,
+    String subtitle,
+    bool value,
+    ValueChanged<bool> onChanged,
+  ) {
+    final isDark = _isDarkMode;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF111827) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF39A4E6).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: const Color(0xFF39A4E6),
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : const Color(0xFF111827),
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: const Color(0xFF39A4E6),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showChangePasswordDialog() {
+    final isDark = _isDarkMode;
+    final oldController = TextEditingController();
+    final newController = TextEditingController();
+    final confirmController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Text(
+            'Change Password',
+            style: TextStyle(color: isDark ? Colors.white : const Color(0xFF111827)),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildDialogField(LucideIcons.lock, 'Old Password', oldController, true, isDark),
+              const SizedBox(height: 16),
+              _buildDialogField(LucideIcons.shield, 'New Password', newController, true, isDark),
+              const SizedBox(height: 16),
+              _buildDialogField(LucideIcons.checkCircle, 'Confirm Password', confirmController, true, isDark),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (newController.text != confirmController.text) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Passwords do not match')),
+                  );
+                  return;
+                }
+                
+                Navigator.pop(context);
+                setState(() => _privacyLoading = true);
+                
+                final (success, message) = await AuthApi.changePassword(
+                  email: _profileData['email'],
+                  oldPassword: oldController.text,
+                  newPassword: newController.text,
+                );
+                
+                setState(() => _privacyLoading = false);
+                
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(success ? 'Password changed successfully' : (message ?? 'Failed to change password')),
+                      backgroundColor: success ? Colors.green : Colors.red,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF39A4E6),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Change', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDialogField(IconData icon, String hint, TextEditingController controller, bool obscure, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF111827) : Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: obscure,
+        style: TextStyle(color: isDark ? Colors.white : Colors.black),
+        decoration: InputDecoration(
+          icon: Icon(icon, size: 20, color: Colors.grey[500]),
+          hintText: hint,
+          hintStyle: TextStyle(color: Colors.grey[500]),
+          border: InputBorder.none,
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context, bool isDark) {
+    final passwordController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text('Delete Account?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'This action is permanent and cannot be undone. Please enter your password to confirm.',
+              style: TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            _buildDialogField(LucideIcons.lock, 'Password', passwordController, true, isDark),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final password = passwordController.text;
+              if (password.isEmpty) return;
+
+              Navigator.pop(dialogContext);
+              
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const Center(child: CircularProgressIndicator()),
+              );
+
+              try {
+                await UserService().deleteAccount(password);
+                await AuthApi.logout();
+
+                if (context.mounted) {
+                  Navigator.pop(context); // Close loading
+                  Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Account deleted successfully'), backgroundColor: Colors.green),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.pop(context); // Close loading
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPlaceholderScreen(String title, IconData icon, String message) {
     final isDark = _isDarkMode;
     final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF9FAFB);
