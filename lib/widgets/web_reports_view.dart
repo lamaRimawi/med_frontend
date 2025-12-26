@@ -932,7 +932,7 @@ class _WebReportsViewState extends State<WebReportsView> {
   Widget _buildDataRow(ReportField field) {
     final isNormal = field.isNormal ?? true;
     return Container(
-      margin: const EdgeInsets.bottom(12),
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: widget.isDarkMode ? Colors.white.withOpacity(0.03) : Colors.white,

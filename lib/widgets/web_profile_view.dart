@@ -2,20 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-<<<<<<< HEAD
-=======
 import 'dart:io';
-import '../services/user_service.dart';
-import '../models/user_model.dart';
-import '../services/api_client.dart';
-import '../config/api_config.dart';
-import 'package:shared_preferences/shared_preferences.dart';
->>>>>>> b9dc932a7cec00ca40218a3537302d4b0edbd27d
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 import '../services/user_service.dart';
+import '../services/api_client.dart';
 import '../config/api_config.dart';
 import '../screens/settings_screen.dart';
 
@@ -273,162 +265,6 @@ class _WebProfileViewState extends State<WebProfileView> {
     );
   }
 
-<<<<<<< HEAD
-=======
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF4A9FD8), Color(0xFF3B8BC9)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(60, 30, 60, 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  if (_currentView != 'main')
-                    IconButton(
-                      icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
-                      onPressed: () => setState(() => _currentView = 'main'),
-                    ),
-                  Text(
-                    _getHeaderTitle(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-              if (_currentView == 'main') ...[
-                const SizedBox(height: 30),
-                Row(
-                  children: [
-                    Stack(
-                      children: [
-                          Container(
-                            width: 90,
-                            height: 90,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.3),
-                                width: 3,
-                              ),
-                              color: const Color(0xFF4A9FD8).withOpacity(0.2),
-                            ),
-                            child: _imageFile != null
-                                ? ClipOval(
-                                    child: Image.file(
-                                      _imageFile!,
-                                      fit: BoxFit.cover,
-                                      width: 90,
-                                      height: 90,
-                                    ),
-                                  )
-                                : (_profileData['avatar'] != null && _profileData['avatar']!.isNotEmpty
-                                    ? ClipOval(
-                                        child: Image.network(
-                                          _profileData['avatar']!,
-                                          headers: _token != null ? {'Authorization': 'Bearer $_token'} : null,
-                                          fit: BoxFit.cover,
-                                          width: 90,
-                                          height: 90,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return const Icon(
-                                              LucideIcons.user,
-                                              size: 40,
-                                              color: Color(0xFF4A9FD8),
-                                            );
-                                          },
-                                        ),
-                                      )
-                                    : const Icon(
-                                        LucideIcons.user,
-                                        size: 40,
-                                        color: Color(0xFF4A9FD8),
-                                      )),
-                          ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            onTap: _pickImage,
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                LucideIcons.camera,
-                                color: Color(0xFF4A9FD8),
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _profileData['name'],
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '$_phonePrefix ${_profileData['phone']}',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.95),
-                              fontSize: 15,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _profileData['email'],
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.95),
-                              fontSize: 15,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    ).animate().fadeIn(duration: 400.ms);
-  }
-
   String _getHeaderTitle() {
     switch (_currentView) {
       case 'edit':
@@ -442,7 +278,6 @@ class _WebProfileViewState extends State<WebProfileView> {
     }
   }
 
->>>>>>> b9dc932a7cec00ca40218a3537302d4b0edbd27d
   Widget _buildContent() {
     switch (_currentView) {
       case 'edit':
@@ -590,19 +425,6 @@ class _WebProfileViewState extends State<WebProfileView> {
     );
   }
 
-  String _getHeaderTitle() {
-    switch (_currentView) {
-      case 'edit':
-        return 'Edit Profile';
-      case 'privacy':
-        return 'Privacy Policy';
-      case 'help':
-        return 'Help & Support';
-      default:
-        return 'My Profile';
-    }
-  }
-
   Widget _buildMainView() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -655,6 +477,19 @@ class _WebProfileViewState extends State<WebProfileView> {
             );
           },
         ),
+        _buildPremiumMenuCard(
+          icon: LucideIcons.logOut,
+          title: 'Logout',
+          subtitle: 'Sign out safely',
+          color: const Color(0xFFe74c3c),
+          isLogout: true,
+          onTap: () async {
+            final confirmed = await _showLogoutDialog();
+            if (confirmed == true) {
+              widget.onLogout();
+            }
+          },
+        ),
       ],
     );
   }
@@ -672,13 +507,13 @@ class _WebProfileViewState extends State<WebProfileView> {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          width: 160,
-          padding: const EdgeInsets.all(16),
+          width: 200, // Slightly wider for better spacing
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: widget.isDarkMode 
               ? Colors.white.withOpacity(0.03) 
               : Colors.black.withOpacity(0.02),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: isLogout 
                 ? const Color(0xFFe74c3c).withOpacity(0.2) 
@@ -690,30 +525,30 @@ class _WebProfileViewState extends State<WebProfileView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(icon, color: color, size: 20),
+                child: Icon(icon, color: color, size: 24),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               Text(
                 title,
                 style: GoogleFonts.outfit(
                   color: isLogout 
                     ? const Color(0xFFe74c3c) 
                     : (widget.isDarkMode ? Colors.white : const Color(0xFF1E293B)),
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 subtitle,
                 style: GoogleFonts.inter(
                   color: widget.isDarkMode ? Colors.grey[500] : const Color(0xFF64748B),
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -726,31 +561,6 @@ class _WebProfileViewState extends State<WebProfileView> {
   }
 
   Widget _buildEditProfileView() {
-<<<<<<< HEAD
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildTextField('Full Name', _nameController, LucideIcons.user),
-          const SizedBox(height: 24),
-          _buildTextField('Email', _emailController, LucideIcons.mail, enabled: false),
-          const SizedBox(height: 24),
-          _buildPhoneField(),
-          const SizedBox(height: 24),
-          _buildDateField(),
-          const SizedBox(height: 24),
-          _buildGenderField(),
-          const SizedBox(height: 24),
-          _buildTextField('Medical History', _medicalHistoryController, LucideIcons.fileText, maxLines: 3),
-          const SizedBox(height: 24),
-          _buildTextField('Allergies', _allergiesController, LucideIcons.alertCircle, maxLines: 3),
-          const SizedBox(height: 40),
-          _buildPremiumButton(
-            onPressed: _isLoading ? null : _saveProfile,
-            isLoading: _isLoading,
-            text: 'Save Changes',
-=======
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 40),
       child: Center(
@@ -855,47 +665,20 @@ class _WebProfileViewState extends State<WebProfileView> {
               const SizedBox(height: 40),
               
               // Save Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _saveProfile,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4A9FD8),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : const Text(
-                          'Save Changes',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                ),
+              _buildPremiumButton(
+                onPressed: _isLoading ? null : _saveProfile,
+                isLoading: _isLoading,
+                text: 'Save Changes',
+              ),
+              const SizedBox(height: 20),
+              _buildPremiumButton(
+                onPressed: () => setState(() => _currentView = 'main'),
+                text: 'Back to Profile',
+                isSecondary: true,
               ),
             ],
->>>>>>> b9dc932a7cec00ca40218a3537302d4b0edbd27d
           ),
-          const SizedBox(height: 20),
-          _buildPremiumButton(
-            onPressed: () => setState(() => _currentView = 'main'),
-            text: 'Back to Profile',
-            isSecondary: true,
-          ),
-        ],
+        ),
       ),
     );
   }
