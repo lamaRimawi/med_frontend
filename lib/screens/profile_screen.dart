@@ -819,7 +819,6 @@ class _ProfileScreenState extends State<ProfileScreen>
       color: bgColor,
       child: Stack(
         children: [
-          // Background Animation removed as requested
           SafeArea(
             child: Column(
               children: [
@@ -972,8 +971,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                         _buildGenderSelector(),
                         const SizedBox(height: 20),
 
-                        const SizedBox(height: 20),
-
                         _buildLabel('MEDICAL HISTORY'),
                         _buildTextField(
                           LucideIcons.stethoscope,
@@ -988,7 +985,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                           _profileData['allergies']?.toString() ?? '',
                           (val) => setState(() => _profileData['allergies'] = val),
                         ),
-                        const SizedBox(height: 20),
                         const SizedBox(height: 32),
                         GestureDetector(
                           onTap: () async {
@@ -2145,7 +2141,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // --- Placeholder Screen ---
+
   // --- Settings & Privacy Screen ---
   Widget _buildSettingsPrivacyScreen() {
     final isDark = _isDarkMode;
