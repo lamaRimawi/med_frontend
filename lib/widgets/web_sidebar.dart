@@ -48,7 +48,7 @@ class WebSidebar extends StatelessWidget {
                     children: [
                       _navItem(0, LucideIcons.home, 'Overview'),
                       _navItem(1, LucideIcons.fileText, 'My Reports'),
-                      _navItem(2, LucideIcons.camera, 'Quick Scan'),
+                      _navItem(2, LucideIcons.upload, 'Upload Report'),
                       _navItem(3, LucideIcons.calendar, 'Timeline'),
                       _navItem(4, LucideIcons.user, 'Profile Settings'),
                       const Spacer(),

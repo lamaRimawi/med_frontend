@@ -364,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_showCameraUpload) {
+    if (_showCameraUpload && !kIsWeb) {
       return CameraUploadScreen(
         isDarkMode: _isDarkMode,
         onClose: () => setState(() {
@@ -409,6 +409,15 @@ class _HomeScreenState extends State<HomeScreen> {
           _selectedIndex = 0;
         }),
         isDarkMode: _isDarkMode,
+      );
+    } else if (_showCameraUpload) {
+      body = WebCameraUploadView(
+        isDarkMode: _isDarkMode,
+        onClose: () => setState(() {
+          _showCameraUpload = false;
+          _activeTab = 'home';
+          _selectedIndex = 0;
+        }),
       );
     } else if (_showRecords) {
       body = MedicalRecordScreen(
@@ -465,12 +474,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (isDesktop) {
           return Scaffold(
             backgroundColor: _isDarkMode ? const Color(0xFF121212) : const Color(0xFFF9FAFB),
-            body: _showCameraUpload
-                ? WebCameraUploadView(
-                    isDarkMode: _isDarkMode,
-                    onClose: () => setState(() => _showCameraUpload = false),
-                  )
-                : NextGenBackground(
+            body: NextGenBackground(
                     isDarkMode: _isDarkMode,
                     child: Row(
                       children: [
@@ -511,16 +515,21 @@ class _HomeScreenState extends State<HomeScreen> {
                                     onLogout: () => Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false),
                                     onProfileUpdated: () => _loadUserData(),
                                   )
-                                : WebDashboardView(
-                                    user: _currentUser,
-                                    isDarkMode: _isDarkMode,
-                                    searchQuery: _searchQuery,
-                                    onSearchChanged: (val) => setState(() => _searchQuery = val),
-                                    reports: _reports,
-                                    onUploadTap: () => setState(() => _showCameraUpload = true),
-                                    onToggleNotifications: () => setState(() => _showNotifications = !_showNotifications),
-                                    showNotifications: _showNotifications,
-                                  ),
+                                : _showCameraUpload
+                                  ? WebCameraUploadView(
+                                      isDarkMode: _isDarkMode,
+                                      onClose: () => setState(() => _showCameraUpload = false),
+                                    )
+                                  : WebDashboardView(
+                                      user: _currentUser,
+                                      isDarkMode: _isDarkMode,
+                                      searchQuery: _searchQuery,
+                                      onSearchChanged: (val) => setState(() => _searchQuery = val),
+                                      reports: _reports,
+                                      onUploadTap: () => setState(() => _showCameraUpload = true),
+                                      onToggleNotifications: () => setState(() => _showNotifications = !_showNotifications),
+                                      showNotifications: _showNotifications,
+                                    ),
                         ),
                       ),
                     ],
