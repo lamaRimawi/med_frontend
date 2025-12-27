@@ -85,7 +85,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
       final names = <String>{};
       for (var details in _reportDetailsCache.values) {
         if (details.patientInfo.name.isNotEmpty) {
-          names.add(details.patientInfo.name);
+          names.add(details.patientInfo.name.trim());
         }
       }
       _patientNames = names.toList()..sort();
@@ -132,7 +132,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
       
       // Filter by selected patient
       if (_selectedPatient != null && 
-          details.patientInfo.name != _selectedPatient) {
+          details.patientInfo.name.trim() != _selectedPatient) {
         continue;
       }
 
@@ -184,7 +184,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
         if (_selectedPatient != null) {
           _trendData = _trendData.where((point) {
             final details = _reportDetailsCache[point.reportId];
-            return details != null && details.patientInfo.name == _selectedPatient;
+            return details != null && details.patientInfo.name.trim() == _selectedPatient;
           }).toList();
         }
         

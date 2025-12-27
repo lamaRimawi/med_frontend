@@ -53,43 +53,54 @@ class TimelineApi {
     );
 
     if (response.statusCode == 200) {
-      final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
+      final rootData = ApiClient.decodeJson<Map<String, dynamic>>(response);
+      final data = rootData['report'] as Map<String, dynamic>;
+      
       // Map backend response to ExtractedReportData
-      // This mapping depends on your backend response structure for a single report
-      // Assuming a structure similar to what ExtractedReportData expects
-
-      final reportData = data['report_data'] ?? {};
-      final patientData = reportData['patient_info'] ?? {};
-      final doctorData = reportData['doctor_info'] ?? {};
+      // Correcting mapping to match Report.fromJson structure
+      
+      final fieldsList = (data['fields'] ?? data['medical_data']) as List<dynamic>?;
+      final patientName = data['patient_name'] as String? ?? 'Unknown';
+      
+      // Parse Age
+      int? age;
+      if (data.containsKey('patient_age')) {
+          final ageStr = data['patient_age'].toString();
+          age = int.tryParse(ageStr);
+          if (age == null) {
+            final match = RegExp(r'(\d+)').firstMatch(ageStr);
+            if (match != null) {
+              age = int.tryParse(match.group(1)!);
+            }
+          }
+      }
 
       return ExtractedReportData(
         reportType: data['report_type'] ?? 'General',
         patientInfo: PatientInfo(
-          name: patientData['name'] ?? 'Unknown',
-          age: patientData['age'] ?? 0,
-          gender: patientData['gender'] ?? 'Unknown',
-          id: patientData['id'],
+          name: patientName,
+          age: age ?? 0,
+          gender: data['patient_gender'] ?? 'Unknown',
+          id: null,
         ),
-        reportDate: data['date'] ?? '',
+        reportDate: data['report_date'] ?? data['date'] ?? '',
         doctorInfo: DoctorInfo(
-          name: doctorData['name'] ?? 'Unknown',
-          specialty: doctorData['specialty'] ?? 'General',
-          hospital: doctorData['hospital'],
+          name: 'Unknown', // Not typically in top-level response based on Report model
+          specialty: 'General', 
         ),
-        testResults: (reportData['test_results'] as List?)
+        testResults: fieldsList
             ?.map(
-              (t) => TestResult(
-                name: t['test_name'] ?? '',
-                value: t['value']?.toString() ?? '',
-                unit: t['unit'] ?? '',
-                normalRange: t['reference_range'] ?? '',
-                status: t['flag']?.toLowerCase() ?? 'normal',
+              (f) => TestResult(
+                name: f['field_name'] ?? '',
+                value: f['field_value']?.toString() ?? '',
+                unit: f['field_unit'] ?? '',
+                normalRange: f['normal_range'] ?? '',
+                status: (f['is_normal'] == false) ? 'abnormal' : 'normal',
               ),
             )
             .toList(),
-        // Add other fields mapping as needed based on your backend response
-        diagnosis: reportData['diagnosis'],
-        observations: reportData['summary'],
+        diagnosis: null, // Not in Report model
+        observations: null, // Not in Report model
       );
     } else {
       throw Exception('Failed to load report: ${response.statusCode}');
