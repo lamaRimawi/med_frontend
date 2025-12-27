@@ -1540,12 +1540,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final hospitalName = _getFieldValue('hospital', report) ??
         _getFieldValue('clinic', report);
     
-    // Determine report type
-    String reportType = report.reportType ?? _getSmartReportType(report) ?? "General Report";
-    if (reportType == "General Report") {
-       final testName = _getFieldValue('test name', report) ?? _getFieldValue('study', report);
-       if (testName != null) reportType = testName;
-    }
+    // Determine report title using standard application logic (prioritizes backend report_name)
+    String reportTitle = _getReportTitle(report);
 
     pdf.addPage(
       pw.MultiPage(
@@ -1608,7 +1604,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     ),
                     pw.SizedBox(height: 4),
                     pw.Text(
-                      reportType,
+                      reportTitle,
                       style: pw.TextStyle(
                         fontSize: 20,
                         fontWeight: pw.FontWeight.bold,
@@ -1753,12 +1749,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 ),
                 cellPadding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 data: <List<String>>[
-                  <String>['TEST NAME', 'VALUE', 'UNIT', 'STATUS'],
+                  <String>['TEST NAME', 'VALUE', 'UNIT', 'RANGE', 'STATUS'],
                   ...validFields.map(
                     (field) => [
                       _formatFieldName(field.fieldName),
                       field.fieldValue,
                       field.fieldUnit ?? '-',
+                      field.normalRange ?? '-',
                       field.isNormal == true ? 'Normal' : (field.isNormal == false ? 'Abnormal' : '-'),
                     ],
                   ),
@@ -1767,7 +1764,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   0: pw.Alignment.centerLeft,
                   1: pw.Alignment.centerLeft,
                   2: pw.Alignment.centerLeft,
-                  3: pw.Alignment.center,
+                  3: pw.Alignment.centerLeft,
+                  4: pw.Alignment.center,
                 },
               ),
             ] else
@@ -1814,7 +1812,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
 
     final output = await getTemporaryDirectory();
-    final file = File('${output.path}/report_${report.reportId}_generated.pdf');
+    
+    // Professional Filename Generation
+    String safePatientName = patientName.replaceAll(RegExp(r'[^\w\s-]'), '').replaceAll(' ', '_');
+    String safeReportTitle = reportTitle.replaceAll(RegExp(r'[^\w\s-]'), '').replaceAll(' ', '_');
+    String formattedDate = displayDate.replaceAll(RegExp(r'[^\d-]'), '');
+    if (formattedDate.isEmpty) formattedDate = DateTime.now().toString().split(' ')[0];
+    
+    final fileName = 'MediScan_${safeReportTitle}_${safePatientName}_$formattedDate.pdf';
+    final file = File('${output.path}/$fileName');
+    
     await file.writeAsBytes(await pdf.save());
     return file;
   }
@@ -1858,12 +1865,10 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
     _loadUserProfile();
     _loadReportDetails();
 
-    // Pre-load all files if the count is small, otherwise first two
+    // Start staggered loading: Only load the first file initially
+    // Subsequent files will be triggered in _loadFile success callback
     if (widget.images.isNotEmpty) {
       _loadFile(0);
-      if (widget.images.length > 1) {
-        _loadFile(1);
-      }
     }
   }
 
@@ -1990,24 +1995,49 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
         }
 
         final url = '${ApiConfig.baseUrl}$relativeUrl';
-        debugPrint('ReportViewer: Final URL for index $index is $url');
-
         final token = await ApiClient.instance.getToken();
-        debugPrint('ReportViewer: Sending request to $url (token present: ${token != null})');
 
+        final dir = await getTemporaryDirectory();
+        final filename = imageMap['filename'] as String? ?? 'file_$fileIndex';
+        bool isPdfFromFilename = _isPdf(filename);
+        final extension = isPdfFromFilename ? 'pdf' : 'jpg';
+
+        // Deterministic filename for caching
+        final String localFileName = 'report_${widget.report.reportId}_file_$fileIndex.$extension';
+        final file = File('${dir.path}/$localFileName');
+
+        // CACHE CHECK: If file exists and is not empty, use it
+        if (await file.exists()) {
+          final stat = await file.stat();
+          if (stat.size > 0) {
+            debugPrint('ReportViewer: Using CACHED file for index $index: ${file.path}');
+            if (mounted) {
+              setState(() {
+                _localFilePaths[index] = file.path;
+                _isPdfMap[index] = isPdfFromFilename;
+                _isDownloading[index] = false;
+              });
+
+              // TRIGGER STAGGERED LOADING for next page
+              if (index + 1 < widget.images.length && !_isDownloading.containsKey(index + 1) && !_localFilePaths.containsKey(index + 1)) {
+                _loadFile(index + 1);
+              }
+            }
+            return;
+          }
+        }
+
+        debugPrint('ReportViewer: Fetching index $index from $url');
         final response = await http.get(
           Uri.parse(url),
           headers: {
             if (token != null) 'Authorization': 'Bearer $token',
-            'Connection': 'close',
+            // Removed 'Connection': 'close' to avoid drops
           },
-        ).timeout(const Duration(seconds: 30));
+        ).timeout(const Duration(seconds: 45)); // Increased timeout for PDF/slow connections
 
         if (response.statusCode == 200) {
-          final dir = await getTemporaryDirectory();
-          final filename = imageMap['filename'] as String? ?? 'file_$fileIndex';
-
-          bool isPdf = _isPdf(filename);
+          bool isPdf = isPdfFromFilename;
           final contentType = response.headers['content-type'];
           if (contentType != null) {
             if (contentType.toLowerCase().contains('application/pdf')) {
@@ -2016,11 +2046,6 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
               isPdf = false;
             }
           }
-
-          final extension = isPdf ? 'pdf' : 'jpg';
-          final file = File(
-            '${dir.path}/report_${widget.report.reportId}_${index}_${DateTime.now().millisecondsSinceEpoch}.$extension',
-          );
 
           await file.writeAsBytes(response.bodyBytes);
 
@@ -2318,6 +2343,11 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
   Widget _buildFileViewer(bool isDark) {
     final images = widget.images;
 
+    // Determine if current visible file is a PDF to hide the slider dots
+    final currentImageMap = images.isNotEmpty ? images[_currentIndex] : null;
+    final currentFilename = currentImageMap?['filename'] as String? ?? '';
+    final isCurrentPdf = _isPdfMap[_currentIndex] ?? _isPdf(currentFilename);
+
     return Stack(
       children: [
         PageView.builder(
@@ -2416,8 +2446,8 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
             );
           },
         ),
-        // Dots indicator for multiple files (Images or PDFs)
-        if (images.length > 1)
+        // Dots indicator for multiple files (Images only as per user request)
+        if (images.length > 1 && !isCurrentPdf)
           Positioned(
             bottom: 30,
             left: 0,
@@ -2515,12 +2545,8 @@ class _PdfViewerPageState extends State<_PdfViewerPage> {
       children: [
         SfPdfViewer.file(
           File(widget.filePath),
-          scrollDirection: widget.isMultiFile
-              ? PdfScrollDirection.vertical
-              : PdfScrollDirection.horizontal,
-          pageLayoutMode: widget.isMultiFile
-              ? PdfPageLayoutMode.continuous
-              : PdfPageLayoutMode.single,
+          scrollDirection: PdfScrollDirection.vertical,
+          pageLayoutMode: PdfPageLayoutMode.continuous,
           onDocumentLoaded: (PdfDocumentLoadedDetails details) {
             setState(() {
               _totalPages = details.document.pages.count;
