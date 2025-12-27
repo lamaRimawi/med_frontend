@@ -367,112 +367,101 @@ class _WebReportsViewState extends State<WebReportsView> {
   }
 
   Widget _buildGlassHeader() {
-    return ClipRRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), // Matched Dashboard blur
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 24), // Increased side padding to match Dashboard
-          decoration: BoxDecoration(
-            color: (widget.isDarkMode ? Colors.black : Colors.white).withOpacity(0.05), // Matched Dashboard opacity
-            border: Border(
-              bottom: BorderSide(
-                color: Colors.white.withOpacity(0.1),
-                width: 1,
-              ),
-            ),
-          ),
-          child: Column(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 32),
+      decoration: const BoxDecoration(
+        color: Colors.transparent,
+      ),
+      child: Column(
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Text(
-                    'My Reports',
-                    style: GoogleFonts.outfit(
-                      fontSize: 28, // Reduced from 32
-                      fontWeight: FontWeight.bold,
-                      color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
-                      letterSpacing: -0.5,
-                    ),
-                  ).animate().fadeIn(duration: 600.ms).slideX(begin: -0.2),
-                  const Spacer(),
-                  if (_selectedReport == null) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF39A4E6).withOpacity(0.1), // Reduced opacity
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFF39A4E6).withOpacity(0.2)),
-                      ),
-                      child: Text(
-                        '${_reports.length} Reports',
-                        style: GoogleFonts.outfit(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF39A4E6),
-                        ),
-                      ),
-                    ).animate().fadeIn(delay: 200.ms),
-                  ],
-                ],
-              ),
+              Text(
+                'My Reports',
+                style: GoogleFonts.outfit(
+                  fontSize: 28, // Reduced from 32
+                  fontWeight: FontWeight.bold,
+                  color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
+                  letterSpacing: -0.5,
+                ),
+              ).animate().fadeIn(duration: 600.ms).slideX(begin: -0.2),
+              const Spacer(),
               if (_selectedReport == null) ...[
-                const SizedBox(height: 30),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: widget.isDarkMode
-                              ? Colors.black.withOpacity(0.2) // Matched Dashboard Search Bar
-                              : Colors.white.withOpacity(0.6),
-                          borderRadius: BorderRadius.circular(25), // More rounded like Dashboard
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.1),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 20,
-                              offset: const Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child: TextField(
-                          onChanged: (value) => setState(() => _searchQuery = value),
-                          style: GoogleFonts.outfit(
-                            color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
-                            fontWeight: FontWeight.w500,
-                          ),
-                          decoration: InputDecoration(
-                            prefixIcon: Icon(
-                              LucideIcons.search,
-                              color: Colors.grey[500],
-                              size: 20,
-                            ),
-                            hintText: 'Search reports...',
-                            hintStyle: GoogleFonts.outfit(
-                              color: Colors.grey[500],
-                              fontSize: 15,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 13),
-                          ),
-                        ),
-                      ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF39A4E6).withOpacity(0.1), // Reduced opacity
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFF39A4E6).withOpacity(0.2)),
+                  ),
+                  child: Text(
+                    '${_reports.length} Reports',
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF39A4E6),
                     ),
-                    const SizedBox(width: 16),
-                    _buildFilterButton(),
-                  ],
-                ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2),
-                if (_showFilters) ...[
-                  const SizedBox(height: 20),
-                   _buildFilterChips(),
-                ],
+                  ),
+                ).animate().fadeIn(delay: 200.ms),
               ],
             ],
           ),
-        ),
+          if (_selectedReport == null) ...[
+            const SizedBox(height: 30),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: widget.isDarkMode
+                          ? Colors.black.withOpacity(0.2) // Matched Dashboard Search Bar
+                          : Colors.white.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(25), // More rounded like Dashboard
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.1),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 20,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      onChanged: (value) => setState(() => _searchQuery = value),
+                      style: GoogleFonts.outfit(
+                        color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
+                        fontWeight: FontWeight.w500,
+                      ),
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(
+                          LucideIcons.search,
+                          color: Colors.grey[500],
+                          size: 20,
+                        ),
+                        hintText: 'Search reports...',
+                        hintStyle: GoogleFonts.outfit(
+                          color: Colors.grey[500],
+                          fontSize: 15,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 13),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                _buildFilterButton(),
+              ],
+            ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2),
+            if (_showFilters) ...[
+              const SizedBox(height: 20),
+              _buildFilterChips(),
+            ],
+          ],
+        ],
       ),
     );
   }

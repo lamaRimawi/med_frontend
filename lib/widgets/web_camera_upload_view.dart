@@ -153,17 +153,11 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: widget.isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-        image: DecorationImage(
-          image: const AssetImage('assets/images/pattern_bg.png'),
-          opacity: widget.isDarkMode ? 0.03 : 0.015,
-          repeat: ImageRepeat.repeat,
-        ),
+      decoration: const BoxDecoration(
+        color: Colors.transparent,
       ),
       child: Column(
         children: [
-          _buildHeader(),
           Expanded(
             child: Scrollbar(
               controller: _scrollController,
@@ -194,7 +188,8 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+      height: 90,
+      padding: const EdgeInsets.symmetric(horizontal: 50),
       decoration: BoxDecoration(
         color: (widget.isDarkMode ? Colors.black : Colors.white).withOpacity(0.05),
         border: Border(
@@ -203,7 +198,10 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
           ),
         ),
       ),
-      child: Row(
+      child: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
@@ -229,41 +227,30 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
             ),
           ),
           const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Report Analysis',
-                style: GoogleFonts.outfit(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
-                  letterSpacing: -0.5,
-                ),
-              ),
-              Text(
-                'Medical AI insights',
-                style: GoogleFonts.outfit(
-                  fontSize: 12,
-                  color: (widget.isDarkMode ? Colors.white : Colors.black).withOpacity(0.4),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+          Text(
+            'Report Analysis',
+            style: GoogleFonts.outfit(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
+              letterSpacing: -0.5,
+            ),
           ),
           const Spacer(),
         ],
       ),
+    ),
+    ),
     );
   }
 
   Widget _buildInitialView() {
     return SingleChildScrollView(
       controller: _scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
+      padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 40),
       child: Center(
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 800),
+          constraints: const BoxConstraints(maxWidth: 900),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -282,10 +269,10 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
   Widget _buildReviewView() {
     return SingleChildScrollView(
       controller: _scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 40),
       child: Center(
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 800),
+          constraints: const BoxConstraints(maxWidth: 900),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -411,17 +398,17 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 30),
           decoration: BoxDecoration(
-            color: (widget.isDarkMode ? const Color(0xFF1E293B) : Colors.white).withOpacity(widget.isDarkMode ? 0.4 : 0.8),
-            borderRadius: BorderRadius.circular(24),
+            color: (widget.isDarkMode ? Colors.black : Colors.white).withOpacity(widget.isDarkMode ? 0.2 : 0.6),
+            borderRadius: BorderRadius.circular(30),
             border: Border.all(
-              color: (widget.isDarkMode ? Colors.white : const Color(0xFF39A4E6)).withOpacity(0.08),
+              color: Colors.white.withOpacity(0.1),
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.05),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
+                blurRadius: 30,
+                offset: const Offset(0, 15),
               ),
             ],
           ),
@@ -466,7 +453,7 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Upload your reports',
+                    'Upload or Drag & Drop',
                     style: GoogleFonts.outfit(
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
@@ -476,12 +463,21 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Professional AI medical insights from your files',
+                    'Analyze your medical reports with AI',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.outfit(
                       fontSize: 14,
-                      color: (widget.isDarkMode ? Colors.white : Colors.black).withOpacity(0.4),
-                      fontWeight: FontWeight.w400,
+                      color: (widget.isDarkMode ? Colors.white : Colors.black).withOpacity(0.5),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Supported file formats:',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: (widget.isDarkMode ? Colors.white : Colors.black).withOpacity(0.3),
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -545,14 +541,22 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: widget.isDarkMode 
+            ? Colors.white.withOpacity(0.05) 
+            : const Color(0xFF39A4E6).withOpacity(0.08),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(
+          color: widget.isDarkMode 
+              ? Colors.white.withOpacity(0.1) 
+              : const Color(0xFF39A4E6).withOpacity(0.15),
+        ),
       ),
       child: Text(
         label,
         style: GoogleFonts.outfit(
-          color: Colors.white.withOpacity(0.5),
+          color: widget.isDarkMode 
+              ? Colors.white.withOpacity(0.5) 
+              : const Color(0xFF39A4E6).withOpacity(0.8),
           fontWeight: FontWeight.w700,
           fontSize: 12,
         ),
