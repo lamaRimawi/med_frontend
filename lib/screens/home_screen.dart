@@ -6,7 +6,7 @@ import '../widgets/theme_toggle.dart';
 import '../widgets/next_gen_background.dart';
 import '../widgets/animated_bubble_background.dart';
 import '../models/user_model.dart';
-import 'medical_record_screen.dart';
+// import 'medical_record_screen.dart'; // Removed
 import 'camera_upload_screen.dart';
 import '../models/report_model.dart';
 import '../services/reports_service.dart';
@@ -46,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _selectedReportType;
   String _activeTab = 'home';
   bool _showProfile = false;
-  bool _showRecords = false;
+  // bool _showRecords = false; // Removed
   bool _showReports = false;
   bool _showTimeline = false;
   bool _showVaccinations = false;
@@ -430,13 +430,13 @@ class _HomeScreenState extends State<HomeScreen> {
           await _loadReports();
         },
       );
-    } else if (_showRecords) {
-      body = MedicalRecordScreen(
-        onBack: () => setState(() {
-          _showRecords = false;
-          _activeTab = 'home';
-        }),
-      );
+    // } else if (_showRecords) {
+    //   body = MedicalRecordScreen(
+    //     onBack: () => setState(() {
+    //       _showRecords = false;
+    //       _activeTab = 'home';
+    //     }),
+    //   );
     } else {
       body = Stack(
         children: [
@@ -498,7 +498,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _showReports = index == 1;
                         _showTimeline = index == 3;
                         _showCameraUpload = index == 2;
-                        _showRecords = false;
+                        // _showRecords = false;
                       });
                     },
                     user: _currentUser,
@@ -567,7 +567,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _showProfile = false;
                 _showReports = false;
                 _showTimeline = false;
-                _showRecords = false;
+                // _showRecords = false;
                 _showCameraUpload = false;
 
                 // Set active flag
@@ -1340,46 +1340,6 @@ class _HomeScreenState extends State<HomeScreen> {
         'quickView': 'orthopedic',
         'description': 'Bones & joints',
       },
-      {
-        'icon': LucideIcons.microscope,
-        'label': 'Pathology',
-        'color': const Color(0xFFFBBF24),
-        'count': counts['Pathology'] ?? 0,
-        'quickView': 'pathology',
-        'description': 'Tissue & cell analysis',
-      },
-      {
-        'icon': LucideIcons.stethoscope,
-        'label': 'General',
-        'color': const Color(0xFF10B981),
-        'count': counts['General'] ?? 0,
-        'quickView': 'general',
-        'description': 'General checkups',
-      },
-      {
-        'icon': LucideIcons.thermometer,
-        'label': 'Temperature',
-        'color': const Color(0xFFF97316),
-        'count': counts['Temperature'] ?? 0,
-        'quickView': 'temperature',
-        'description': 'Body temp records',
-      },
-      {
-        'icon': LucideIcons.wind,
-        'label': 'Respiratory',
-        'color': const Color(0xFF06B6D4),
-        'count': counts['Respiratory'] ?? 0,
-        'quickView': 'respiratory',
-        'description': 'Lungs & breathing',
-      },
-      {
-        'icon': LucideIcons.activity,
-        'label': 'Vitals',
-        'color': const Color(0xFF34D399),
-        'count': counts['Vitals'] ?? 0,
-        'quickView': 'vitals',
-        'description': 'BP, heart rate',
-      },
     ];
   }
 
@@ -1435,9 +1395,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       Future.delayed(const Duration(milliseconds: 500), () {
                         setState(() => _selectedReportType = null);
 
-                        // Navigate to full Records screen (legacy flow)
-                        if (type['navigateTo'] == 'records') {
-                          setState(() => _showRecords = true);
+                        // Navigate to full Reports screen
+                        if (type['navigateTo'] == 'reports') {
+                          setState(() => _showReports = true);
                           return;
                         }
                         if (type['quickView'] != null) {
@@ -1884,7 +1844,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 onPressed: () {
                                   setState(() {
                                     _showQuickView = null;
-                                    _showRecords = true;
+                                    _showReports = true;
                                   });
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -1898,7 +1858,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                                 child: const Text(
-                                  'View All Records',
+                                  'View All Reports',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -2160,10 +2120,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               Future.delayed(
                                 const Duration(milliseconds: 200),
                                 () {
-                                  if (type['navigateTo'] == 'records') {
-                                    setState(() => _showRecords = true);
-                                    return;
-                                  }
+                                  // if (type['navigateTo'] == 'records') {
+                                  //   setState(() => _showRecords = true);
+                                  //   return;
+                                  // }
                                   if (type['quickView'] != null) {
                                     setState(() {
                                       _showQuickView = {
