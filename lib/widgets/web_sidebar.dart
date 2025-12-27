@@ -30,12 +30,20 @@ class WebSidebar extends StatelessWidget {
           width: 280,
           height: double.infinity,
           decoration: BoxDecoration(
-            color: (isDarkMode ? Colors.black : Colors.white).withOpacity(0.05),
+            color: (isDarkMode ? Colors.black : Colors.white).withOpacity(0.08),
             border: Border(
               right: BorderSide(
-                color: Colors.white.withOpacity(0.1),
+                color: (isDarkMode ? Colors.white : const Color(0xFF39A4E6)).withOpacity(0.1),
+                width: 1,
               ),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(isDarkMode ? 0.2 : 0.05),
+                blurRadius: 20,
+                offset: const Offset(5, 0),
+              ),
+            ],
           ),
           child: Column(
             children: [
@@ -191,11 +199,9 @@ class WebSidebar extends StatelessWidget {
                 ),
               ],
             ),
-            ),
           ),
-        )
-
-
+        ),
+      ),
     );
   }
 }
