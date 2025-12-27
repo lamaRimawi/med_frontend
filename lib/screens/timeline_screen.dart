@@ -31,6 +31,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
   String _selectedMetric = '';
   List<TrendDataPoint> _trendData = [];
   
+  // Patient Filtering
+  List<String> _patientNames = [];
+  String? _selectedPatient;
+  
   // UI State
   bool _isLoading = true;
   bool _isMetricLoading = false;
@@ -75,7 +79,23 @@ class _TimelineScreenState extends State<TimelineScreen> {
         timeline.map((report) => _fetchReportDetails(report.reportId)),
       );
 
-      // 3. Extract unique metric names (test names)
+
+
+      // 3. Extract unique patient names
+      final names = <String>{};
+      for (var details in _reportDetailsCache.values) {
+        if (details.patientInfo.name.isNotEmpty) {
+          names.add(details.patientInfo.name);
+        }
+      }
+      _patientNames = names.toList()..sort();
+      
+      // Default to first patient if not selected
+      if (_patientNames.isNotEmpty && _selectedPatient == null) {
+        _selectedPatient = _patientNames.first;
+      }
+
+      // 4. Extract unique metric names (test names) for the selected patient
       _extractAvailableMetrics();
 
       setState(() {
@@ -107,7 +127,15 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
   void _extractAvailableMetrics() {
     final Set<String> metrics = {};
-    for (var details in _reportDetailsCache.values) {
+    for (var entry in _reportDetailsCache.entries) {
+      final details = entry.value;
+      
+      // Filter by selected patient
+      if (_selectedPatient != null && 
+          details.patientInfo.name != _selectedPatient) {
+        continue;
+      }
+
       if (details.testResults != null) {
         for (var test in details.testResults!) {
           if (test.name.isNotEmpty) {
@@ -117,6 +145,12 @@ class _TimelineScreenState extends State<TimelineScreen> {
       }
     }
     _availableMetrics = metrics.toList()..sort();
+    
+    // Reset selected metric if it's no longer available
+    if (_selectedMetric.isNotEmpty && !_availableMetrics.contains(_selectedMetric)) {
+      _selectedMetric = '';
+      _trendData = [];
+    }
   }
 
   Future<void> _selectMetric(String metric) async {
@@ -140,10 +174,18 @@ class _TimelineScreenState extends State<TimelineScreen> {
         if (trends.trends.containsKey(metric)) {
           _trendData = trends.trends[metric]!;
         } else if (trends.trends.isNotEmpty) {
-          // Fallback if key casing differs
+          // Fallback
           _trendData = trends.trends.values.first; 
         } else {
           _trendData = [];
+        }
+        
+        // Filter by patient
+        if (_selectedPatient != null) {
+          _trendData = _trendData.where((point) {
+            final details = _reportDetailsCache[point.reportId];
+            return details != null && details.patientInfo.name == _selectedPatient;
+          }).toList();
         }
         
         // Sort by date just in case
@@ -259,16 +301,57 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   )
                 ],
               ),
-              child: Icon(LucideIcons.arrowLeft, color: textColor, size: 20),
             ),
           ),
           const SizedBox(width: 16),
-          Text(
-            'Health Trends',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: textColor,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Health Trends',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
+                ),
+                if (_patientNames.length > 1)
+                  GestureDetector(
+                    onTap: () => _showPatientSelector(context, isDark, textColor),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        children: [
+                          Text(
+                            _selectedPatient ?? 'Select Patient',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isDark ? Colors.white70 : Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            LucideIcons.chevronDown,
+                            size: 14,
+                            color: isDark ? Colors.white70 : Colors.grey[600],
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else if (_selectedPatient != null)
+                  Padding(
+                     padding: const EdgeInsets.only(top: 4),
+                     child: Text(
+                      _selectedPatient!,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark ? Colors.white70 : Colors.grey[600],
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],
@@ -960,5 +1043,81 @@ class _TimelineScreenState extends State<TimelineScreen> {
     } catch (_) {
       return isoDate;
     }
+  }
+
+  void _showPatientSelector(BuildContext context, bool isDark, Color textColor) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1F2937) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Select Patient',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ..._patientNames.map((name) {
+              final isSelected = name == _selectedPatient;
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                onTap: () {
+                  Navigator.pop(context);
+                  if (isSelected) return;
+                  
+                  setState(() {
+                    _selectedPatient = name;
+                    _isLoading = true; // Briefly show loading while we re-filter
+                  });
+                  
+                  // Re-run extraction and selection
+                  Future.microtask(() async {
+                    _extractAvailableMetrics();
+                    if (_availableMetrics.isNotEmpty) {
+                       // Try to keep same metric if available for this patient
+                       if (!_availableMetrics.contains(_selectedMetric)) {
+                         _selectMetric(_availableMetrics.first);
+                       } else {
+                         // Reload data for same metric but new patient
+                         _selectMetric(_selectedMetric);
+                       }
+                    } else {
+                      setState(() {
+                        _selectedMetric = '';
+                        _trendData = [];
+                        _isLoading = false;
+                      });
+                    }
+                     setState(() => _isLoading = false);
+                  });
+                },
+                title: Text(
+                  name,
+                  style: TextStyle(
+                    color: isSelected ? const Color(0xFF39A4E6) : textColor,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+                trailing: isSelected
+                    ? const Icon(LucideIcons.check, color: Color(0xFF39A4E6))
+                    : null,
+              );
+            }),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
   }
 }
