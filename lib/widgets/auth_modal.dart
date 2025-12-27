@@ -50,6 +50,7 @@ class _AuthModalState extends State<AuthModal> {
   void initState() {
     super.initState();
     _isLogin = widget.initialIsLogin;
+    _loadSavedEmail();
     
     // Listeners for real-time validation (optional but good for parity)
     _emailController.addListener(_clearAlert);
@@ -57,6 +58,14 @@ class _AuthModalState extends State<AuthModal> {
     _nameController.addListener(_clearAlert);
     _phoneController.addListener(_clearAlert);
     _confirmPasswordController.addListener(_clearAlert);
+  }
+
+  Future<void> _loadSavedEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('user_email');
+    if (email != null && mounted) {
+      _emailController.text = email;
+    }
   }
 
   void _clearAlert() {
@@ -648,6 +657,7 @@ class _AuthModalState extends State<AuthModal> {
   }
 
   Widget _socialSection() {
+    final actionText = _isLogin ? 'Sign in' : 'Sign up';
     return Column(
       children: [
         Row(
@@ -663,16 +673,16 @@ class _AuthModalState extends State<AuthModal> {
         const SizedBox(height: 30),
         Row(
           children: [
-            Expanded(child: _socialBtn(LucideIcons.chrome, 'Google', () => _handleSocialLogin('Google'))),
+            Expanded(child: _socialBtn(LucideIcons.chrome, '$actionText with Google', _isLoading ? null : () => _handleSocialLogin('Google'))),
             const SizedBox(width: 20),
-            Expanded(child: _socialBtn(LucideIcons.facebook, 'Facebook', () => _handleSocialLogin('Facebook'))),
+            Expanded(child: _socialBtn(LucideIcons.facebook, '$actionText with Facebook', _isLoading ? null : () => _handleSocialLogin('Facebook'))),
           ],
         ),
       ],
     );
   }
 
-  Widget _socialBtn(IconData icon, String label, VoidCallback onTap) {
+  Widget _socialBtn(IconData icon, String label, VoidCallback? onTap) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(15),

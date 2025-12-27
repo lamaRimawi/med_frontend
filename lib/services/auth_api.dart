@@ -94,6 +94,15 @@ class AuthApi {
         return (false, 'No access token in response');
       }
       await prefs.setString('jwt_token', token);
+      await prefs.setString('last_login_method', 'google');
+
+      // Save email for session persistence/biometrics if available
+      final user = data['user'] as Map<String, dynamic>?;
+      final email = user?['email'] as String? ?? data['email'] as String?;
+      if (email != null) {
+        await prefs.setString('user_email', email);
+      }
+      
       return (true, null);
     }
 
@@ -124,6 +133,15 @@ class AuthApi {
         return (false, 'No access token in response');
       }
       await prefs.setString('jwt_token', token);
+      await prefs.setString('last_login_method', 'facebook');
+
+      // Save email for session persistence/biometrics if available
+      final user = data['user'] as Map<String, dynamic>?;
+      final email = user?['email'] as String? ?? data['email'] as String?;
+      if (email != null) {
+        await prefs.setString('user_email', email);
+      }
+      
       return (true, null);
     }
 

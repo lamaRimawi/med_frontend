@@ -157,7 +157,7 @@ class _SignupScreenState extends State<SignupScreen> {
           if (mounted) {
             if (success) {
               setState(() {
-                _alertMessage = 'Signed up with Google as ${userData['email']}';
+                _alertMessage = 'Logged in with Google as ${userData['email']}';
                 _isAlertError = false;
                 _isLoading = false;
               });
@@ -187,7 +187,7 @@ class _SignupScreenState extends State<SignupScreen> {
             if (success) {
               setState(() {
                 _alertMessage =
-                    'Signed up with Facebook: ${userData['email'] ?? userData['name']}';
+                    'Logged in with Facebook: ${userData['email'] ?? userData['name']}';
                 _isAlertError = false;
                 _isLoading = false;
               });
@@ -637,7 +637,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Widget _buildSocialButton(IconData icon, String provider) {
     return InkWell(
-      onTap: () => _handleSocialLogin(provider),
+      onTap: _isLoading ? null : () => _handleSocialLogin(provider),
       borderRadius: BorderRadius.circular(50),
       child: Container(
         width: 56,

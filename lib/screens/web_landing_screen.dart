@@ -4,6 +4,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../widgets/auth_modal.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/auth_service.dart';
+import '../services/auth_api.dart';
 
 class WebLandingScreen extends StatefulWidget {
   const WebLandingScreen({super.key});
@@ -19,7 +22,32 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
   @override
   void initState() {
     super.initState();
+    _checkLoginStatus();
     _scrollController.addListener(_onScroll);
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('jwt_token');
+    
+    if (token != null && token.isNotEmpty) {
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+      return;
+    }
+
+    // Attempt silent social login if they used Google before
+    final lastMethod = prefs.getString('last_login_method');
+    if (lastMethod == 'google') {
+       final userData = await AuthService.trySilentGoogleLogin();
+       if (userData != null && mounted) {
+          final (success, _) = await AuthApi.loginWithGoogle(userData['idToken']);
+          if (success && mounted) {
+            Navigator.pushReplacementNamed(context, '/home');
+          }
+       }
+    }
   }
 
   void _onScroll() {
