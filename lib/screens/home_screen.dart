@@ -367,11 +367,14 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_showCameraUpload && !kIsWeb) {
       return CameraUploadScreen(
         isDarkMode: _isDarkMode,
-        onClose: () => setState(() {
-          _showCameraUpload = false;
-          _activeTab = 'home';
-          _selectedIndex = 0;
-        }),
+        onClose: () {
+          setState(() {
+            _showCameraUpload = false;
+            _activeTab = 'home';
+            _selectedIndex = 0;
+          });
+          _loadReports(); // Refresh reports
+        },
       );
     }
 
@@ -413,11 +416,14 @@ class _HomeScreenState extends State<HomeScreen> {
     } else if (_showCameraUpload) {
       body = WebCameraUploadView(
         isDarkMode: _isDarkMode,
-        onClose: () => setState(() {
-          _showCameraUpload = false;
-          _activeTab = 'home';
-          _selectedIndex = 0;
-        }),
+        onClose: () {
+          setState(() {
+            _showCameraUpload = false;
+            _activeTab = 'home';
+            _selectedIndex = 0;
+          });
+          _loadReports(); // Refresh reports
+        },
       );
     } else if (_showRecords) {
       body = MedicalRecordScreen(
@@ -519,7 +525,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             : _showCameraUpload
                               ? WebCameraUploadView(
                                   isDarkMode: _isDarkMode,
-                                  onClose: () => setState(() => _showCameraUpload = false),
+                                  onClose: () {
+                                    setState(() => _showCameraUpload = false);
+                                    _loadReports(); // Refresh reports
+                                  },
                                 )
                               : WebDashboardView(
                                   user: _currentUser,
