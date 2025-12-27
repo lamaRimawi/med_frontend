@@ -1540,12 +1540,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final hospitalName = _getFieldValue('hospital', report) ??
         _getFieldValue('clinic', report);
     
-    // Determine report type
-    String reportType = report.reportType ?? _getSmartReportType(report) ?? "General Report";
-    if (reportType == "General Report") {
-       final testName = _getFieldValue('test name', report) ?? _getFieldValue('study', report);
-       if (testName != null) reportType = testName;
-    }
+    // Determine report title using standard application logic (prioritizes backend report_name)
+    String reportTitle = _getReportTitle(report);
 
     pdf.addPage(
       pw.MultiPage(
@@ -1608,7 +1604,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     ),
                     pw.SizedBox(height: 4),
                     pw.Text(
-                      reportType,
+                      reportTitle,
                       style: pw.TextStyle(
                         fontSize: 20,
                         fontWeight: pw.FontWeight.bold,
@@ -1753,12 +1749,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 ),
                 cellPadding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 data: <List<String>>[
-                  <String>['TEST NAME', 'VALUE', 'UNIT', 'STATUS'],
+                  <String>['TEST NAME', 'VALUE', 'UNIT', 'RANGE', 'STATUS'],
                   ...validFields.map(
                     (field) => [
                       _formatFieldName(field.fieldName),
                       field.fieldValue,
                       field.fieldUnit ?? '-',
+                      field.normalRange ?? '-',
                       field.isNormal == true ? 'Normal' : (field.isNormal == false ? 'Abnormal' : '-'),
                     ],
                   ),
@@ -1767,7 +1764,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   0: pw.Alignment.centerLeft,
                   1: pw.Alignment.centerLeft,
                   2: pw.Alignment.centerLeft,
-                  3: pw.Alignment.center,
+                  3: pw.Alignment.centerLeft,
+                  4: pw.Alignment.center,
                 },
               ),
             ] else
@@ -1814,7 +1812,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
 
     final output = await getTemporaryDirectory();
-    final file = File('${output.path}/report_${report.reportId}_generated.pdf');
+    
+    // Professional Filename Generation
+    String safePatientName = patientName.replaceAll(RegExp(r'[^\w\s-]'), '').replaceAll(' ', '_');
+    String safeReportTitle = reportTitle.replaceAll(RegExp(r'[^\w\s-]'), '').replaceAll(' ', '_');
+    String formattedDate = displayDate.replaceAll(RegExp(r'[^\d-]'), '');
+    if (formattedDate.isEmpty) formattedDate = DateTime.now().toString().split(' ')[0];
+    
+    final fileName = 'MediScan_${safeReportTitle}_${safePatientName}_$formattedDate.pdf';
+    final file = File('${output.path}/$fileName');
+    
     await file.writeAsBytes(await pdf.save());
     return file;
   }
