@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -207,7 +207,7 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
     final d = widget.extractedData;
     return Scaffold(
       backgroundColor: widget.isDarkMode
-          ? const Color(0xFF121212)
+          ? const Color(0xFF0A1929)
           : const Color(0xFFF7F9FC),
       body: Stack(
         children: [
@@ -427,7 +427,7 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
   // Helper method for header buttons
   Widget _roundIconButton(IconData icon, {required VoidCallback onTap}) {
     return Material(
-      color: widget.isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade100,
+      color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.grey.shade100,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
@@ -468,7 +468,7 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
                 width: 420,
                 decoration: BoxDecoration(
                   color: widget.isDarkMode
-                      ? const Color(0xFF1E1E1E)
+                      ? const Color(0xFF0F2137)
                       : Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(

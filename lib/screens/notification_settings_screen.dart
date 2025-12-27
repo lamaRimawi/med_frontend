@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
@@ -18,7 +18,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F5),
+      backgroundColor: isDark ? const Color(0xFF0A1929) : const Color(0xFFF5F5F5),
       body: Column(
         children: [
           // Blue Header
@@ -99,7 +99,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        color: isDark ? const Color(0xFF0F2137) : Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           if (!isDark)

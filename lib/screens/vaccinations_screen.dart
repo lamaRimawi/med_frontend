@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
@@ -192,7 +192,7 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0A1929) : Colors.white,
       body: Stack(
         children: [
           const MedicalBackground(),
@@ -284,7 +284,7 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.only(left: 24, right: 24, top: 12, bottom: 28),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : null,
+        color: isDark ? const Color(0xFF0F2137) : null,
         gradient: isDark
             ? null
             : const LinearGradient(
@@ -517,7 +517,7 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
                       padding: const EdgeInsets.all(24),
                       margin: const EdgeInsets.symmetric(horizontal: 24),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                        color: isDark ? const Color(0xFF0F2137) : Colors.white,
                         borderRadius: BorderRadius.circular(32),
                         boxShadow: [
                           BoxShadow(
@@ -675,14 +675,14 @@ class _VaccinationsScreenState extends State<VaccinationsScreen> {
           controller: controller,
           maxLength: maxLength,
           keyboardType: keyboardType,
-          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+          style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0A1929)),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle:
                 TextStyle(color: isDark ? Colors.white30 : Colors.black38),
             counterText: '',
             filled: true,
-            fillColor: isDark ? const Color(0xFF121212) : Colors.grey.shade100,
+            fillColor: isDark ? const Color(0xFF0A1929) : Colors.grey.shade100,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(18),
               borderSide: BorderSide(

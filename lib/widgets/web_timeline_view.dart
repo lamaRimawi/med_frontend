@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -205,7 +205,7 @@ class _WebTimelineViewState extends State<WebTimelineView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       decoration: BoxDecoration(
-        color: widget.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.white,
         border: Border(
           bottom: BorderSide(
             color: widget.isDarkMode
@@ -334,7 +334,7 @@ class _WebTimelineViewState extends State<WebTimelineView> {
 
   Widget _buildChartSection() {
     final cardColor = widget.isDarkMode
-        ? const Color(0xFF1E1E1E)
+        ? const Color(0xFF0F2137)
         : Colors.white;
     
     return Container(
@@ -542,7 +542,7 @@ class _WebTimelineViewState extends State<WebTimelineView> {
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
             getTooltipColor: (touchedSpot) =>
-                widget.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                widget.isDarkMode ? const Color(0xFF0F2137) : Colors.white,
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((LineBarSpot touchedSpot) {
                 final point = _trendData[touchedSpot.x.toInt()];
@@ -642,7 +642,7 @@ class _WebTimelineViewState extends State<WebTimelineView> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: widget.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: widget.isDarkMode
@@ -691,7 +691,7 @@ class _WebTimelineViewState extends State<WebTimelineView> {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: widget.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: widget.isDarkMode

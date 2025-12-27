@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -744,6 +745,7 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
     );
   }
 
+  // Helper Widgets
   // Helper Widgets
   Widget _pillBadge(String text, bool isDark) {
     return Container(

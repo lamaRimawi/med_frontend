@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:ui';
 
@@ -21,7 +21,7 @@ class ModernBottomNavBar extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E).withOpacity(0.95) : Colors.white.withOpacity(0.95),
+        color: isDark ? const Color(0xFF0F2137).withOpacity(0.95) : Colors.white.withOpacity(0.95),
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
@@ -118,7 +118,7 @@ class ModernBottomNavBar extends StatelessWidget {
           ],
         ),
         child: const Icon(
-          LucideIcons.upload,
+          LucideIcons.camera,
           color: Colors.white,
           size: 28,
         ),

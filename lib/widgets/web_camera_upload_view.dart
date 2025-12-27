@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -152,23 +152,26 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.transparent,
-      ),
-      child: Column(
-        children: [
-          Expanded(
-            child: Scrollbar(
-              controller: _scrollController,
-              thumbVisibility: true,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 400),
-                child: _buildCurrentView(),
+    return Expanded(
+      child: Container(
+        color: widget.isDarkMode
+            ? const Color(0xFF0A1929)
+            : const Color(0xFFF9FAFB),
+        child: Column(
+          children: [
+            _buildHeader(),
+            Expanded(
+              child: Scrollbar(
+                controller: _scrollController,
+                thumbVisibility: true,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 400),
+                  child: _buildCurrentView(),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -191,7 +194,7 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
       height: 90,
       padding: const EdgeInsets.symmetric(horizontal: 50),
       decoration: BoxDecoration(
-        color: (widget.isDarkMode ? Colors.black : Colors.white).withOpacity(0.05),
+        color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.white,
         border: Border(
           bottom: BorderSide(
             color: (widget.isDarkMode ? Colors.white : Colors.black).withOpacity(0.05),
@@ -326,7 +329,7 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
           constraints: const BoxConstraints(maxWidth: 450),
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            color: (widget.isDarkMode ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.9),
+            color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.white,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: const Color(0xFF10B981).withOpacity(0.2)),
             boxShadow: [
@@ -641,12 +644,43 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
   }
 
   Widget _buildFileList() {
-    return Column(
-      children: _selectedFiles.asMap().entries.map((entry) {
-        final index = entry.key;
-        final file = entry.value;
-        return _buildFileItem(file, index);
-      }).toList(),
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: widget.isDarkMode
+              ? Colors.white.withOpacity(0.05)
+              : Colors.black.withOpacity(0.03),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Selected Files (${_selectedFiles.length})',
+            style: GoogleFonts.outfit(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: widget.isDarkMode ? Colors.white : Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ..._selectedFiles.asMap().entries.map((entry) {
+            final index = entry.key;
+            final file = entry.value;
+            return _buildFileItem(file, index);
+          }),
+        ],
+      ),
     );
   }
 
@@ -753,7 +787,7 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
       constraints: const BoxConstraints(maxWidth: 400),
       padding: const EdgeInsets.all(48),
       decoration: BoxDecoration(
-        color: (widget.isDarkMode ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.9),
+        color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: (widget.isDarkMode ? Colors.white : Colors.black).withOpacity(0.05)),
         boxShadow: [

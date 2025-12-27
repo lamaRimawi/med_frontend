@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:ui';
@@ -425,112 +425,89 @@ class _ReportsScreenState extends State<ReportsScreen> {
     try {
       // Show loading
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preparing report for sharing...')),
+        const SnackBar(
+          content: Text('Preparing report for sharing...'),
+          duration: Duration(seconds: 2),
+        ),
       );
 
-      // Get images first
-      final images = await ReportsService().getReportImages(report.reportId);
-      final xFiles = <XFile>[];
-
-      if (images.isNotEmpty) {
-        final token = await ApiClient.instance.getToken();
-        final tempDir = await getTemporaryDirectory();
-
-        for (var i = 0; i < images.length; i++) {
-          final imageMap = images[i];
-          final backendIndex = imageMap['index'] as int?;
-          final fileIndex = backendIndex ?? (i + 1);
-
-          // Determine extension
-          String filename =
-              imageMap['filename'] as String? ??
-              'report_${report.reportId}_$i.jpg';
-          String extension = 'jpg';
-          if (filename.contains('.')) {
-            extension = filename.split('.').last.toLowerCase();
-          }
-
-          final imageUrl =
-              '${ApiConfig.baseUrl}${ApiConfig.reports}/${report.reportId}/images/$fileIndex';
-
-          try {
-            final response = await http.get(
-              Uri.parse(imageUrl),
-              headers: token != null
-                  ? {'Authorization': 'Bearer $token'}
-                  : null,
-            );
-
-            if (response.statusCode == 200) {
-              // Check content type for better extension handling
-              final contentType = response.headers['content-type'];
-              if (contentType != null) {
-                if (contentType.contains('pdf'))
-                  extension = 'pdf';
-                else if (contentType.contains('png'))
-                  extension = 'png';
-                else if (contentType.contains('jpeg') ||
-                    contentType.contains('jpg'))
-                  extension = 'jpg';
-              }
-
-              final filePath =
-                  '${tempDir.path}/report_${report.reportId}_$i.$extension';
-              final file = File(filePath);
-              await file.writeAsBytes(response.bodyBytes);
-              xFiles.add(XFile(file.path, mimeType: contentType));
-            }
-          } catch (e) {
-            debugPrint('Error downloading image for share: $e');
-          }
+      // Fetch fresh, full report details to ensure we have all extracted data
+      Report fullReport = report;
+      try {
+        final fetched = await ReportsService().getReport(report.reportId);
+        if (fetched != null) {
+          fullReport = fetched;
         }
+      } catch (e) {
+        debugPrint('Could not fetch full report details, using list item: $e');
       }
 
-      // If no images found or download failed, generate PDF
-      if (xFiles.isEmpty) {
-        try {
-          final pdfFile = await _generatePdf(report);
-          xFiles.add(XFile(pdfFile.path, mimeType: 'application/pdf'));
-        } catch (e) {
-          debugPrint('Error generating PDF: $e');
-        }
-      }
+      if (!mounted) return;
 
-      if (xFiles.isNotEmpty) {
-        // Share files with minimal text
-        await Share.shareXFiles(
-          xFiles,
-          subject: 'Medical Report: ${_getReportTitle(report)}',
-        );
-      } else {
-        // Fallback to text sharing if absolutely everything fails
-        final buffer = StringBuffer();
-        buffer.writeln('📋 Medical Report: ${_getReportTitle(report)}');
-        buffer.writeln('📅 Date: ${report.reportDate}');
-        buffer.writeln('🏥 Fields Extracted: ${report.totalFields}');
-        buffer.writeln('----------------------------------------');
+      // Generate formatted PDF using the same method as download
+      final pdfFile = await _generatePdf(fullReport);
+      
+      // Share the PDF file
+      await Share.shareXFiles(
+        [XFile(pdfFile.path, mimeType: 'application/pdf')],
+        subject: 'Medical Report: ${_getReportTitle(report)}',
+        text: 'Sharing medical report from HealthTrack',
+      );
 
-        for (var field in report.fields) {
-          buffer.write('• ${field.fieldName}: ${field.fieldValue}');
-          if (field.fieldUnit != null && field.fieldUnit!.isNotEmpty) {
-            buffer.write(' ${field.fieldUnit}');
-          }
-          buffer.writeln();
-        }
-
-        buffer.writeln('----------------------------------------');
-        buffer.writeln('Shared from HealthTrack App 📱');
-
-        await Share.share(
-          buffer.toString(),
-          subject: 'Medical Report: ${_getReportTitle(report)}',
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(LucideIcons.checkCircle, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Report shared successfully',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: const Color(0xFF10B981),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            elevation: 8,
+            duration: const Duration(seconds: 2),
+          ),
         );
       }
     } catch (e) {
+      debugPrint('Error sharing report: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error sharing report: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(LucideIcons.xCircle, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Error sharing report: $e',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: const Color(0xFFEF4444),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            elevation: 8,
+          ),
+        );
       }
     }
   }
@@ -569,7 +546,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Widget build(BuildContext context) {
     final isDark = _isDarkMode;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0A1929) : Colors.white,
       body: Stack(
         children: [
           // Background Gradient (Unified Black for Dark Mode)
@@ -580,9 +557,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 end: Alignment.bottomRight,
                 colors: isDark
                     ? [
-                        const Color(0xFF121212),
-                        const Color(0xFF121212),
-                        const Color(0xFF121212),
+                        const Color(0xFF0A1929),
+                        const Color(0xFF0A1929),
+                        const Color(0xFF0A1929),
                       ]
                     : [
                         const Color(0xFFEFF6FF),
@@ -621,11 +598,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark
-            ? const Color(0xFF1E1E1E).withOpacity(0.9)
+            ? const Color(0xFF0F2137).withOpacity(0.9)
             : Colors.white.withOpacity(0.8),
         border: Border(
           bottom: BorderSide(
-            color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[100]!,
+            color: isDark ? const Color(0xFF0F2137) : Colors.grey[100]!,
           ),
         ),
       ),
@@ -656,11 +633,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                        color: isDark ? const Color(0xFF0F2137) : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: isDark
-                              ? const Color(0xFF2A2A2A)
+                              ? const Color(0xFF0F2137)
                               : Colors.grey[200]!,
                         ),
                       ),
@@ -712,14 +689,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         color: _showFilters || _filterType != 'all'
                             ? const Color(0xFF39A4E6)
                             : isDark
-                            ? const Color(0xFF1E1E1E)
+                            ? const Color(0xFF0F2137)
                             : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: _showFilters || _filterType != 'all'
                               ? const Color(0xFF39A4E6)
                               : isDark
-                              ? const Color(0xFF2A2A2A)
+                              ? const Color(0xFF0F2137)
                               : Colors.grey[200]!,
                         ),
                       ),
@@ -871,10 +848,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        color: isDark ? const Color(0xFF0F2137) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[100]!,
+          color: isDark ? const Color(0xFF0F2137) : Colors.grey[100]!,
         ),
         boxShadow: [
           BoxShadow(
@@ -1058,7 +1035,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         decoration: BoxDecoration(
           color: isDestructive
               ? (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2))
-              : (isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF1F5F9)),
+              : (isDark ? const Color(0xFF0F2137) : const Color(0xFFF1F5F9)), // Navy blue for buttons
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(
@@ -1085,7 +1062,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             margin: const EdgeInsets.all(24),
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              color: isDark ? const Color(0xFF0F2137) : Colors.white,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
@@ -1233,10 +1210,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final isDark = _isDarkMode;
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF121212) : Colors.grey[100],
+        color: isDark ? const Color(0xFF0A1929) : Colors.grey[100],
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[300]!,
+          color: isDark ? const Color(0xFF0F2137) : Colors.grey[300]!,
           width: 1.5,
         ),
       ),
@@ -2227,10 +2204,10 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
 
     return Scaffold(
       backgroundColor: isDark
-          ? const Color(0xFF121212)
+          ? const Color(0xFF0A1929)
           : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        backgroundColor: isDark ? const Color(0xFF0F2137) : Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: Icon(

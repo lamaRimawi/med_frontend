@@ -734,9 +734,7 @@ class _AuthModalState extends State<AuthModal> {
               lastDate: lastDate,
               builder: (ctx, child) => Theme(
                 data: Theme.of(ctx).copyWith(
-                  colorScheme: isDark 
-                    ? const ColorScheme.dark(primary: Color(0xFF39A4E6), surface: Color(0xFF1E1E1E))
-                    : const ColorScheme.light(primary: Color(0xFF39A4E6), surface: Colors.white),
+                  colorScheme: const ColorScheme.dark(primary: Color(0xFF39A4E6), surface: Color(0xFF1E1E1E)),
                 ),
                 child: child!,
               ),

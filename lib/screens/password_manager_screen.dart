@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart'; // Make sure this is available if needed, or just standard imports
@@ -204,7 +204,7 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F5),
+      backgroundColor: isDark ? const Color(0xFF0A1929) : const Color(0xFFF5F5F5),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Column(
@@ -424,7 +424,7 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
               fontSize: 15,
             ),
             filled: true,
-            fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+            fillColor: isDark ? const Color(0xFF0F2137) : Colors.white,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 16,
@@ -433,13 +433,13 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE5E7EB),
+                color: isDark ? const Color(0xFF0F2137) : const Color(0xFFE5E7EB),
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE5E7EB),
+                color: isDark ? const Color(0xFF0F2137) : const Color(0xFFE5E7EB),
               ),
             ),
             focusedBorder: OutlineInputBorder(

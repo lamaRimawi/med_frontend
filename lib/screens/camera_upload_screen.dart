@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:mediScan/services/document_scanner_service.dart';
@@ -80,11 +80,11 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           constraints: const BoxConstraints(maxWidth: 300),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: widget.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+            color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.white,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: const Color(0xFF0A1929).withOpacity(0.2),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -387,27 +387,105 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
               (route) => false,
             );
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    const Icon(LucideIcons.xCircle, color: Colors.white, size: 20),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Processing failed: $error',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+            // Check if it's a duplicate error to show special notification
+            if (error.contains('Duplicate') || error.contains('duplicate') || error.contains('already been processed')) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF14B8A6), Color(0xFF06B6D4)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF14B8A6).withOpacity(0.4),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
                     ),
-                  ],
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            LucideIcons.copy,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'Already Processed',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                error.length > 80 ? '${error.substring(0, 80)}...' : error,
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 13,
+                                  height: 1.3,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  behavior: SnackBarBehavior.floating,
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                  padding: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  duration: const Duration(seconds: 5),
                 ),
-                behavior: SnackBarBehavior.floating,
-                backgroundColor: const Color(0xFFEF4444),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                elevation: 8,
-              ),
-            );
+              );
+            } else {
+              // Regular error notification
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      const Icon(LucideIcons.xCircle, color: Colors.white, size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Processing failed: $error',
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ],
+                  ),
+                  behavior: SnackBarBehavior.floating,
+                  backgroundColor: const Color(0xFFEF4444),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                  elevation: 8,
+                ),
+              );
+            }
             setState(() {
               viewMode = ViewMode.review;
               processingProgress = 0;
@@ -429,11 +507,11 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           constraints: const BoxConstraints(maxWidth: 340),
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: widget.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+            color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.white,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.15),
+                color: const Color(0xFF0A1929).withOpacity(0.15),
                 blurRadius: 24,
                 offset: const Offset(0, 8),
               ),
@@ -757,7 +835,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
 
   Widget _buildCameraScreen() {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFF0A1929), // Navy blue instead of black
       body: Stack(
         children: [
           // Background/Prompt
@@ -795,12 +873,12 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           margin: const EdgeInsets.symmetric(horizontal: 40),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.8),
+            color: const Color(0xFF0A1929).withOpacity(0.8),
             borderRadius: BorderRadius.circular(30),
             border: Border.all(color: Colors.white.withOpacity(0.2)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: const Color(0xFF0A1929).withOpacity(0.2),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -858,7 +936,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           gradient: LinearGradient(
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
-            colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+            colors: [const Color(0xFF0A1929).withOpacity(0.8), Colors.transparent],
           ),
         ),
         child: Column(
@@ -1116,7 +1194,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
 
     return Scaffold(
       backgroundColor: widget.isDarkMode
-          ? const Color(0xFF121212)
+          ? const Color(0xFF0A1929)
           : Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -1124,14 +1202,14 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
         leading: IconButton(
           icon: Icon(
             LucideIcons.chevronLeft,
-            color: widget.isDarkMode ? Colors.white : Colors.black,
+            color: widget.isDarkMode ? Colors.white : const Color(0xFF0A1929),
           ),
           onPressed: () => setState(() => viewMode = ViewMode.camera),
         ),
         title: Text(
           'Review Items',
           style: TextStyle(
-            color: widget.isDarkMode ? Colors.white : Colors.black,
+            color: widget.isDarkMode ? Colors.white : const Color(0xFF0A1929),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -1243,7 +1321,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                                               style: TextStyle(
                                                 color: widget.isDarkMode
                                                     ? Colors.white
-                                                    : Colors.black,
+                                                    : const Color(0xFF0A1929),
                                                 fontSize: 12,
                                               ),
                                             ),
@@ -1281,7 +1359,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.6),
+                                color: const Color(0xFF0A1929).withOpacity(0.6),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -1350,9 +1428,9 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
   Widget _buildViewerScreen() {
     final item = capturedItems[viewerItemIndex];
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFF0A1929),
       appBar: AppBar(
-        backgroundColor: Colors.black.withOpacity(0.8),
+        backgroundColor: const Color(0xFF0A1929).withOpacity(0.8),
         iconTheme: const IconThemeData(color: Colors.white),
         leading: IconButton(
           icon: const Icon(LucideIcons.chevronLeft),
@@ -1406,7 +1484,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
             left: 0,
             right: 0,
             child: Container(
-              color: Colors.black.withOpacity(0.8),
+              color: const Color(0xFF0A1929).withOpacity(0.8),
               padding: const EdgeInsets.all(24),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -173,8 +173,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
       colors: [
-         Color(0xFF121212), // Material Dark Background
-         Color(0xFF121212), // Solid consistency
+         Color(0xFF0A1929), // Material Dark Background
+         Color(0xFF0A1929), // Solid consistency
       ],
     );
 
@@ -194,7 +194,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: isDark ? const Color(0xFF121212) : null, // Fallback
+      backgroundColor: isDark ? const Color(0xFF0A1929) : null, // Fallback
       body: Container(
         decoration: BoxDecoration(gradient: bgGradient),
         child: SafeArea(
@@ -341,7 +341,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
   Widget _buildChartSection(bool isDark, Color textColor, Color? subTextColor) {
     final cardColor = isDark 
-        ? const Color(0xFF1E1E1E).withOpacity(0.8) 
+        ? const Color(0xFF0F2137).withOpacity(0.8) 
         : Colors.white.withOpacity(0.7);
     
     final borderColor = isDark 
@@ -420,7 +420,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     key: _metricButtonKey,
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF2A2A2A) : Colors.black.withOpacity(0.05),
+                      color: isDark ? const Color(0xFF0F2137) : Colors.black.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
@@ -505,7 +505,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     maxHeight: maxMenuHeight,
                   ),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E1E1E).withOpacity(0.95) : Colors.white.withOpacity(0.95),
+                    color: isDark ? const Color(0xFF0F2137).withOpacity(0.95) : Colors.white.withOpacity(0.95),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.white.withOpacity(0.1)),
                     boxShadow: [
@@ -727,7 +727,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
         ],
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
-             getTooltipColor: (touchedSpot) => isDark ? const Color(0xFF1E1E1E) : Colors.white,
+             getTooltipColor: (touchedSpot) => isDark ? const Color(0xFF0F2137) : Colors.white,
              getTooltipItems: (touchedSpots) {
               return touchedSpots.map((LineBarSpot touchedSpot) {
                 final point = _trendData[touchedSpot.x.toInt()];
@@ -811,7 +811,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white.withOpacity(0.7),
+        color: isDark ? const Color(0xFF0F2137) : Colors.white.withOpacity(0.7),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: isDark ? Colors.white.withOpacity(0.1) : Colors.white),
         boxShadow: isDark ? null : [
@@ -851,7 +851,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
   Widget _buildHistoryList(bool isDark, Color textColor, Color? subTextColor) {
     final cardColor = isDark 
-        ? const Color(0xFF1E1E1E).withOpacity(0.8) 
+        ? const Color(0xFF0F2137).withOpacity(0.8) 
         : Colors.white.withOpacity(0.7);
 
     return Container(

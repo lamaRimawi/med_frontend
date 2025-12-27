@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -155,7 +155,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0A1929) : Colors.white,
       body: Stack(
         children: [
           AnimatedBubbleBackground(isDark: isDark),
@@ -386,13 +386,13 @@ class _OTPFieldState extends State<_OTPField> {
           margin: const EdgeInsets.symmetric(horizontal: 4),
           decoration: BoxDecoration(
             color: _isFocused 
-                ? (widget.isDark ? const Color(0xFF1E1E1E) : Colors.white) 
-                : (widget.isDark ? const Color(0xFF121212) : const Color(0xFFF9FAFB)),
+                ? (widget.isDark ? const Color(0xFF0F2137) : Colors.white) 
+                : (widget.isDark ? const Color(0xFF0A1929) : const Color(0xFFF9FAFB)),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: _isFocused
                   ? const Color(0xFF39A4E6)
-                  : (widget.isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE5E7EB)),
+                  : (widget.isDark ? const Color(0xFF0F2137) : const Color(0xFFE5E7EB)),
               width: _isFocused ? 2 : 1.5,
             ),
             boxShadow: _isFocused

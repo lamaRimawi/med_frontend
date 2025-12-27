@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../widgets/medical_background.dart';
@@ -55,7 +55,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0A1929) : Colors.white,
       body: Stack(
         children: [
           const MedicalBackground(),
@@ -114,7 +114,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
     return Container(
       padding: const EdgeInsets.only(left: 24, right: 24, top: 12, bottom: 28),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : null,
+        color: isDark ? const Color(0xFF0F2137) : null,
         gradient: isDark
             ? null
             : const LinearGradient(
@@ -164,7 +164,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
         ),
         const SizedBox(height: 8),
         Divider(
-          color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE9F6FE),
+          color: isDark ? const Color(0xFF0F2137) : const Color(0xFFE9F6FE),
           thickness: 1,
         ),
       ],
@@ -209,10 +209,10 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+            color: isDark ? const Color(0xFF0F2137) : Colors.white,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE9F6FE),
+              color: isDark ? const Color(0xFF0F2137) : const Color(0xFFE9F6FE),
             ),
             boxShadow: [
               BoxShadow(
@@ -289,11 +289,11 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                        color: isDark ? const Color(0xFF0F2137) : Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: isDark
-                              ? const Color(0xFF2A2A2A)
+                              ? const Color(0xFF0F2137)
                               : const Color(0xFFE9F6FE),
                         ),
                       ),

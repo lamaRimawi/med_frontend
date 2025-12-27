@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
@@ -473,7 +473,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         if (isDesktop) {
           return Scaffold(
-            backgroundColor: _isDarkMode ? const Color(0xFF121212) : const Color(0xFFF9FAFB),
+            backgroundColor: _isDarkMode ? const Color(0xFF0A1929) : const Color(0xFFF9FAFB),
             body: NextGenBackground(
               isDarkMode: _isDarkMode,
               child: Column(
@@ -540,7 +540,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         return Scaffold(
-          backgroundColor: _isDarkMode ? const Color(0xFF121212) : const Color(0xFFF9FAFB),
+          backgroundColor: _isDarkMode ? const Color(0xFF0A1929) : const Color(0xFFF9FAFB),
           extendBody: true,
           body: body,
           bottomNavigationBar: ModernBottomNavBar(
@@ -616,7 +616,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: _isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                    color: _isDarkMode ? const Color(0xFF0F2137) : Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
@@ -645,7 +645,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: _isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                    color: _isDarkMode ? const Color(0xFF0F2137) : Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
@@ -712,13 +712,13 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         height: 56,
         decoration: BoxDecoration(
-          color: _isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+          color: _isDarkMode ? const Color(0xFF0F2137) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: _isSearchFocused
                 ? const Color(0xFF39A4E6)
                 : (_isDarkMode
-                      ? const Color(0xFF2A2A2A)
+                      ? const Color(0xFF0F2137)
                       : const Color(0xFFE5E7EB)),
             width: 2,
           ),
@@ -766,7 +766,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 24,
                   decoration: BoxDecoration(
                     color: _isDarkMode
-                        ? const Color(0xFF2A2A2A)
+                        ? const Color(0xFF0F2137)
                         : const Color(0xFFE5E7EB),
                     shape: BoxShape.circle,
                   ),

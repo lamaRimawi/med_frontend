@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -42,7 +42,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           backgroundColor: Colors.transparent,
           child: Container(
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              color: isDark ? const Color(0xFF0F2137) : Colors.white,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
@@ -99,10 +99,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF121212) : Colors.grey[50],
+                    color: isDark ? const Color(0xFF0A1929) : Colors.grey[50],
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200]!,
+                      color: isDark ? const Color(0xFF0F2137) : Colors.grey[200]!,
                     ),
                   ),
                   child: TextField(
@@ -298,7 +298,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F5),
+      backgroundColor: isDark ? const Color(0xFF0A1929) : const Color(0xFFF5F5F5),
       body: Column(
         children: [
           // Blue Header
@@ -419,10 +419,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        color: isDark ? const Color(0xFF0F2137) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? const Color(0xFF2A2A2A) : Colors.grey.withOpacity(0.1),
+          color: isDark ? const Color(0xFF0F2137) : Colors.grey.withOpacity(0.1),
           width: 1,
         ),
         boxShadow: [
@@ -488,11 +488,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          color: isDark ? const Color(0xFF0F2137) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isDark 
-                ? const Color(0xFF2A2A2A) 
+                ? const Color(0xFF0F2137) 
                 : Colors.grey.withOpacity(0.1),
             width: 1,
           ),
