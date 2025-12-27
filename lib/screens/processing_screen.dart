@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:io';
@@ -67,7 +67,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: widget.isDarkMode ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
+      backgroundColor: widget.isDarkMode ? const Color(0xFF0A1929) : const Color(0xFFF8FAFC),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -124,7 +124,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> with SingleTickerPr
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: widget.isDarkMode ? const Color(0xFF1E1E1E) : const Color(0xFFE2E8F0),
+                    color: widget.isDarkMode ? const Color(0xFF0F2137) : const Color(0xFFE2E8F0),
                     width: 12,
                   ),
                 ),
@@ -149,7 +149,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> with SingleTickerPr
                 height: 180,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: widget.isDarkMode ? const Color(0xFF1E1E1E).withOpacity(0.5) : Colors.white,
+                  color: widget.isDarkMode ? const Color(0xFF0F2137).withOpacity(0.5) : Colors.white,
                   boxShadow: [
                     BoxShadow(
                       color: const Color(0xFF39A4E6).withOpacity(0.15),
@@ -185,10 +185,10 @@ class _ProcessingScreenState extends State<ProcessingScreen> with SingleTickerPr
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: widget.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: widget.isDarkMode ? const Color(0xFF2A2A2A) : const Color(0xFFE2E8F0),
+          color: widget.isDarkMode ? const Color(0xFF0F2137) : const Color(0xFFE2E8F0),
         ),
         boxShadow: [
           BoxShadow(

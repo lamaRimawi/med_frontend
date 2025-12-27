@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -597,7 +597,7 @@ class _AuthModalState extends State<AuthModal> {
               lastDate: lastDate,
               builder: (ctx, child) => Theme(
                 data: Theme.of(ctx).copyWith(
-                  colorScheme: const ColorScheme.dark(primary: Color(0xFF39A4E6), surface: Color(0xFF1E1E1E)),
+                  colorScheme: const ColorScheme.dark(primary: Color(0xFF39A4E6), surface: Color(0xFF0F2137)),
                 ),
                 child: child!,
               ),

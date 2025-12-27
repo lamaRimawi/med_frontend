@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -65,7 +65,7 @@ class _WebForgotPasswordScreenState extends State<WebForgotPasswordScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
+        backgroundColor: const Color(0xFF0F2137),
         title: Text('Dev Tip', style: GoogleFonts.outfit(color: Colors.white)),
         content: Text('Verification Code: $code', style: GoogleFonts.outfit(color: Colors.white70)),
         actions: [
@@ -96,14 +96,14 @@ class _WebForgotPasswordScreenState extends State<WebForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: const Color(0xFF0A1929),
       body: Center(
         child: SingleChildScrollView(
           child: Container(
             width: 450,
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E),
+              color: const Color(0xFF0F2137),
               borderRadius: BorderRadius.circular(30),
               border: Border.all(color: Colors.white.withOpacity(0.1)),
               boxShadow: [

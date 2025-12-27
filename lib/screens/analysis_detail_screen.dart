@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
@@ -60,7 +60,7 @@ class AnalysisDetailScreen extends StatelessWidget {
             as Map<String, dynamic>;
     final List<dynamic> sections = data['sections'] as List<dynamic>;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0A1929) : Colors.white,
       body: Stack(
         children: [
           const MedicalBackground(),
@@ -124,12 +124,12 @@ class AnalysisDetailScreen extends StatelessWidget {
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
                                 color: isDark
-                                    ? const Color(0xFF1E1E1E)
+                                    ? const Color(0xFF0F2137)
                                     : Colors.white,
                                 borderRadius: BorderRadius.circular(24),
                                 border: Border.all(
                                   color: isDark
-                                      ? const Color(0xFF2A2A2A)
+                                      ? const Color(0xFF0F2137)
                                       : const Color(0xFFE9F6FE),
                                 ),
                                 boxShadow: [
@@ -214,7 +214,7 @@ class AnalysisDetailScreen extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.only(left: 24, right: 24, top: 12, bottom: 24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFF39A4E6),
+        color: isDark ? const Color(0xFF0F2137) : const Color(0xFF39A4E6),
       ),
       child: Column(
         children: [

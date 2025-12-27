@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../models/extracted_report_data.dart';
 
@@ -255,10 +255,10 @@ class ReportContentWidget extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       // margin: const EdgeInsets.only(bottom: 16), // Handled by parent
       decoration: BoxDecoration(
-        color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        color: isDarkMode ? const Color(0xFF0F2137) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDarkMode ? const Color(0xFF2A2A2A) : const Color(0xFFE2E8F0),
+          color: isDarkMode ? const Color(0xFF0F2137) : const Color(0xFFE2E8F0),
         ),
         boxShadow: [
           BoxShadow(

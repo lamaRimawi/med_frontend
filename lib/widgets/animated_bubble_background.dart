@@ -15,7 +15,7 @@ class AnimatedBubbleBackground extends StatelessWidget {
       children: [
         // Base background
         Container(
-          color: isDark ? const Color(0xFF121212) : Colors.white,
+          color: isDark ? const Color(0xFF0A1929) : Colors.white,
         ),
 
         // 1. Small Floating Bubbles (Reduced to 15 for cleaner look)

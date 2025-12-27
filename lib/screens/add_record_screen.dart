@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../services/document_scanner_service.dart';
 
@@ -98,7 +98,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0A1929) : Colors.white,
       body: Stack(
         children: [
           const MedicalBackground(),
@@ -143,7 +143,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                                     color: selected
                                         ? null
                                         : (isDark
-                                            ? const Color(0xFF1E1E1E)
+                                            ? const Color(0xFF0F2137)
                                             : Colors.white),
                                     borderRadius: BorderRadius.circular(30),
                                     border: Border.all(
@@ -262,7 +262,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                                 color: selected
                                     ? null
                                     : (isDark
-                                        ? const Color(0xFF1E1E1E)
+                                        ? const Color(0xFF0F2137)
                                         : const Color(0xFFE9F6FE)),
                                 borderRadius: BorderRadius.circular(18),
                                 boxShadow: selected
@@ -309,12 +309,12 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                           width: double.infinity,
                           decoration: BoxDecoration(
                             color: isDark
-                                ? const Color(0xFF1E1E1E)
+                                ? const Color(0xFF0F2137)
                                 : const Color(0xFFF0F9FF),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: isDark
-                                  ? const Color(0xFF2A2A2A)
+                                  ? const Color(0xFF0F2137)
                                   : const Color(0xFF39A4E6).withOpacity(0.3),
                               width: 1,
                             ),
@@ -400,7 +400,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
       width: double.infinity,
       padding: const EdgeInsets.only(left: 24, right: 24, top: 12, bottom: 28),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : null,
+        color: isDark ? const Color(0xFF0F2137) : null,
         gradient: isDark
             ? null
             : const LinearGradient(
@@ -476,7 +476,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
             thumbColor: Colors.white,
             activeTrackColor: const Color(0xFF39A4E6),
             inactiveTrackColor:
-                isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE9F6FE),
+                isDark ? const Color(0xFF0F2137) : const Color(0xFFE9F6FE),
             valueIndicatorTextStyle: const TextStyle(color: Color(0xFF39A4E6)),
           ),
           child: Slider(

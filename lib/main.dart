@@ -104,9 +104,11 @@ class _MyAppState extends State<MyApp> {
                   seedColor: const Color(0xFF39A4E6),
                   primary: const Color(0xFF39A4E6),
                   brightness: Brightness.dark,
+                  surface: const Color(0xFF0F2137), // Navy blue surface
+                  background: const Color(0xFF0A1929), // Navy blue background
                 ),
                 useMaterial3: true,
-                scaffoldBackgroundColor: const Color(0xFF121212),
+                scaffoldBackgroundColor: const Color(0xFF0A1929), // Navy blue instead of black
               ),
               themeMode: _themeMode,
               initialRoute: '/',

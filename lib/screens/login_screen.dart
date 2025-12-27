@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../widgets/animated_bubble_background.dart';
@@ -252,7 +252,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final isDark = _isDarkMode;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0A1929) : Colors.white,
       body: Stack(
         children: [
           AnimatedBubbleBackground(isDark: isDark),
@@ -423,7 +423,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       Expanded(
                         child: Divider(
-                          color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200],
+                          color: isDark ? const Color(0xFF0F2137) : Colors.grey[200],
                           thickness: 1,
                         ),
                       ),
@@ -436,11 +436,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: isDark
-                                ? const Color(0xFF1E1E1E)
+                                ? const Color(0xFF0F2137)
                                 : Colors.white,
                             borderRadius: BorderRadius.circular(30),
                             border: Border.all(
-                              color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200]!,
+                              color: isDark ? const Color(0xFF0F2137) : Colors.grey[200]!,
                             ),
                           ),
                           child: Text(
@@ -455,7 +455,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       Expanded(
                         child: Divider(
-                          color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200],
+                          color: isDark ? const Color(0xFF0F2137) : Colors.grey[200],
                           thickness: 1,
                         ),
                       ),

@@ -1,4 +1,4 @@
-import 'dart:ui' as ui;
+﻿import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -307,7 +307,7 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
   Widget _buildHowItWorksSection() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 160, horizontal: 80),
-      color: Colors.black,
+      color: const Color(0xFF0A1929),
       child: Center(
         child: Container(
           constraints: const BoxConstraints(maxWidth: 1200),
@@ -445,7 +445,7 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
   Widget _buildFooter() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 80),
-      color: Colors.black,
+      color: const Color(0xFF0A1929),
       child: Column(
         children: [
           Row(

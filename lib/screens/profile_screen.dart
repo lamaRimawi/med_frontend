@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+﻿import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -566,7 +566,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = _isDarkMode;
-    final bgColor = isDark ? const Color(0xFF121212) : Colors.white;
+    final bgColor = isDark ? const Color(0xFF0A1929) : Colors.white;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -621,7 +621,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     final isDark = _isDarkMode;
     final topPadding = MediaQuery.of(context).padding.top;
     
-    final backgroundColor = isDark ? const Color(0xFF18181B) : const Color(0xFFF2F4F7);
+    final backgroundColor = isDark ? const Color(0xFF0A1929) : const Color(0xFFF2F4F7); // Navy blue instead of dark gray
     final textColor = isDark ? Colors.white : const Color(0xFF101828);
     final subTextColor = isDark ? const Color(0xFFA1A1AA) : const Color(0xFF667085);
 
@@ -801,7 +801,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     backgroundColor: Colors.transparent,
                     builder: (context) => Container(
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                        color: isDark ? const Color(0xFF0F2137) : Colors.white,
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(24),
                           topRight: Radius.circular(24),
@@ -845,7 +845,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                       vertical: 16,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF3F4F6),
+                                      color: isDark ? const Color(0xFF0F2137) : const Color(0xFFF3F4F6),
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     child: Text(
@@ -926,7 +926,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                       ],
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 100), // Extra space to avoid bottom nav bar
                 ],
               ),
             ),
@@ -969,7 +969,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     VoidCallback onTap,
   ) {
     final isDark = _isDarkMode;
-    final cardColor = isDark ? const Color(0xFF27272A) : Colors.white;
+    final cardColor = isDark ? const Color(0xFF0F2137) : Colors.white; // Navy blue for cards
     final textColor = isDark ? Colors.white : const Color(0xFF101828);
     final subTextColor = isDark ? const Color(0xFFA1A1AA) : const Color(0xFF667085);
 
@@ -1046,7 +1046,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF9FAFB),
+          color: isDark ? const Color(0xFF0F2137) : const Color(0xFFF9FAFB),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -1092,7 +1092,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF9FAFB),
+        color: isDark ? const Color(0xFF0F2137) : const Color(0xFFF9FAFB),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -1130,7 +1130,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   // --- Personal Info Screen ---
   Widget _buildPersonalInfoScreen() {
     final isDark = _isDarkMode;
-    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF9FAFB);
+    final bgColor = isDark ? const Color(0xFF0A1929) : const Color(0xFFF9FAFB);
 
     return Container(
       color: bgColor,
@@ -2440,7 +2440,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   // --- Settings & Privacy Screen ---
   Widget _buildSettingsPrivacyScreen() {
     final isDark = _isDarkMode;
-    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF9FAFB);
+    final bgColor = isDark ? const Color(0xFF0A1929) : const Color(0xFFF9FAFB);
 
     return Container(
       color: bgColor,
@@ -2552,7 +2552,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   // --- Help & Support Screen ---
   Widget _buildHelpSupportScreen() {
     final isDark = _isDarkMode;
-    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF9FAFB);
+    final bgColor = isDark ? const Color(0xFF0A1929) : const Color(0xFFF9FAFB);
 
     return Container(
       color: bgColor,
@@ -2783,7 +2783,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          backgroundColor: isDark ? const Color(0xFF0F2137) : Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: Text(
             'Change Password',
@@ -2855,7 +2855,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: TextField(
         controller: controller,
         obscureText: obscure,
-        style: TextStyle(color: isDark ? Colors.white : Colors.black),
+        style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0A1929)),
         decoration: InputDecoration(
           icon: Icon(icon, size: 20, color: Colors.grey[500]),
           hintText: hint,
@@ -2871,7 +2871,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) => AlertDialog(
-        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        backgroundColor: isDark ? const Color(0xFF0F2137) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('Delete Account?'),
         content: Column(
@@ -2936,7 +2936,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Widget _buildPlaceholderScreen(String title, IconData icon, String message) {
     final isDark = _isDarkMode;
-    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF9FAFB);
+    final bgColor = isDark ? const Color(0xFF0A1929) : const Color(0xFFF9FAFB);
 
     return Container(
       color: bgColor,

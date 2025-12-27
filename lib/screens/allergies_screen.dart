@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
@@ -119,7 +119,7 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0A1929) : Colors.white,
       body: Stack(
         children: [
           const MedicalBackground(),
@@ -180,12 +180,12 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
                                   padding: const EdgeInsets.all(18),
                                   decoration: BoxDecoration(
                                     color: isDark
-                                        ? const Color(0xFF1E1E1E)
+                                        ? const Color(0xFF0F2137)
                                         : Colors.white,
                                     borderRadius: BorderRadius.circular(26),
                                     border: Border.all(
                                       color: isDark
-                                          ? const Color(0xFF2A2A2A)
+                                          ? const Color(0xFF0F2137)
                                           : const Color(0xFFE9F6FE),
                                     ),
                                     boxShadow: [
@@ -313,7 +313,7 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
       width: double.infinity,
       padding: const EdgeInsets.only(left: 24, right: 24, top: 12, bottom: 28),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : null,
+        color: isDark ? const Color(0xFF0F2137) : null,
         gradient: isDark
             ? null
             : const LinearGradient(
@@ -366,7 +366,7 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
         ),
         const SizedBox(height: 12),
         Container(
-            color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE9F6FE),
+            color: isDark ? const Color(0xFF0F2137) : const Color(0xFFE9F6FE),
             height: 1),
         const SizedBox(height: 18),
         GridView(
@@ -387,7 +387,7 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
         ),
         const SizedBox(height: 18),
         Container(
-            color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE9F6FE),
+            color: isDark ? const Color(0xFF0F2137) : const Color(0xFFE9F6FE),
             height: 1),
       ],
     );
@@ -432,7 +432,7 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
                       width: MediaQuery.of(context).size.width * 0.85,
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                        color: isDark ? const Color(0xFF0F2137) : Colors.white,
                         borderRadius: BorderRadius.circular(30),
                         boxShadow: [
                           BoxShadow(
@@ -558,13 +558,13 @@ class _AllergiesScreenState extends State<AllergiesScreen> {
           controller: controller,
           maxLines: maxLines,
           onChanged: (_) => setState(() {}),
-          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+          style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0A1929)),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle:
                 TextStyle(color: isDark ? Colors.white30 : Colors.black38),
             filled: true,
-            fillColor: isDark ? const Color(0xFF121212) : Colors.grey.shade100,
+            fillColor: isDark ? const Color(0xFF0A1929) : Colors.grey.shade100,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(18),
               borderSide: BorderSide.none,

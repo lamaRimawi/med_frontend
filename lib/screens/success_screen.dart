@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:share_plus/share_plus.dart';
@@ -54,9 +54,9 @@ class _SuccessScreenState extends State<SuccessScreen> {
                 end: Alignment.bottomRight,
                 colors: widget.isDarkMode
                     ? [
-                        const Color(0xFF121212),
-                        const Color(0xFF1E1E1E),
-                        const Color(0xFF121212),
+                        const Color(0xFF0A1929),
+                        const Color(0xFF0F2137),
+                        const Color(0xFF0A1929),
                       ]
                     : [
                         const Color(0xFFF8FAFC),
@@ -375,7 +375,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: widget.isDarkMode
-                    ? const Color(0xFF1E1E1E)
+                    ? const Color(0xFF0F2137)
                     : Colors.white,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(

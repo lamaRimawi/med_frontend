@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -178,7 +178,7 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
     return Expanded(
       child: Container(
         color: widget.isDarkMode
-            ? const Color(0xFF121212)
+            ? const Color(0xFF0A1929)
             : const Color(0xFFF9FAFB),
         child: Column(
           children: [
@@ -223,7 +223,7 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
       decoration: BoxDecoration(
-        color: widget.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.white,
         border: Border(
           bottom: BorderSide(
             color: widget.isDarkMode
@@ -275,7 +275,7 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
           width: double.infinity,
           padding: const EdgeInsets.all(60),
           decoration: BoxDecoration(
-            color: widget.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+            color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.white,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: widget.isDarkMode
@@ -424,7 +424,7 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: widget.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: widget.isDarkMode
@@ -593,7 +593,7 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
     return Container(
       padding: const EdgeInsets.all(40),
       decoration: BoxDecoration(
-        color: widget.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: widget.isDarkMode
