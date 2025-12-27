@@ -106,7 +106,7 @@ class _MyAppState extends State<MyApp> {
                   brightness: Brightness.dark,
                 ),
                 useMaterial3: true,
-                scaffoldBackgroundColor: const Color(0xFF121212),
+                scaffoldBackgroundColor: const Color(0xFF0F172A),
               ),
               themeMode: _themeMode,
               initialRoute: '/',

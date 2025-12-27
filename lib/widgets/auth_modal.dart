@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -10,15 +11,21 @@ import '../services/auth_service.dart';
 import '../services/auth_api.dart';
 import '../services/web_authn_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'theme_toggle.dart';
 
 class AuthModal extends StatefulWidget {
   final bool initialIsLogin;
   const AuthModal({super.key, this.initialIsLogin = true});
 
   static void show(BuildContext context, {bool isLogin = true}) {
+    final themeProvider = ThemeProvider.of(context);
+    final bool isDark = themeProvider?.themeMode == ThemeMode.dark;
+
     showDialog(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.85),
+      barrierColor: isDark 
+          ? Colors.black.withOpacity(0.85) 
+          : Colors.black.withOpacity(0.4),
       builder: (context) => AuthModal(initialIsLogin: isLogin),
     );
   }
@@ -325,64 +332,98 @@ class _AuthModalState extends State<AuthModal> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = ThemeProvider.of(context);
+    final bool isDark = themeProvider?.themeMode == ThemeMode.dark;
+    final size = MediaQuery.of(context).size;
+    final bool isDesktop = size.width > 900;
+    
+    // Theme-aware colors
+    final Color modalBgColor = isDark ? const Color(0xFF0F172A) : Colors.white;
+    final Color borderColor = isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.05);
+    final Color textColor = isDark ? Colors.white : const Color(0xFF1E293B);
+    final Color subTextColor = isDark ? Colors.white.withOpacity(0.6) : const Color(0xFF64748B);
+
     return Center(
       child: Material(
         color: Colors.transparent,
         child: Container(
-          width: 550,
+          width: isDesktop ? 1000 : math.min(size.width - 40, 500.0),
+          clipBehavior: Clip.antiAlias,
+          margin: EdgeInsets.symmetric(horizontal: isDesktop ? 0 : 20),
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.9,
+            maxHeight: size.height * 0.85,
           ),
           decoration: BoxDecoration(
-            color: const Color(0xFF1A1F2C), // Deep navy/slate instead of plain dark grey
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.white.withOpacity(0.05)),
+            color: modalBgColor,
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(color: borderColor),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.6),
+                color: isDark ? Colors.black.withOpacity(0.5) : Colors.black.withOpacity(0.1),
                 blurRadius: 50,
-                offset: const Offset(0, 25),
+                offset: const Offset(0, 20),
               ),
             ],
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: Stack(
             children: [
-              _buildHeader(),
-              const Divider(height: 1, color: Colors.white10),
-              if (_alertMessage != null)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
-                  child: AlertBanner(
-                    message: _alertMessage!,
-                    isError: _isAlertError,
-                    onDismiss: () => setState(() => _alertMessage = null),
-                  ),
-                ),
-              Flexible(
-                child: Theme(
-                  data: Theme.of(context).copyWith(
-                    scrollbarTheme: ScrollbarThemeData(
-                      thumbColor: WidgetStateProperty.all(const Color(0xFF39A4E6)),
-                      trackColor: WidgetStateProperty.all(Colors.white.withOpacity(0.1)),
-                      thickness: WidgetStateProperty.all(10.0),
-                      radius: const Radius.circular(10),
-                      thumbVisibility: WidgetStateProperty.all(true),
-                    ),
-                  ),
-                  child: Scrollbar(
-                    controller: _scrollController,
-                    child: SingleChildScrollView(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.fromLTRB(40, 30, 40, 50),
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        child: _isLogin ? _buildLoginForm() : _buildSignupForm(),
+              // 1. FORM SIDE (Behind Visual initially)
+              Align(
+                alignment: isDesktop ? Alignment.centerRight : Alignment.center,
+                child: SizedBox(
+                  width: isDesktop ? (1000 * 12 / 23) : double.infinity,
+                  child: Column(
+                    children: [
+                      _buildHeader(isDark),
+                      Divider(height: 1, color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
+                      if (_alertMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
+                          child: AlertBanner(
+                            message: _alertMessage!,
+                            isError: _isAlertError,
+                            onDismiss: () => setState(() => _alertMessage = null),
+                          ),
+                        ),
+                      Flexible(
+                        child: Scrollbar(
+                          controller: _scrollController,
+                          child: SingleChildScrollView(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.fromLTRB(40, 30, 40, 40),
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              child: _isLogin 
+                                ? _buildLoginForm(isDark, textColor, subTextColor, !isDesktop) 
+                                : _buildSignupForm(isDark, textColor, subTextColor, !isDesktop),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                    ],
+                  ).animate()
+                   .fadeIn(duration: 400.ms, delay: 400.ms)
+                   .slideX(begin: -0.05, end: 0, duration: 600.ms, delay: 400.ms, curve: Curves.easeOut), // "Uncover" effect
                 ),
               ),
+
+              // 2. VISUAL SIDE (Top Layer, slides to reveal)
+              if (isDesktop)
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 1000 * 11 / 23,
+                  child: _buildVisualSide(isDark)
+                    .animate()
+                    .moveX(
+                      begin: 1.1, // Starts slightly over the form side
+                      end: 0, 
+                      duration: 900.ms, 
+                      curve: Curves.easeInOutQuart,
+                    )
+                    .fadeIn(duration: 300.ms),
+                ),
             ],
           ),
         ),
@@ -390,18 +431,88 @@ class _AuthModalState extends State<AuthModal> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildVisualSide(bool isDark) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.black,
+        image: DecorationImage(
+          image: AssetImage('assets/images/web_intro_3.png'),
+          fit: BoxFit.cover,
+          opacity: 0.6,
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(50),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.bottomRight,
+            end: Alignment.topLeft,
+            colors: [
+              const Color(0xFF39A4E6).withOpacity(0.7),
+              (isDark ? Colors.black : const Color(0xFF0F172A)).withOpacity(0.4),
+            ],
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(100),
+                border: Border.all(color: Colors.white24),
+              ),
+              child: Text(
+                'AI-POWERED MEDICINE',
+                style: GoogleFonts.outfit(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ).animate().fadeIn(delay: 600.ms).slideX(begin: -0.2, duration: 400.ms),
+            const SizedBox(height: 24),
+            Text(
+              'Intelligent\nHealthcare.',
+              style: GoogleFonts.outfit(
+                color: Colors.white,
+                fontSize: 56,
+                fontWeight: FontWeight.bold,
+                height: 0.95,
+                letterSpacing: -2.0,
+              ),
+            ).animate().fadeIn(delay: 800.ms).slideY(begin: 0.2, duration: 500.ms),
+            const SizedBox(height: 24),
+            Text(
+              'Experience the future of personal medicine with AI-driven insights and total record security.',
+              style: GoogleFonts.outfit(
+                color: Colors.white.withOpacity(0.95),
+                fontSize: 19,
+                height: 1.6,
+                fontWeight: FontWeight.w400,
+              ),
+            ).animate().fadeIn(delay: 1000.ms).slideY(begin: 0.2, duration: 500.ms),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Row(
         children: [
-          _tabItem('Login', _isLogin, () => setState(() => _isLogin = true)),
+          _tabItem('Login', _isLogin, isDark, () => setState(() => _isLogin = true)),
           const SizedBox(width: 12),
-          _tabItem('Sign Up', !_isLogin, () => setState(() => _isLogin = false)),
+          _tabItem('Sign Up', !_isLogin, isDark, () => setState(() => _isLogin = false)),
           const Spacer(),
           IconButton(
             onPressed: () => Navigator.pop(context),
-            icon: const Icon(LucideIcons.x, color: Colors.white38, size: 22),
+            icon: Icon(LucideIcons.x, color: isDark ? Colors.white38 : Colors.black26, size: 22),
             splashRadius: 25,
           ),
         ],
@@ -409,7 +520,7 @@ class _AuthModalState extends State<AuthModal> {
     );
   }
 
-  Widget _tabItem(String title, bool isActive, VoidCallback onTap) {
+  Widget _tabItem(String title, bool isActive, bool isDark, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -422,7 +533,9 @@ class _AuthModalState extends State<AuthModal> {
         child: Text(
           title,
           style: GoogleFonts.outfit(
-            color: isActive ? const Color(0xFF39A4E6) : Colors.white.withOpacity(0.9),
+            color: isActive 
+              ? const Color(0xFF39A4E6) 
+              : (isDark ? Colors.white.withOpacity(0.6) : Colors.black.withOpacity(0.4)),
             fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
             fontSize: 17,
           ),
@@ -431,14 +544,28 @@ class _AuthModalState extends State<AuthModal> {
     );
   }
 
-  Widget _buildLoginForm() {
+  Widget _buildLoginForm(bool isDark, Color textColor, Color subTextColor, bool isMobile) {
     return Column(
       key: const ValueKey('login_form'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Welcome Back', style: GoogleFonts.outfit(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        Text('Sign in to continue managing your health records.', style: GoogleFonts.outfit(color: Colors.white.withValues(alpha: 0.9), fontSize: 17)),
+        Text(
+          'Welcome Back', 
+          style: GoogleFonts.outfit(
+            color: textColor, 
+            fontSize: 40, 
+            fontWeight: FontWeight.bold,
+            letterSpacing: -1,
+          )
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Sign in to manage your health records.', 
+          style: GoogleFonts.outfit(
+            color: subTextColor, 
+            fontSize: 16,
+          )
+        ),
         const SizedBox(height: 35),
         CustomTextField(
           label: 'Email Address',
@@ -448,8 +575,8 @@ class _AuthModalState extends State<AuthModal> {
           keyboardType: TextInputType.emailAddress,
           validator: Validators.validateEmail,
           validateOnChange: true,
-          labelColor: Colors.white,
-          hintColor: Colors.black,
+          labelColor: textColor,
+          hintColor: Colors.black54,
         ),
         const SizedBox(height: 24),
         CustomTextField(
@@ -461,8 +588,8 @@ class _AuthModalState extends State<AuthModal> {
           showPassword: !_obscurePassword,
           onTogglePassword: () => setState(() => _obscurePassword = !_obscurePassword),
           validator: Validators.validatePassword,
-          labelColor: Colors.white,
-          hintColor: Colors.black,
+          labelColor: textColor,
+          hintColor: Colors.black54,
         ),
         const SizedBox(height: 15),
         Align(
@@ -479,24 +606,34 @@ class _AuthModalState extends State<AuthModal> {
           isLoading: _isLoading,
           onPressed: _handleLogin,
         ),
-        if (WebAuthnService.isSupported) ...[
-          const SizedBox(height: 16),
-          _socialBtn(LucideIcons.fingerprint, 'Sign in with Passkey', _handleWebAuthnLogin),
-        ],
         const SizedBox(height: 35),
-        _socialSection(),
+        _socialSection(isDark, isMobile),
       ],
     );
   }
 
-  Widget _buildSignupForm() {
+  Widget _buildSignupForm(bool isDark, Color textColor, Color subTextColor, bool isMobile) {
     return Column(
       key: const ValueKey('signup_form'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Create Account', style: GoogleFonts.outfit(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        Text('Join MediScan for real-time health insights.', style: GoogleFonts.outfit(color: Colors.white.withValues(alpha: 0.9), fontSize: 17)),
+        Text(
+          'Create Account', 
+          style: GoogleFonts.outfit(
+            color: textColor, 
+            fontSize: 40, 
+            fontWeight: FontWeight.bold,
+            letterSpacing: -1,
+          )
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Join MediScan for real-time health insights.', 
+          style: GoogleFonts.outfit(
+            color: subTextColor, 
+            fontSize: 16,
+          )
+        ),
         const SizedBox(height: 35),
         
         CustomTextField(
@@ -505,8 +642,8 @@ class _AuthModalState extends State<AuthModal> {
           icon: LucideIcons.user,
           controller: _nameController,
           validator: Validators.validateName,
-          labelColor: Colors.white,
-          hintColor: Colors.black,
+          labelColor: textColor,
+          hintColor: Colors.black54,
         ),
         const SizedBox(height: 24),
         
@@ -517,8 +654,8 @@ class _AuthModalState extends State<AuthModal> {
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
           validator: Validators.validateEmail,
-          labelColor: Colors.white,
-          hintColor: Colors.black,
+          labelColor: textColor,
+          hintColor: Colors.black54,
         ),
         const SizedBox(height: 24),
 
@@ -529,12 +666,12 @@ class _AuthModalState extends State<AuthModal> {
           controller: _phoneController,
           keyboardType: TextInputType.phone,
           validator: Validators.validatePhone,
-          labelColor: Colors.white,
-          hintColor: Colors.black,
+          labelColor: textColor,
+          hintColor: Colors.black54,
         ),
         const SizedBox(height: 24),
 
-        _buildDatePicker(),
+        _buildDatePicker(isDark, textColor),
         const SizedBox(height: 24),
 
         CustomTextField(
@@ -546,8 +683,8 @@ class _AuthModalState extends State<AuthModal> {
           showPassword: !_obscurePassword,
           onTogglePassword: () => setState(() => _obscurePassword = !_obscurePassword),
           validator: Validators.validatePassword,
-          labelColor: Colors.white,
-          hintColor: Colors.black,
+          labelColor: textColor,
+          hintColor: Colors.black54,
         ),
         const SizedBox(height: 24),
 
@@ -560,12 +697,12 @@ class _AuthModalState extends State<AuthModal> {
           showPassword: !_obscureConfirmPassword,
           onTogglePassword: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
           validator: (val) => Validators.validateConfirmPassword(val, _passwordController.text),
-          labelColor: Colors.white,
-          hintColor: Colors.black,
+          labelColor: textColor,
+          hintColor: Colors.black54,
         ),
         const SizedBox(height: 32),
 
-        _buildTermsCheckbox(),
+        _buildTermsCheckbox(isDark),
         const SizedBox(height: 32),
 
         CustomButton(
@@ -575,16 +712,16 @@ class _AuthModalState extends State<AuthModal> {
           onPressed: _handleSignup,
         ),
         const SizedBox(height: 35),
-        _socialSection(),
+        _socialSection(isDark, isMobile),
       ],
     );
   }
 
-  Widget _buildDatePicker() {
+  Widget _buildDatePicker(bool isDark, Color labelColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Date of Birth *', style: GoogleFonts.outfit(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+        Text('Date of Birth *', style: GoogleFonts.outfit(color: labelColor, fontSize: 14, fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
         InkWell(
           onTap: () async {
@@ -597,7 +734,9 @@ class _AuthModalState extends State<AuthModal> {
               lastDate: lastDate,
               builder: (ctx, child) => Theme(
                 data: Theme.of(ctx).copyWith(
-                  colorScheme: const ColorScheme.dark(primary: Color(0xFF39A4E6), surface: Color(0xFF1E1E1E)),
+                  colorScheme: isDark 
+                    ? const ColorScheme.dark(primary: Color(0xFF39A4E6), surface: Color(0xFF1E1E1E))
+                    : const ColorScheme.light(primary: Color(0xFF39A4E6), surface: Colors.white),
                 ),
                 child: child!,
               ),
@@ -608,11 +747,12 @@ class _AuthModalState extends State<AuthModal> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF9FAFB).withValues(alpha: 0.8),
+              color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF9FAFB),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.black12, width: 1.5),
+              border: Border.all(color: isDark ? Colors.white10 : Colors.black12, width: 1.5),
             ),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(LucideIcons.calendar, color: Color(0xFF39A4E6), size: 20),
                 const SizedBox(width: 15),
@@ -620,7 +760,12 @@ class _AuthModalState extends State<AuthModal> {
                   _dateOfBirth == null 
                     ? 'Select your birthday' 
                     : '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}',
-                  style: GoogleFonts.outfit(color: _dateOfBirth == null ? Colors.black.withValues(alpha: 0.7) : Colors.black, fontSize: 16),
+                  style: GoogleFonts.outfit(
+                    color: _dateOfBirth == null 
+                      ? (isDark ? Colors.white38 : Colors.black38) 
+                      : (isDark ? Colors.white : Colors.black87), 
+                    fontSize: 16
+                  ),
                 ),
               ],
             ),
@@ -630,11 +775,11 @@ class _AuthModalState extends State<AuthModal> {
     );
   }
 
-  Widget _buildTermsCheckbox() {
+  Widget _buildTermsCheckbox(bool isDark) {
     return Row(
       children: [
         Theme(
-          data: ThemeData(unselectedWidgetColor: Colors.white24),
+          data: ThemeData(unselectedWidgetColor: isDark ? Colors.white24 : Colors.black26),
           child: Checkbox(
             value: _agreedToTerms,
             onChanged: (v) => setState(() => _agreedToTerms = v ?? false),
@@ -645,9 +790,9 @@ class _AuthModalState extends State<AuthModal> {
         Expanded(
           child: Wrap(
             children: [
-              Text('I agree to the ', style: GoogleFonts.outfit(color: Colors.white, fontSize: 14)),
+              Text('I agree to the ', style: GoogleFonts.outfit(color: isDark ? Colors.white70 : Colors.black87, fontSize: 14)),
               Text('Terms & Conditions', style: GoogleFonts.outfit(color: const Color(0xFF39A4E6), fontSize: 14, fontWeight: FontWeight.bold)),
-              Text(' and ', style: GoogleFonts.outfit(color: Colors.white, fontSize: 14)),
+              Text(' and ', style: GoogleFonts.outfit(color: isDark ? Colors.white70 : Colors.black87, fontSize: 14)),
               Text('Privacy Policy', style: GoogleFonts.outfit(color: const Color(0xFF39A4E6), fontSize: 14, fontWeight: FontWeight.bold)),
             ],
           ),
@@ -656,52 +801,97 @@ class _AuthModalState extends State<AuthModal> {
     );
   }
 
-  Widget _socialSection() {
+  Widget _socialSection(bool isDark, bool isMobile) {
     final actionText = _isLogin ? 'Sign in' : 'Sign up';
+    final dividerColor = isDark ? Colors.white10 : Colors.black.withOpacity(0.05);
+    
+    // Stack vertically on mobile or very small widths
+    final bool stackButtons = isMobile;
+
     return Column(
       children: [
         Row(
           children: [
-            Expanded(child: Divider(color: Colors.white.withOpacity(0.05))),
+            Expanded(child: Divider(color: dividerColor)),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text('OR CONTINUE WITH', style: GoogleFonts.outfit(color: Colors.white24, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+              child: Text('OR CONTINUE WITH', style: GoogleFonts.outfit(color: isDark ? Colors.white24 : Colors.black26, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
             ),
-            Expanded(child: Divider(color: Colors.white.withOpacity(0.05))),
+            Expanded(child: Divider(color: dividerColor)),
           ],
         ),
         const SizedBox(height: 30),
-        Row(
-          children: [
-            Expanded(child: _socialBtn(LucideIcons.chrome, '$actionText with Google', _isLoading ? null : () => _handleSocialLogin('Google'))),
-            const SizedBox(width: 20),
-            Expanded(child: _socialBtn(LucideIcons.facebook, '$actionText with Facebook', _isLoading ? null : () => _handleSocialLogin('Facebook'))),
-          ],
-        ),
+        if (stackButtons)
+          Column(
+            children: [
+              _socialBtn(LucideIcons.chrome, '$actionText with Google', isDark, _isLoading ? null : () => _handleSocialLogin('Google')),
+              const SizedBox(height: 16),
+              _socialBtn(LucideIcons.facebook, '$actionText with Facebook', isDark, _isLoading ? null : () => _handleSocialLogin('Facebook')),
+            ],
+          )
+        else
+          Row(
+            children: [
+              Expanded(child: _socialBtn(LucideIcons.chrome, 'Google', isDark, _isLoading ? null : () => _handleSocialLogin('Google'))),
+              const SizedBox(width: 20),
+              Expanded(child: _socialBtn(LucideIcons.facebook, 'Facebook', isDark, _isLoading ? null : () => _handleSocialLogin('Facebook'))),
+            ],
+          ),
       ],
     );
   }
 
-  Widget _socialBtn(IconData icon, String label, VoidCallback? onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(15),
-      child: Container(
-        height: 60,
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.white.withOpacity(0.08)),
-          borderRadius: BorderRadius.circular(15),
-          color: Colors.white.withOpacity(0.02),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.white, size: 20),
-            const SizedBox(width: 15),
-            Text(label, style: GoogleFonts.outfit(color: Colors.white70, fontWeight: FontWeight.w600, fontSize: 16)),
-          ],
-        ),
-      ),
+  Widget _socialBtn(IconData icon, String label, bool isDark, VoidCallback? onTap) {
+    bool isHovered = false;
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return MouseRegion(
+          onEnter: (_) => setState(() => isHovered = true),
+          onExit: (_) => setState(() => isHovered = false),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(15),
+            child: AnimatedContainer(
+              duration: 200.ms,
+              height: 60,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: isHovered 
+                    ? const Color(0xFF39A4E6).withOpacity(0.5) 
+                    : (isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.08)),
+                  width: isHovered ? 1.5 : 1,
+                ),
+                borderRadius: BorderRadius.circular(15),
+                color: isHovered 
+                  ? const Color(0xFF39A4E6).withOpacity(0.05) 
+                  : (isDark ? Colors.white.withOpacity(0.02) : Colors.black.withOpacity(0.02)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    icon, 
+                    color: isHovered ? const Color(0xFF39A4E6) : (isDark ? Colors.white : Colors.black87), 
+                    size: 20
+                  ),
+                  const SizedBox(width: 15),
+                  Flexible(
+                    child: Text(
+                      label, 
+                      style: GoogleFonts.outfit(
+                        color: isHovered ? (isDark ? Colors.white : const Color(0xFF39A4E6)) : (isDark ? Colors.white70 : Colors.black87), 
+                        fontWeight: FontWeight.w600, 
+                        fontSize: 16
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
     );
   }
 }
