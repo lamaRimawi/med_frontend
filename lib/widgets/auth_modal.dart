@@ -8,6 +8,8 @@ import 'alert_banner.dart';
 import '../utils/validators.dart';
 import '../services/auth_service.dart';
 import '../services/auth_api.dart';
+import '../services/web_authn_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthModal extends StatefulWidget {
   final bool initialIsLogin;
@@ -255,6 +257,63 @@ class _AuthModalState extends State<AuthModal> {
     }
   }
 
+  Future<void> _handleWebAuthnLogin() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || Validators.validateEmail(email) != null) {
+      setState(() {
+        _alertMessage = 'Please enter a valid email to use Passkey';
+        _isAlertError = true;
+      });
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      // 1. Get Login Options from backend
+      final (optionsSuccess, options, optionsMessage) = await AuthApi.getWebAuthnLoginOptions(email);
+      
+      if (!optionsSuccess || options == null) {
+        throw optionsMessage ?? 'Failed to get login options';
+      }
+
+      // 2. Invoke Browser API
+      final assertion = await WebAuthnService.getAssertion(options);
+      
+      if (assertion == null) {
+        throw 'Biometric authentication cancelled or failed';
+      }
+
+      // 3. Verify Assertion with backend
+      final (verifySuccess, verifyMessage) = await AuthApi.verifyWebAuthnLogin(
+        email: email, 
+        assertion: assertion,
+      );
+
+      if (!mounted) return;
+
+      if (verifySuccess) {
+        setState(() {
+          _alertMessage = 'Biometric login successful!';
+          _isAlertError = false;
+          _isLoading = false;
+        });
+        Future.delayed(const Duration(milliseconds: 800), () {
+          if (mounted) Navigator.pushReplacementNamed(context, '/home');
+        });
+      } else {
+        throw verifyMessage ?? 'Verification failed';
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _alertMessage = e.toString();
+          _isAlertError = true;
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -411,6 +470,10 @@ class _AuthModalState extends State<AuthModal> {
           isLoading: _isLoading,
           onPressed: _handleLogin,
         ),
+        if (WebAuthnService.isSupported) ...[
+          const SizedBox(height: 16),
+          _socialBtn(LucideIcons.fingerprint, 'Sign in with Passkey', _handleWebAuthnLogin),
+        ],
         const SizedBox(height: 35),
         _socialSection(),
       ],

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -14,6 +15,7 @@ import '../services/auth_api.dart';
 import '../services/user_service.dart';
 import '../services/reports_service.dart';
 import '../services/api_client.dart';
+import '../services/web_authn_service.dart';
 import '../models/report_model.dart';
 import 'timeline_screen.dart';
 import 'reports_screen.dart';
@@ -307,6 +309,71 @@ class _ProfileScreenState extends State<ProfileScreen>
           _imageFile = file;
         });
       }
+    }
+  }
+
+  Future<void> _handleWebAuthnRegistration(bool enable) async {
+    if (!enable) {
+      // Logic to disable/remove biometric could go here if backend supports it
+      setState(() => _biometricEnabled = false);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('biometric_enabled', false);
+      return;
+    }
+
+    if (!WebAuthnService.isSupported) {
+       ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('WebAuthn is not supported on this browser/environment')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      // 1. Get Registration Options
+      final (optionsSuccess, options, optionsMessage) = await AuthApi.getWebAuthnRegistrationOptions();
+      
+      if (!optionsSuccess || options == null) {
+        throw optionsMessage ?? 'Failed to get registration options';
+      }
+
+      // 2. Invoke Browser API
+      final credential = await WebAuthnService.createCredential(options);
+      
+      if (credential == null) {
+        throw 'Biometric registration cancelled or failed';
+      }
+
+      // 3. Verify Registration with backend
+      final (verifySuccess, verifyMessage) = await AuthApi.verifyWebAuthnRegistration(credential);
+
+      if (!mounted) return;
+
+      if (verifySuccess) {
+        setState(() => _biometricEnabled = true);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('biometric_enabled', true);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(verifyMessage ?? 'Biometric login enabled successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        throw verifyMessage ?? 'Verification failed';
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -2418,9 +2485,13 @@ class _ProfileScreenState extends State<ProfileScreen>
                   'Use fingerprint or face ID to login',
                   _biometricEnabled,
                   (val) async {
-                    setState(() => _biometricEnabled = val);
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool('biometric_enabled', val);
+                    if (kIsWeb) {
+                      await _handleWebAuthnRegistration(val);
+                    } else {
+                      setState(() => _biometricEnabled = val);
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('biometric_enabled', val);
+                    }
                   },
                 ),
                 const SizedBox(height: 16),

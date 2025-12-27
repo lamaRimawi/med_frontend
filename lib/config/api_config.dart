@@ -25,4 +25,10 @@ class ApiConfig {
   // Replace with a real, publicly accessible URL of the captured image.
   static const String sampleImageUrl =
       'https://images.drlogy.com/assets/uploads/lab/image/cbc-test-report-format-example-sample-template-drlogy-lab-report.webp';
+
+  // WebAuthn (Passkeys)
+  static const String webauthnRegOptions = '/auth/webauthn/register/options';
+  static const String webauthnRegVerify = '/auth/webauthn/register/verify';
+  static const String webauthnLoginOptions = '/auth/webauthn/login/options';
+  static const String webauthnLoginVerify = '/auth/webauthn/login/verify';
 }

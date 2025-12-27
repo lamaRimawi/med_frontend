@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -27,36 +28,42 @@
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="favicon.png" />
 
   <title>MediScan</title>
   <link rel="manifest" href="manifest.json">
 
   <!-- Google Sign-In -->
-  <meta name="google-signin-client_id" content="947609033338-4fufsknkus1lj684p24mal444jue0etd.apps.googleusercontent.com">
+  <meta name="google-signin-client_id"
+    content="947609033338-4fufsknkus1lj684p24mal444jue0etd.apps.googleusercontent.com">
 
   <!-- Facebook SDK -->
   <script>
-    window.fbAsyncInit = function() {
+    window.fbAsyncInit = function () {
       FB.init({
-        appId      : '869063912491178',
-        cookie     : true,
-        xfbml      : true,
-        version    : 'v12.0'
+        appId: '869063912491178',
+        cookie: true,
+        xfbml: true,
+        version: 'v12.0'
       });
       FB.AppEvents.logPageView();
     };
 
-    (function(d, s, id){
-       var js, fjs = d.getElementsByTagName(s)[0];
-       if (d.getElementById(id)) {return;}
-       js = d.createElement(s); js.id = id;
-       js.src = "https://connect.facebook.net/en_US/sdk.js";
-       fjs.parentNode.insertBefore(js, fjs);
-     }(document, 'script', 'facebook-jssdk'));
+    (function (d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) { return; }
+      js = d.createElement(s); js.id = id;
+      js.src = "https://connect.facebook.net/en_US/sdk.js";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
   </script>
+  <!-- WebAuthn (Passkeys) Support -->
+  <script
+    src="https://unpkg.com/@github/webauthn-json/dist/browser-global/webauthn-json.browser-global.min.js"></script>
 </head>
+
 <body>
   <script src="flutter_bootstrap.js" async></script>
 </body>
+
 </html>
