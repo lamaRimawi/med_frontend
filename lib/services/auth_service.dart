@@ -57,6 +57,36 @@ class AuthService {
     await _auth.signOut();
   }
 
+  static Future<Map<String, dynamic>?> trySilentGoogleLogin() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signInSilently();
+      if (googleUser == null) return null;
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+      final User? user = userCredential.user;
+
+      if (user != null) {
+        return {
+          'id': user.uid,
+          'email': user.email,
+          'displayName': user.displayName,
+          'photoUrl': user.photoURL,
+          'idToken': googleAuth.idToken,
+        };
+      }
+      return null;
+    } catch (e) {
+      print('Silent Google Login Error: $e');
+      return null;
+    }
+  }
+
   // Facebook Login
   static Future<Map<String, dynamic>?> signInWithFacebook() async {
     try {

@@ -94,6 +94,15 @@ class AuthApi {
         return (false, 'No access token in response');
       }
       await prefs.setString('jwt_token', token);
+      await prefs.setString('last_login_method', 'google');
+
+      // Save email for session persistence/biometrics if available
+      final user = data['user'] as Map<String, dynamic>?;
+      final email = user?['email'] as String? ?? data['email'] as String?;
+      if (email != null) {
+        await prefs.setString('user_email', email);
+      }
+      
       return (true, null);
     }
 
@@ -124,6 +133,15 @@ class AuthApi {
         return (false, 'No access token in response');
       }
       await prefs.setString('jwt_token', token);
+      await prefs.setString('last_login_method', 'facebook');
+
+      // Save email for session persistence/biometrics if available
+      final user = data['user'] as Map<String, dynamic>?;
+      final email = user?['email'] as String? ?? data['email'] as String?;
+      if (email != null) {
+        await prefs.setString('user_email', email);
+      }
+      
       return (true, null);
     }
 
@@ -365,6 +383,104 @@ class AuthApi {
       return (false, data['message']?.toString() ?? 'Update failed');
     } catch (_) {
       return (false, 'Update failed (${res.statusCode})');
+    }
+  }
+
+  // WebAuthn (Passkeys) Methods
+
+  static Future<(bool success, Map<String, dynamic>? options, String? message)>
+  getWebAuthnRegistrationOptions() async {
+    final client = ApiClient.instance;
+    final res = await client.post(ApiConfig.webauthnRegOptions, auth: true);
+
+    if (res.statusCode == 200) {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      return (true, data, null);
+    }
+
+    try {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      return (false, null, data['message']?.toString() ?? 'Failed to get registration options');
+    } catch (_) {
+      return (false, null, 'Failed to get registration options (${res.statusCode})');
+    }
+  }
+
+  static Future<(bool success, String? message)> verifyWebAuthnRegistration(
+    Map<String, dynamic> credential,
+  ) async {
+    final client = ApiClient.instance;
+    final res = await client.post(
+      ApiConfig.webauthnRegVerify,
+      body: json.encode(credential),
+      auth: true,
+    );
+
+    if (res.statusCode == 200) {
+      return (true, 'Biometric login enabled successfully');
+    }
+
+    try {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      return (false, data['message']?.toString() ?? 'Failed to verify registration');
+    } catch (_) {
+      return (false, 'Failed to verify registration (${res.statusCode})');
+    }
+  }
+
+  static Future<(bool success, Map<String, dynamic>? options, String? message)>
+  getWebAuthnLoginOptions(String email) async {
+    final client = ApiClient.instance;
+    final res = await client.post(
+      ApiConfig.webauthnLoginOptions,
+      body: json.encode({'email': email}),
+    );
+
+    if (res.statusCode == 200) {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      return (true, data, null);
+    }
+
+    try {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      return (false, null, data['message']?.toString() ?? 'Failed to get login options');
+    } catch (_) {
+      return (false, null, 'Failed to get login options (${res.statusCode})');
+    }
+  }
+
+  static Future<(bool success, String? message)> verifyWebAuthnLogin({
+    required String email,
+    required Map<String, dynamic> assertion,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('jwt_token');
+
+    final client = ApiClient.instance;
+    final res = await client.post(
+      ApiConfig.webauthnLoginVerify,
+      body: json.encode({
+        'email': email,
+        ...assertion,
+      }),
+    );
+
+    if (res.statusCode == 200) {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      final token = data['access_token'] as String?;
+      if (token == null || token.isEmpty) {
+        return (false, 'No access token in response');
+      }
+      await prefs.setString('jwt_token', token);
+      await prefs.setString('user_email', email);
+      return (true, null);
+    }
+
+    try {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      return (false, data['message']?.toString() ?? 'Login failed');
+    } catch (_) {
+      return (false, 'Login failed (${res.statusCode})');
     }
   }
 }
