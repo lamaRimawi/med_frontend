@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:ui' as ui;
+import 'dart:math' as math;
 
 import '../widgets/auth_modal.dart';
 import '../widgets/animated_bubble_background.dart';
@@ -111,9 +112,7 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
             child: Focus(
               focusNode: _focusNode,
               autofocus: true,
-              onKeyEvent: (node, event) {
-                return KeyEventResult.ignored; 
-              },
+              onKeyEvent: (node, event) => KeyEventResult.ignored,
               child: SingleChildScrollView(
                 controller: _scrollController,
                 child: Column(
@@ -164,7 +163,7 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
               ),
               decoration: BoxDecoration(
                 color: _isScrolled
-                    ? (isDark ? Colors.black.withOpacity(0.7) : Colors.white.withOpacity(0.8))
+                    ? (isDark ? const Color(0xFF0F172A).withOpacity(0.7) : Colors.white.withOpacity(0.8))
                     : Colors.transparent,
                 border: Border(
                   bottom: BorderSide(
@@ -248,12 +247,13 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
     final isDesktop = size.width > 900;
 
     return Container(
-      constraints: BoxConstraints(minHeight: size.height - 80),
+      constraints: BoxConstraints(minHeight: math.max(500, size.height - 80)),
       padding: EdgeInsets.symmetric(
         horizontal: isDesktop ? 100 : 24, 
-        vertical: 100,
+        vertical: isDesktop ? 60 : 30,
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Row(
@@ -356,7 +356,7 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
 
   Widget _buildStatsSection(BuildContext context, bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 60),
+      padding: const EdgeInsets.symmetric(vertical: 40),
       decoration: BoxDecoration(
         color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF8FAFC),
         border: Border.symmetric(
@@ -389,12 +389,13 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
     
     return Container(
       key: _featuresKey,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 120),
-      color: isDark ? const Color(0xFF0F0F0F) : Colors.white,
+      padding: EdgeInsets.symmetric(horizontal: 24, vertical: isDesktop ? 100 : 60),
+      color: isDark ? const Color(0xFF1E293B) : Colors.white,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'Why MediScan?',
@@ -442,8 +443,8 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
 
      return Container(
        key: _howItWorksKey,
-       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 100),
-       color: isDark ? Colors.black : const Color(0xFFF5F7FA),
+       padding: EdgeInsets.symmetric(horizontal: 24, vertical: isDesktop ? 80 : 40),
+       color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF5F7FA),
        child: Center(
          child: ConstrainedBox(
            constraints: const BoxConstraints(maxWidth: 1200),
@@ -505,28 +506,22 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
   Widget _buildCTASection(BuildContext context, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(40),
-      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 60),
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
       width: double.infinity,
       constraints: const BoxConstraints(maxWidth: 1100),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF39A4E6),
-            const Color(0xFF39A4E6).withOpacity(0.8),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: const Color(0xFF39A4E6).withOpacity(0.95),
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF39A4E6).withOpacity(0.4),
+            color: const Color(0xFF39A4E6).withOpacity(0.3),
             blurRadius: 30,
             offset: const Offset(0, 15),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             'Ready to take control?',
@@ -564,7 +559,7 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
     
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 80),
-      color: isDark ? Colors.black : const Color(0xFFF8FAFC),
+      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
@@ -900,6 +895,7 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
     );
   }
 }
+
 
 enum HoverEffect { shimmer, borderReveal, elevationGlow }
 

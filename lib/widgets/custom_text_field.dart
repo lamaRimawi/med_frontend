@@ -146,6 +146,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
             focusNode: _focusNode,
             obscureText: widget.isPassword && !widget.showPassword,
             keyboardType: widget.keyboardType,
+            textAlign: TextAlign.start,
+            textAlignVertical: TextAlignVertical.center,
             style: TextStyle(
               color: _isDarkMode ? Colors.white : const Color(0xFF1F2937),
               fontSize: 16,
@@ -155,6 +157,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
               hintStyle: TextStyle(
                 color: widget.hintColor ?? (_isDarkMode ? Colors.white.withValues(alpha: 0.6) : Colors.grey[500]),
               ),
+              // Use prefix/suffix icon constraints to keep them at the edges while text is centered
               prefixIcon: Padding(
                 padding: const EdgeInsets.all(12),
                 child: AnimatedContainer(
@@ -171,6 +174,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                   ),
                 ),
               ),
+              // To balance the horizontal centering, we use an invisible dummy icon on the right if there's no suffix
               suffixIcon: widget.isPassword
                   ? IconButton(
                       icon: Icon(
@@ -193,12 +197,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
                         )
                       : null,
               border: InputBorder.none,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             ),
           ),
-        )
-            .animate(target: _isFocused ? 1 : 0)
+        ).animate(target: _isFocused ? 1 : 0)
             .scale(
               begin: const Offset(1, 1),
               end: const Offset(1.01, 1.01),

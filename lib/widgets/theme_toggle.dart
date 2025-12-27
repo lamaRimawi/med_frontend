@@ -48,21 +48,24 @@ class ThemeToggleButton extends StatelessWidget {
           ],
         ),
         child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 500),
           transitionBuilder: (child, animation) {
             return RotationTransition(
               turns: animation,
-              child: FadeTransition(
-                opacity: animation,
-                child: child,
+              child: ScaleTransition(
+                scale: animation,
+                child: FadeTransition(
+                  opacity: animation,
+                  child: child,
+                ),
               ),
             );
           },
           child: Icon(
-            isDark ? Icons.light_mode : Icons.dark_mode,
+            isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
             key: ValueKey(isDark),
-            color: isDark ? Colors.amber : const Color(0xFF39A4E6),
-            size: 28,
+            color: isDark ? const Color(0xFFFFD700) : const Color(0xFF39A4E6),
+            size: 30,
           ),
         ),
       ),
