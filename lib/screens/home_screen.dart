@@ -994,7 +994,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => setState(() => _showReports = true),
+                    onTap: () => setState(() {
+                      _showReports = true;
+                      _selectedIndex = 1;
+                    }),
                     child: Text(
                       'See all',
                       style: TextStyle(
@@ -1058,7 +1061,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Row(
@@ -1069,7 +1072,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 height: 6,
                                 margin: const EdgeInsets.only(top: 6, right: 8),
                                 decoration: const BoxDecoration(
-                                  color: Colors.white,
+                                  color: Color(0xFF39A4E6),
                                   shape: BoxShape.circle,
                                 ),
                               ),
@@ -1084,7 +1087,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Text(
                                           filtered[i]['date'] ?? '',
                                           style: TextStyle(
-                                            color: textOnBlue.withOpacity(0.8),
+                                            color: Colors.grey[600],
                                             fontSize: 12,
                                           ),
                                         ),
@@ -1096,7 +1099,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Text(
                                           filtered[i]['time'] ?? '',
                                           style: TextStyle(
-                                            color: textOnBlue.withOpacity(0.8),
+                                            color: Colors.grey[600],
                                             fontSize: 12,
                                           ),
                                         ),
@@ -1105,7 +1108,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           child: Text(
                                             filtered[i]['title'] ?? '',
                                             style: const TextStyle(
-                                              color: Colors.white,
+                                              color: Colors.black87,
                                               fontWeight: FontWeight.w600,
                                               fontSize: 15,
                                             ),
@@ -1123,9 +1126,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             child: Text(
                                               filtered[i]['doctor'] ?? '',
                                               style: TextStyle(
-                                                color: textOnBlue.withOpacity(
-                                                  0.6,
-                                                ),
+                                                color: Colors.grey[600],
                                                 fontSize: 13,
                                               ),
                                               overflow: TextOverflow.ellipsis,
@@ -1397,7 +1398,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         // Navigate to full Reports screen
                         if (type['navigateTo'] == 'reports') {
-                          setState(() => _showReports = true);
+                          setState(() {
+                            _showReports = true;
+                            _selectedIndex = 1; // Update bottom nav
+                          });
                           return;
                         }
                         if (type['quickView'] != null) {
@@ -1845,6 +1849,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   setState(() {
                                     _showQuickView = null;
                                     _showReports = true;
+                                    _selectedIndex = 1;
                                   });
                                 },
                                 style: ElevatedButton.styleFrom(
