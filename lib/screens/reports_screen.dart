@@ -1858,12 +1858,10 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
     _loadUserProfile();
     _loadReportDetails();
 
-    // Pre-load all files if the count is small, otherwise first two
+    // Start staggered loading: Only load the first file initially
+    // Subsequent files will be triggered in _loadFile success callback
     if (widget.images.isNotEmpty) {
       _loadFile(0);
-      if (widget.images.length > 1) {
-        _loadFile(1);
-      }
     }
   }
 
@@ -1990,24 +1988,49 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
         }
 
         final url = '${ApiConfig.baseUrl}$relativeUrl';
-        debugPrint('ReportViewer: Final URL for index $index is $url');
-
         final token = await ApiClient.instance.getToken();
-        debugPrint('ReportViewer: Sending request to $url (token present: ${token != null})');
 
+        final dir = await getTemporaryDirectory();
+        final filename = imageMap['filename'] as String? ?? 'file_$fileIndex';
+        bool isPdfFromFilename = _isPdf(filename);
+        final extension = isPdfFromFilename ? 'pdf' : 'jpg';
+
+        // Deterministic filename for caching
+        final String localFileName = 'report_${widget.report.reportId}_file_$fileIndex.$extension';
+        final file = File('${dir.path}/$localFileName');
+
+        // CACHE CHECK: If file exists and is not empty, use it
+        if (await file.exists()) {
+          final stat = await file.stat();
+          if (stat.size > 0) {
+            debugPrint('ReportViewer: Using CACHED file for index $index: ${file.path}');
+            if (mounted) {
+              setState(() {
+                _localFilePaths[index] = file.path;
+                _isPdfMap[index] = isPdfFromFilename;
+                _isDownloading[index] = false;
+              });
+
+              // TRIGGER STAGGERED LOADING for next page
+              if (index + 1 < widget.images.length && !_isDownloading.containsKey(index + 1) && !_localFilePaths.containsKey(index + 1)) {
+                _loadFile(index + 1);
+              }
+            }
+            return;
+          }
+        }
+
+        debugPrint('ReportViewer: Fetching index $index from $url');
         final response = await http.get(
           Uri.parse(url),
           headers: {
             if (token != null) 'Authorization': 'Bearer $token',
-            'Connection': 'close',
+            // Removed 'Connection': 'close' to avoid drops
           },
-        ).timeout(const Duration(seconds: 30));
+        ).timeout(const Duration(seconds: 45)); // Increased timeout for PDF/slow connections
 
         if (response.statusCode == 200) {
-          final dir = await getTemporaryDirectory();
-          final filename = imageMap['filename'] as String? ?? 'file_$fileIndex';
-
-          bool isPdf = _isPdf(filename);
+          bool isPdf = isPdfFromFilename;
           final contentType = response.headers['content-type'];
           if (contentType != null) {
             if (contentType.toLowerCase().contains('application/pdf')) {
@@ -2016,11 +2039,6 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
               isPdf = false;
             }
           }
-
-          final extension = isPdf ? 'pdf' : 'jpg';
-          final file = File(
-            '${dir.path}/report_${widget.report.reportId}_${index}_${DateTime.now().millisecondsSinceEpoch}.$extension',
-          );
 
           await file.writeAsBytes(response.bodyBytes);
 
@@ -2318,6 +2336,11 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
   Widget _buildFileViewer(bool isDark) {
     final images = widget.images;
 
+    // Determine if current visible file is a PDF to hide the slider dots
+    final currentImageMap = images.isNotEmpty ? images[_currentIndex] : null;
+    final currentFilename = currentImageMap?['filename'] as String? ?? '';
+    final isCurrentPdf = _isPdfMap[_currentIndex] ?? _isPdf(currentFilename);
+
     return Stack(
       children: [
         PageView.builder(
@@ -2416,8 +2439,8 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
             );
           },
         ),
-        // Dots indicator for multiple files (Images or PDFs)
-        if (images.length > 1)
+        // Dots indicator for multiple files (Images only as per user request)
+        if (images.length > 1 && !isCurrentPdf)
           Positioned(
             bottom: 30,
             left: 0,
@@ -2515,12 +2538,8 @@ class _PdfViewerPageState extends State<_PdfViewerPage> {
       children: [
         SfPdfViewer.file(
           File(widget.filePath),
-          scrollDirection: widget.isMultiFile
-              ? PdfScrollDirection.vertical
-              : PdfScrollDirection.horizontal,
-          pageLayoutMode: widget.isMultiFile
-              ? PdfPageLayoutMode.continuous
-              : PdfPageLayoutMode.single,
+          scrollDirection: PdfScrollDirection.vertical,
+          pageLayoutMode: PdfPageLayoutMode.continuous,
           onDocumentLoaded: (PdfDocumentLoadedDetails details) {
             setState(() {
               _totalPages = details.document.pages.count;
