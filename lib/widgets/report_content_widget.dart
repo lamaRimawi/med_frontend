@@ -206,22 +206,28 @@ class ReportContentWidget extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(
-                      t.value,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isDarkMode ? Colors.white : Colors.black,
+                    Flexible(
+                      child: Text(
+                        t.value,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isDarkMode ? Colors.white : Colors.black,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      t.unit,
-                      style: TextStyle(
-                        color: isDarkMode ? Colors.grey : Colors.grey.shade700,
-                        fontSize: 14,
+                    if (t.unit.isNotEmpty) ...[
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          t.unit,
+                          style: TextStyle(
+                            color: isDarkMode ? Colors.grey : Colors.grey.shade700,
+                            fontSize: 14,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
                 if (t.normalRange.isNotEmpty && t.normalRange != 'N/A') ...[

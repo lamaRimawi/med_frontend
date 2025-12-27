@@ -92,9 +92,15 @@ class VlmService {
   }
   
   static ExtractedReportData _parseReportData(Map<String, dynamic> reportData) {
-    final String patientName = (reportData['patient_name'] ?? '') as String;
-    final String reportType =
+    String patientName = (reportData['patient_name'] ?? '') as String;
+    String reportType =
         (reportData['report_type'] ?? 'General Medical Report') as String;
+    // Prefer report_name if available as it is usually more specific
+    String? explicitReportName;
+    if (reportData['report_name'] != null && reportData['report_name'].toString().isNotEmpty) {
+      explicitReportName = reportData['report_name'].toString();
+      reportType = explicitReportName;
+    }
     final String reportDate = (reportData['report_date'] ?? '') as String;
     final String doctorNames = (reportData['doctor_names'] ?? '') as String;
 
@@ -213,8 +219,43 @@ class VlmService {
         }
       }
     }
+
+    // EXTRACTION OVERRIDES: Check entries for better patient name
+    // The top-level patient_name might be the user's name if the AI failed to extract it.
+    // We trust explicit fields in the data more.
+    if (patientName.isEmpty || patientName == 'Unknown') {
+       for (final e in entries) {
+          if (e is Map<String, dynamic>) {
+               final name = (e['field_name'] ?? '').toString().toLowerCase();
+               if (name == 'patient name' || name == 'patient' || name == 'name') {
+                    final val = e['field_value']?.toString() ?? '';
+                    if (val.isNotEmpty && val.toLowerCase() != 'unknown') {
+                       patientName = val;
+                    }
+               }
+          }
+       }
+    }
     
-    print('VlmService: Parsed patient info - Age: $age, Gender: $gender');
+    // FORMAT REPORT TYPE
+    // Only format if we didn't get an explicit report name from the backend
+    if (explicitReportName == null) {
+      if (reportType.toLowerCase() == 'cbc') {
+        reportType = 'Complete Blood Count';
+      } else {
+        // Title Case the report type
+        try {
+          if (reportType.trim().isNotEmpty) {
+            reportType = reportType.trim().split(' ').map((word) {
+              if (word.isEmpty) return '';
+              return word[0].toUpperCase() + word.substring(1).toLowerCase();
+            }).join(' ');
+          }
+        } catch (_) {} // Fallback to original if anything fails
+      }
+    }
+    
+    print('VlmService: Parsed patient info - Name: $patientName, Age: $age, Gender: $gender');
 
     final patientInfo = PatientInfo(
       name: patientName.isEmpty ? 'Unknown' : patientName,

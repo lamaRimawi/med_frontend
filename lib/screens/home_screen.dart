@@ -367,13 +367,16 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_showCameraUpload && !kIsWeb) {
       return CameraUploadScreen(
         isDarkMode: _isDarkMode,
-        onClose: () {
+        onClose: () async {
           setState(() {
             _showCameraUpload = false;
             _activeTab = 'home';
             _selectedIndex = 0;
+            _isLoadingReports = true; // Show loading immediately
           });
-          _loadReports(); // Refresh reports
+          // Small delay to allow backend to finish processing/indexing
+          await Future.delayed(const Duration(milliseconds: 500));
+          await _loadReports();
         },
       );
     }
@@ -416,13 +419,15 @@ class _HomeScreenState extends State<HomeScreen> {
     } else if (_showCameraUpload) {
       body = WebCameraUploadView(
         isDarkMode: _isDarkMode,
-        onClose: () {
+        onClose: () async {
           setState(() {
             _showCameraUpload = false;
             _activeTab = 'home';
             _selectedIndex = 0;
+            _isLoadingReports = true;
           });
-          _loadReports(); // Refresh reports
+          await Future.delayed(const Duration(milliseconds: 500));
+          await _loadReports();
         },
       );
     } else if (_showRecords) {
@@ -525,9 +530,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             : _showCameraUpload
                               ? WebCameraUploadView(
                                   isDarkMode: _isDarkMode,
-                                  onClose: () {
+                                  onClose: () async {
                                     setState(() => _showCameraUpload = false);
-                                    _loadReports(); // Refresh reports
+                                    await Future.delayed(const Duration(milliseconds: 500));
+                                    _loadReports();
                                   },
                                 )
                               : WebDashboardView(
