@@ -1858,9 +1858,12 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
     _loadUserProfile();
     _loadReportDetails();
 
-    // Load the first file immediately
+    // Pre-load all files if the count is small, otherwise first two
     if (widget.images.isNotEmpty) {
       _loadFile(0);
+      if (widget.images.length > 1) {
+        _loadFile(1);
+      }
     }
   }
 
@@ -1974,35 +1977,36 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
     while (retryCount < maxRetries) {
       try {
         final imageMap = widget.images[index];
-        // Use the index from the backend if available, otherwise fallback to list index + 1
         final backendIndex = imageMap['index'] as int?;
         final fileIndex = backendIndex ?? (index + 1);
 
-        debugPrint(
-          'ReportViewer: Loading image index $index (backend fileIndex: $fileIndex)',
-        );
+        // Debug log to confirm which index we are trying to load
+        debugPrint('ReportViewer: _loadFile called for index $index. backendIndex: $backendIndex, using fileIndex: $fileIndex');
 
-        final url =
-            '${ApiConfig.baseUrl}${ApiConfig.reports}/${widget.report.reportId}/images/$fileIndex';
+        // Use download_url from backend if available, otherwise construct it
+        String relativeUrl = imageMap['download_url'] as String? ?? '';
+        if (relativeUrl.isEmpty) {
+          relativeUrl = '${ApiConfig.reports}/${widget.report.reportId}/images/$fileIndex';
+        }
+
+        final url = '${ApiConfig.baseUrl}$relativeUrl';
+        debugPrint('ReportViewer: Final URL for index $index is $url');
 
         final token = await ApiClient.instance.getToken();
+        debugPrint('ReportViewer: Sending request to $url (token present: ${token != null})');
 
-        final request = http.Request('GET', Uri.parse(url));
-        if (token != null) {
-          request.headers['Authorization'] = 'Bearer $token';
-        }
-        request.headers['Connection'] = 'close';
-
-        // Add timeout to prevent hanging
-        final response = await request.send().timeout(
-          const Duration(seconds: 30), // Increased timeout
-        );
+        final response = await http.get(
+          Uri.parse(url),
+          headers: {
+            if (token != null) 'Authorization': 'Bearer $token',
+            'Connection': 'close',
+          },
+        ).timeout(const Duration(seconds: 30));
 
         if (response.statusCode == 200) {
           final dir = await getTemporaryDirectory();
           final filename = imageMap['filename'] as String? ?? 'file_$fileIndex';
 
-          // Determine type from header or filename
           bool isPdf = _isPdf(filename);
           final contentType = response.headers['content-type'];
           if (contentType != null) {
@@ -2018,30 +2022,31 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
             '${dir.path}/report_${widget.report.reportId}_${index}_${DateTime.now().millisecondsSinceEpoch}.$extension',
           );
 
-          final sink = file.openWrite();
-          await response.stream.pipe(sink);
-          await sink.close();
+          await file.writeAsBytes(response.bodyBytes);
 
           // Verify file size
-          final stat = await file.stat();
-          if (stat.size == 0) {
+          if (response.bodyBytes.isEmpty) {
             throw Exception('Downloaded file is empty');
           }
 
           if (mounted) {
-            debugPrint('ReportViewer: Successfully loaded image $index');
+            debugPrint('ReportViewer: SUCCESS loaded index $index from $url');
             setState(() {
               _localFilePaths[index] = file.path;
               _isPdfMap[index] = isPdf;
               _isDownloading[index] = false;
             });
+
+            // Pre-load next page to improve UX
+            if (index + 1 < widget.images.length) {
+              _loadFile(index + 1);
+            }
           }
           return; // Success
         } else {
-          debugPrint('ReportViewer: Failed with status ${response.statusCode}');
+          debugPrint('ReportViewer: Failed to load index $index. Status code: ${response.statusCode}');
           if (response.statusCode == 404) {
-            // If 404, maybe we shouldn't retry? But for now let's just throw
-            throw Exception('File not found (404)');
+            throw Exception('File not found (404) for index $index at $url');
           }
           throw Exception('Failed to download file: ${response.statusCode}');
         }
@@ -2333,7 +2338,22 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
             final isPdf = _isPdfMap[index] ?? _isPdf(filename);
 
             if (isDownloading) {
-              return const Center(child: CircularProgressIndicator());
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Loading document ${index + 1} of ${images.length}...',
+                      style: TextStyle(
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              );
             }
 
             if (error != null) {
@@ -2374,7 +2394,11 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
             }
 
             if (isPdf) {
-              return _PdfViewerPage(filePath: localPath, isDark: isDark);
+              return _PdfViewerPage(
+                filePath: localPath, 
+                isDark: isDark,
+                isMultiFile: images.length > 1,
+              );
             }
 
             return InteractiveViewer(
@@ -2392,30 +2416,36 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
             );
           },
         ),
-        if (images.length > 1 &&
-            !(_isPdfMap[_currentIndex] ??
-                _isPdf(images[_currentIndex]['filename'] as String? ?? '')))
+        // Dots indicator for multiple files (Images or PDFs)
+        if (images.length > 1)
           Positioned(
-            bottom: 20,
+            bottom: 30,
             left: 0,
             right: 0,
             child: Center(
-              child: SmoothPageIndicator(
-                controller: _pageController,
-                count: images.length,
-                effect: WormEffect(
-                  dotHeight: 8,
-                  dotWidth: 8,
-                  activeDotColor: const Color(0xFF39A4E6),
-                  dotColor: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                onDotClicked: (index) {
-                  _pageController.animateToPage(
-                    index,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
+                child: SmoothPageIndicator(
+                  controller: _pageController,
+                  count: images.length,
+                  effect: WormEffect(
+                    dotHeight: 8,
+                    dotWidth: 8,
+                    activeDotColor: const Color(0xFF39A4E6),
+                    dotColor: Colors.white38,
+                  ),
+                  onDotClicked: (index) {
+                    _pageController.animateToPage(
+                      index,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -2429,9 +2459,14 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
 class _PdfViewerPage extends StatefulWidget {
   final String filePath;
   final bool isDark;
+  final bool isMultiFile;
 
-  const _PdfViewerPage({required this.filePath, required this.isDark, Key? key})
-    : super(key: key);
+  const _PdfViewerPage({
+    required this.filePath,
+    required this.isDark,
+    this.isMultiFile = false,
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<_PdfViewerPage> createState() => _PdfViewerPageState();
@@ -2480,8 +2515,12 @@ class _PdfViewerPageState extends State<_PdfViewerPage> {
       children: [
         SfPdfViewer.file(
           File(widget.filePath),
-          scrollDirection: PdfScrollDirection.vertical,
-          pageLayoutMode: PdfPageLayoutMode.continuous,
+          scrollDirection: widget.isMultiFile
+              ? PdfScrollDirection.vertical
+              : PdfScrollDirection.horizontal,
+          pageLayoutMode: widget.isMultiFile
+              ? PdfPageLayoutMode.continuous
+              : PdfPageLayoutMode.single,
           onDocumentLoaded: (PdfDocumentLoadedDetails details) {
             setState(() {
               _totalPages = details.document.pages.count;
@@ -2499,22 +2538,27 @@ class _PdfViewerPageState extends State<_PdfViewerPage> {
             });
           },
         ),
-        if (_ready)
+        if (_ready && _totalPages > 1)
           Positioned(
-            top: 20,
-            right: 20,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.6),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                '${_currentPage + 1} / $_totalPages',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
+            bottom: 30,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Text(
+                  '${_currentPage + 1} / $_totalPages',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    letterSpacing: 1.2,
+                  ),
                 ),
               ),
             ),

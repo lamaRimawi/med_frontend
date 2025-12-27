@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import '../config/api_config.dart';
 import '../models/report_model.dart';
 import 'api_client.dart';
@@ -103,27 +104,25 @@ class ReportsService {
       );
 
       if (response.statusCode == 200) {
-        final dynamic decoded = json.decode(utf8.decode(response.bodyBytes));
+        final String rawBody = utf8.decode(response.bodyBytes);
+        final dynamic decoded = json.decode(rawBody);
 
-        // Backend returns { "files": [ { "filename": "...", "id": ... }, ... ] }
         if (decoded is Map<String, dynamic>) {
           if (decoded.containsKey('files')) {
             final files = decoded['files'] as List<dynamic>;
-            return files.map((f) => f as Map<String, dynamic>).toList();
+            return files.map((f) => f is Map<String, dynamic> ? f : {'filename': f.toString()}).toList();
           } else if (decoded.containsKey('images')) {
-            // Fallback for older API structure if any
-            // Convert string list to map list for consistency
-            final images = List<String>.from(decoded['images']);
-            return images.map((img) => {'filename': img}).toList();
+            final images = decoded['images'] as List<dynamic>;
+            return images.map((img) => img is Map<String, dynamic> ? img : {'filename': img.toString()}).toList();
           }
         } else if (decoded is List) {
-          // Fallback if it returns a list of strings
-          return decoded.map((img) => {'filename': img.toString()}).toList();
+          return decoded.map((item) {
+            if (item is Map<String, dynamic>) return item;
+            return {'filename': item.toString(), 'index': decoded.indexOf(item) + 1};
+          }).toList();
         }
-
         return [];
       } else if (response.statusCode == 404) {
-        // No files found is a valid state, return empty list
         return [];
       } else {
         throw Exception('Failed to load report images: ${response.statusCode}');
