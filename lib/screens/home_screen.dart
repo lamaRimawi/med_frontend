@@ -601,18 +601,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Hi, Welcome Back',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: _isDarkMode
-                            ? Colors.grey[400]
-                            : Colors.grey[500],
-                      ),
-                    ),
+                   
                     const SizedBox(height: 4),
                     Text(
-                      _currentUser?.fullName ?? 'User',
+                      _currentUser?.fullName.toUpperCase() ?? 'User',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
