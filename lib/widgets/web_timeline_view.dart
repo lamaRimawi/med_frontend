@@ -135,7 +135,6 @@ class _WebTimelineViewState extends State<WebTimelineView> {
         color: Colors.transparent,
         child: Column(
           children: [
-            _buildHeader(),
             Expanded(
               child: _isLoading
                   ? Center(child: CircularProgressIndicator())

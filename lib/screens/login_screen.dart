@@ -282,7 +282,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       LucideIcons.arrowLeft,
                       color: Colors.white,
                     ),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      if (Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      } else {
+                        Navigator.pushReplacementNamed(context, '/');
+                      }
+                    },
                   ).animate().fadeIn(delay: 200.ms).moveX(begin: -20, end: 0),
                   const Expanded(
                     child: Text(

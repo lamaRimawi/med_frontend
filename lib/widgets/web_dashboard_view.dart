@@ -105,11 +105,10 @@ class _WebDashboardViewState extends State<WebDashboardView> {
       backgroundColor: Colors.transparent,
       body: Column(
         children: [
-          _buildGlassTopBar(context),
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 40),
+              padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 50),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

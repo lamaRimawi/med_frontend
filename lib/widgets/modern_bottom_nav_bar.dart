@@ -118,7 +118,7 @@ class ModernBottomNavBar extends StatelessWidget {
           ],
         ),
         child: const Icon(
-          LucideIcons.camera,
+          LucideIcons.upload,
           color: Colors.white,
           size: 28,
         ),

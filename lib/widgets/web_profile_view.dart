@@ -245,13 +245,14 @@ class _WebProfileViewState extends State<WebProfileView> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.expand(
+    return Container(
+      color: Colors.transparent,
       child: Scrollbar(
         thumbVisibility: true,
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
+            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 40),
             child: Column(
               children: [
                 _buildPremiumHeader(),
