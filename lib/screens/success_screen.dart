@@ -96,7 +96,9 @@ class _SuccessScreenState extends State<SuccessScreen> {
                           const SizedBox(height: 12),
 
                           Text(
-                            'Your ${widget.capturedItems.length} medical report${widget.capturedItems.length == 1 ? '' : 's have'} been successfully processed and are ready to view',
+                            widget.capturedItems.length == 1
+                                ? 'Your medical report has been successfully processed and is ready to view'
+                                : 'Your medical report (${widget.capturedItems.length} files) has been successfully processed and is ready to view',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 16,
