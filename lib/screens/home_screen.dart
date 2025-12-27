@@ -473,12 +473,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         if (isDesktop) {
           return Scaffold(
-<<<<<<< HEAD
             backgroundColor: _isDarkMode ? const Color(0xFF0A1929) : const Color(0xFFF9FAFB),
-            body: _showCameraUpload
-                ? WebCameraUploadView(
-=======
-            backgroundColor: _isDarkMode ? const Color(0xFF121212) : const Color(0xFFF9FAFB),
             body: NextGenBackground(
               isDarkMode: _isDarkMode,
               child: Column(
@@ -496,7 +491,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       });
                     },
                     user: _currentUser,
->>>>>>> 1c77c23045ec2055aec63b4a1910df1931ccc98d
                     isDarkMode: _isDarkMode,
                     onLogout: () {
                       Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);

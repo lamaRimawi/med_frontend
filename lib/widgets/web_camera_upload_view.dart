@@ -152,7 +152,6 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
     return Expanded(
       child: Container(
         color: widget.isDarkMode
@@ -162,52 +161,17 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
           children: [
             _buildHeader(),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(40),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 800),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildUploadArea(),
-                        if (_error != null) ...[
-                          const SizedBox(height: 24),
-                          _buildError(),
-                        ],
-                        if (_isUploading) ...[
-                          const SizedBox(height: 32),
-                          _buildProcessingIndicator(),
-                        ],
-                        if (_selectedFiles.isNotEmpty && !_isUploading) ...[
-                          const SizedBox(height: 32),
-                          _buildFileList(),
-                          const SizedBox(height: 32),
-                          _buildUploadButton(),
-                        ],
-                      ],
-                    ),
-                  ),
+              child: Scrollbar(
+                controller: _scrollController,
+                thumbVisibility: true,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 400),
+                  child: _buildCurrentView(),
                 ),
-=======
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.transparent,
-      ),
-      child: Column(
-        children: [
-          Expanded(
-            child: Scrollbar(
-              controller: _scrollController,
-              thumbVisibility: true,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 400),
-                child: _buildCurrentView(),
->>>>>>> 1c77c23045ec2055aec63b4a1910df1931ccc98d
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -230,11 +194,7 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
       height: 90,
       padding: const EdgeInsets.symmetric(horizontal: 50),
       decoration: BoxDecoration(
-<<<<<<< HEAD
         color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.white,
-=======
-        color: (widget.isDarkMode ? Colors.black : Colors.white).withOpacity(0.05),
->>>>>>> 1c77c23045ec2055aec63b4a1910df1931ccc98d
         border: Border(
           bottom: BorderSide(
             color: (widget.isDarkMode ? Colors.white : Colors.black).withOpacity(0.05),
@@ -369,11 +329,7 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
           constraints: const BoxConstraints(maxWidth: 450),
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-<<<<<<< HEAD
             color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.white,
-=======
-            color: (widget.isDarkMode ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.9),
->>>>>>> 1c77c23045ec2055aec63b4a1910df1931ccc98d
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: const Color(0xFF10B981).withOpacity(0.2)),
             boxShadow: [
@@ -688,7 +644,6 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
   }
 
   Widget _buildFileList() {
-<<<<<<< HEAD
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -726,14 +681,6 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
           }),
         ],
       ),
-=======
-    return Column(
-      children: _selectedFiles.asMap().entries.map((entry) {
-        final index = entry.key;
-        final file = entry.value;
-        return _buildFileItem(file, index);
-      }).toList(),
->>>>>>> 1c77c23045ec2055aec63b4a1910df1931ccc98d
     );
   }
 
@@ -840,11 +787,7 @@ class _WebCameraUploadViewState extends State<WebCameraUploadView> {
       constraints: const BoxConstraints(maxWidth: 400),
       padding: const EdgeInsets.all(48),
       decoration: BoxDecoration(
-<<<<<<< HEAD
         color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.white,
-=======
-        color: (widget.isDarkMode ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.9),
->>>>>>> 1c77c23045ec2055aec63b4a1910df1931ccc98d
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: (widget.isDarkMode ? Colors.white : Colors.black).withOpacity(0.05)),
         boxShadow: [

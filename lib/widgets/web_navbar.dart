@@ -54,7 +54,7 @@ class WebNavbar extends StatelessWidget {
                     const SizedBox(width: 8),
                     _navItem(3, LucideIcons.calendar, 'Timeline'),
                     const SizedBox(width: 8),
-                    _navItem(2, LucideIcons.upload, 'Upload'),
+                    _navItem(2, LucideIcons.camera, 'Upload'),
                   ],
                 ),
                 const Spacer(),
