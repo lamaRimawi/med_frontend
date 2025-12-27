@@ -75,24 +75,30 @@ class _ProfileScreenState extends State<ProfileScreen>
       try {
         // Upload to backend via UserService
         await UserService().updateUserProfile({}, imageFile: file);
-        
+
         // Refresh profile to get the new backend URL
         final user = await UserService().getUserProfile();
         if (mounted) {
           _updateLocalUserState(user);
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
                 children: [
-                   const Icon(LucideIcons.checkCircle, color: Colors.white, size: 20),
-                   const SizedBox(width: 12),
-                   const Text('Profile picture updated successfully'),
+                  const Icon(
+                    LucideIcons.checkCircle,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  const Text('Profile picture updated successfully'),
                 ],
               ),
               backgroundColor: const Color(0xFF10B981),
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           );
         }
@@ -120,7 +126,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   void _showProfileImageViewer(BuildContext context) {
     final isDark = _isDarkMode;
-    
+
     showDialog(
       context: context,
       barrierColor: Colors.black87,
@@ -162,23 +168,23 @@ class _ProfileScreenState extends State<ProfileScreen>
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: _imageFile != null
-                        ? Image.file(
-                            _imageFile!,
-                            fit: BoxFit.contain,
-                          )
+                        ? Image.file(_imageFile!, fit: BoxFit.contain)
                         : Image.network(
                             _profileData['avatar']?.isNotEmpty == true
                                 ? _profileData['avatar']
                                 : 'https://api.dicebear.com/7.x/avataaars/png?seed=Maria',
-                            headers: _token != null ? {'Authorization': 'Bearer $_token'} : null,
+                            headers: _token != null
+                                ? {'Authorization': 'Bearer $_token'}
+                                : null,
                             fit: BoxFit.contain,
                             loadingBuilder: (context, child, loadingProgress) {
                               if (loadingProgress == null) return child;
                               return Center(
                                 child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes != null
+                                  value:
+                                      loadingProgress.expectedTotalBytes != null
                                       ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
+                                            loadingProgress.expectedTotalBytes!
                                       : null,
                                   color: const Color(0xFF39A4E6),
                                 ),
@@ -246,23 +252,27 @@ class _ProfileScreenState extends State<ProfileScreen>
       final reports = await ReportsService().getReports();
       if (mounted) {
         setState(() {
-          _medicalReports = reports.take(3).map((report) {
-            // Determine status based on fields (simple logic)
-            String status = 'Analyzed';
-            Color statusColor = Colors.green;
-            
-            // Allow basic types or default
-            String type = report.reportType ?? 'Medical Report';
-            
-            return {
-              'id': report.reportId,
-              'name': type,
-              'date': report.reportDate,
-              'type': type,
-              'status': status,
-              'color': const Color(0xFF39A4E6), // Default blue
-            };
-          }).toList().cast<Map<String, dynamic>>();
+          _medicalReports = reports
+              .take(3)
+              .map((report) {
+                // Determine status based on fields (simple logic)
+                String status = 'Analyzed';
+                Color statusColor = Colors.green;
+
+                // Allow basic types or default
+                String type = report.reportType ?? 'Medical Report';
+
+                return {
+                  'id': report.reportId,
+                  'name': type,
+                  'date': report.reportDate,
+                  'type': type,
+                  'status': status,
+                  'color': const Color(0xFF39A4E6), // Default blue
+                };
+              })
+              .toList()
+              .cast<Map<String, dynamic>>();
         });
       }
     } catch (e) {
@@ -285,7 +295,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     try {
       // Fetch token for authenticated image loading
       _token = await ApiClient.instance.getToken();
-      
+
       // Try to fetch from backend first
       final user = await UserService().getUserProfile();
       if (mounted) {
@@ -322,8 +332,12 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
 
     if (!WebAuthnService.isSupported) {
-       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('WebAuthn is not supported on this browser/environment')),
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'WebAuthn is not supported on this browser/environment',
+          ),
+        ),
       );
       return;
     }
@@ -331,21 +345,23 @@ class _ProfileScreenState extends State<ProfileScreen>
     setState(() => _isLoading = true);
     try {
       // 1. Get Registration Options
-      final (optionsSuccess, options, optionsMessage) = await AuthApi.getWebAuthnRegistrationOptions();
-      
+      final (optionsSuccess, options, optionsMessage) =
+          await AuthApi.getWebAuthnRegistrationOptions();
+
       if (!optionsSuccess || options == null) {
         throw optionsMessage ?? 'Failed to get registration options';
       }
 
       // 2. Invoke Browser API
       final credential = await WebAuthnService.createCredential(options);
-      
+
       if (credential == null) {
         throw 'Biometric registration cancelled or failed';
       }
 
       // 3. Verify Registration with backend
-      final (verifySuccess, verifyMessage) = await AuthApi.verifyWebAuthnRegistration(credential);
+      final (verifySuccess, verifyMessage) =
+          await AuthApi.verifyWebAuthnRegistration(credential);
 
       if (!mounted) return;
 
@@ -353,10 +369,12 @@ class _ProfileScreenState extends State<ProfileScreen>
         setState(() => _biometricEnabled = true);
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('biometric_enabled', true);
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(verifyMessage ?? 'Biometric login enabled successfully'),
+            content: Text(
+              verifyMessage ?? 'Biometric login enabled successfully',
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -407,7 +425,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         // Regex to find country code (e.g. +962) and the rest
         // Matches + followed by 1-4 digits, then optionally space, then the rest
         final match = RegExp(r'^(\+\d{1,4})[\s-]*(.*)$').firstMatch(fullPhone);
-        
+
         if (match != null) {
           prefix = match.group(1) ?? '+962';
           phoneBody = match.group(2) ?? '';
@@ -425,21 +443,21 @@ class _ProfileScreenState extends State<ProfileScreen>
       _profileData['medicalHistory'] = user.medicalHistory ?? '';
       _profileData['allergies'] = user.allergies ?? '';
       // Use backend profile image if available, else fallback to DiceBear
-    if (user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty) {
-      if (user.profileImageUrl!.startsWith('http')) {
-        _profileData['avatar'] = user.profileImageUrl;
+      if (user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty) {
+        if (user.profileImageUrl!.startsWith('http')) {
+          _profileData['avatar'] = user.profileImageUrl;
+        } else {
+          // Construct full URL connecting to backend
+          // Use ApiConfig.baseUrl but remove /api suffix if present
+          final baseUrl = ApiConfig.baseUrl.replaceAll('/api', '');
+          _profileData['avatar'] = '$baseUrl${user.profileImageUrl}';
+        }
       } else {
-        // Construct full URL connecting to backend
-        // Use ApiConfig.baseUrl but remove /api suffix if present
-        final baseUrl = ApiConfig.baseUrl.replaceAll('/api', '');
-        _profileData['avatar'] = '$baseUrl${user.profileImageUrl}';
+        _profileData['avatar'] =
+            'https://api.dicebear.com/7.x/avataaars/svg?seed=${user.firstName}';
       }
-    } else {
-      _profileData['avatar'] =
-          'https://api.dicebear.com/7.x/avataaars/svg?seed=${user.firstName}';
-    }
-  });
-}
+    });
+  }
 
   int _selectedYear = DateTime.now().year;
   int _selectedMonth = DateTime.now().month - 1;
@@ -620,10 +638,14 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget _buildMainProfileScreen() {
     final isDark = _isDarkMode;
     final topPadding = MediaQuery.of(context).padding.top;
-    
-    final backgroundColor = isDark ? const Color(0xFF0A1929) : const Color(0xFFF2F4F7); // Navy blue instead of dark gray
+
+    final backgroundColor = isDark
+        ? const Color(0xFF0A1929)
+        : const Color(0xFFF2F4F7); // Navy blue instead of dark gray
     final textColor = isDark ? Colors.white : const Color(0xFF101828);
-    final subTextColor = isDark ? const Color(0xFFA1A1AA) : const Color(0xFF667085);
+    final subTextColor = isDark
+        ? const Color(0xFFA1A1AA)
+        : const Color(0xFF667085);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -639,11 +661,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ClipPath(
                   clipper: ProfileHeaderClipper(), // Reverted to simple clipper
                   child: Container(
-                    height: 300, 
+                    height: 300,
                     width: double.infinity,
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Color(0xFF0EA5E9), Color(0xFF2563EB)],
+                        colors: [
+                          Color(0xFF2196F3),
+                          Color(0xFF1565C0),
+                        ], // Softer, modern blue
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -651,7 +676,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                     child: SafeArea(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 12),
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
                         child: Align(
                           alignment: Alignment.topCenter,
                           child: Text(
@@ -680,11 +707,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           alignment: Alignment.bottomRight,
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(2.5), // Thinner border
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
-                              ),
+                              // No white border
                               child: Hero(
                                 tag: 'profile_image',
                                 child: Container(
@@ -695,14 +718,19 @@ class _ProfileScreenState extends State<ProfileScreen>
                                     image: DecorationImage(
                                       image: _imageFile != null
                                           ? FileImage(_imageFile!)
-                                              as ImageProvider
+                                                as ImageProvider
                                           : NetworkImage(
                                               _profileData['avatar']
                                                           ?.isNotEmpty ==
                                                       true
                                                   ? _profileData['avatar']
                                                   : 'https://api.dicebear.com/7.x/avataaars/png?seed=Maria',
-                                              headers: _token != null ? {'Authorization': 'Bearer $_token'} : null,
+                                              headers: _token != null
+                                                  ? {
+                                                      'Authorization':
+                                                          'Bearer $_token',
+                                                    }
+                                                  : null,
                                             ),
                                       fit: BoxFit.cover,
                                     ),
@@ -710,19 +738,18 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 ),
                               ),
                             ),
-                            // Clean Camera Button
+                            // Restore Camera Button
                             GestureDetector(
                               onTap: _pickImage,
                               child: Container(
-                                margin: const EdgeInsets.only(right: 6, bottom: 6),
+                                margin: const EdgeInsets.only(
+                                  right: 6,
+                                  bottom: 6,
+                                ),
                                 padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
+                                decoration: const BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: const Color(0xFF0EA5E9),
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2.5,
-                                  ),
+                                  color: Color(0xFF0EA5E9),
                                 ),
                                 child: const Icon(
                                   LucideIcons.camera,
@@ -736,22 +763,21 @@ class _ProfileScreenState extends State<ProfileScreen>
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        (_profileData['name'] ?? '').split(' ').map((str) => str.isNotEmpty ? '${str[0].toUpperCase()}${str.substring(1)}' : '').join(' '),
+                        (_profileData['name'] ?? '')
+                            .split(' ')
+                            .map(
+                              (str) => str.isNotEmpty
+                                  ? '${str[0].toUpperCase()}${str.substring(1)}'
+                                  : '',
+                            )
+                            .join(' '),
                         style: TextStyle(
-                          color: textColor, 
+                          color: textColor,
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _profileData['email'],
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9), // White for contrast on blue/dark
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
                         ),
                       ),
+                      // Keep email hidden
                     ],
                   ),
                 ),
@@ -780,7 +806,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     'Biometrics, notifications, security',
                     () => setState(() => _currentScreen = 'settings'),
                   ),
-                  
+
                   const SizedBox(height: 24),
                   _buildSectionTitle('Support'),
                   const SizedBox(height: 8),
@@ -792,141 +818,176 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
 
                   const SizedBox(height: 32),
-                  
-                  // Logout Button
-                  TextButton(
-                    onPressed: () async {
+
+                  // Logout Button styled like menu items
+                  GestureDetector(
+                    onTap: () async {
                       final shouldLogout = await showModalBottomSheet<bool>(
-                    context: context,
-                    backgroundColor: Colors.transparent,
-                    builder: (context) => Container(
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF0F2137) : Colors.white,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(24),
-                          topRight: Radius.circular(24),
-                        ),
-                      ),
-                      padding: const EdgeInsets.fromLTRB(32, 48, 32, 32),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const SizedBox(height: 16),
-                          Text(
-                            'Are you sure you want to log out?',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF111827),
+                        context: context,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) => Container(
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF0F2137)
+                                : Colors.white,
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(24),
+                              topRight: Radius.circular(24),
                             ),
-                            textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 12),
-                           Text(
-                            'You will need to login again to access your account.',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: isDark
-                                  ? Colors.grey[400]
-                                  : Colors.grey[600],
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 36),
-                          Row(
+                          padding: const EdgeInsets.fromLTRB(32, 48, 32, 32),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () => Navigator.pop(context, false),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 16,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: isDark ? const Color(0xFF0F2137) : const Color(0xFFF3F4F6),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Text(
-                                      'Cancel',
-                                      style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white
-                                            : const Color(0xFF111827),
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Are you sure you want to log out?',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF111827),
                                 ),
+                                textAlign: TextAlign.center,
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () => Navigator.pop(context, true),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 16,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEF4444),
-                                      borderRadius: BorderRadius.circular(16),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: const Color(0xFFEF4444).withOpacity(0.3),
-                                          blurRadius: 12,
-                                          offset: const Offset(0, 4),
+                              // Removed subtext below logout title
+                              const SizedBox(height: 36),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () =>
+                                          Navigator.pop(context, false),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
                                         ),
-                                      ],
-                                    ),
-                                    child: const Text(
-                                      'Yes, Logout',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15,
+                                        decoration: BoxDecoration(
+                                          color: isDark
+                                              ? const Color(0xFF0F2137)
+                                              : const Color(0xFFF3F4F6),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          'Cancel',
+                                          style: TextStyle(
+                                            color: isDark
+                                                ? Colors.white
+                                                : const Color(0xFF111827),
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 15,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
                                       ),
-                                      textAlign: TextAlign.center,
                                     ),
                                   ),
-                                ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () => Navigator.pop(context, true),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFEF4444),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: const Color(
+                                                0xFFEF4444,
+                                              ).withOpacity(0.3),
+                                              blurRadius: 12,
+                                              offset: const Offset(0, 4),
+                                            ),
+                                          ],
+                                        ),
+                                        child: const Text(
+                                          'Yes, Logout',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 15,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
+                              const SizedBox(height: 24),
                             ],
                           ),
-                          const SizedBox(height: 24),
-                        ],
-                      ),
-                    ),
-                  );
-
+                        ),
+                      );
                       if (shouldLogout == true) {
                         await User.clearFromPrefs();
                         await AuthApi.logout();
                         widget.onLogout();
                       }
                     },
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      foregroundColor: const Color(0xFFEF4444),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(LucideIcons.logOut, size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          'Sign Out',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF0F2137) : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withOpacity(0.05)
+                              : const Color(0xFFE5E7EB),
+                          width: 1,
                         ),
-                      ],
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(
+                              isDark ? 0.2 : 0.02,
+                            ),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEF4444).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              LucideIcons.logOut,
+                              color: Color(0xFFEF4444),
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              'Sign Out',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFFEF4444),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 100), // Extra space to avoid bottom nav bar
+                  const SizedBox(
+                    height: 100,
+                  ), // Extra space to avoid bottom nav bar
                 ],
               ),
             ),
@@ -960,7 +1021,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey[100],
     );
   }
-  
+
   // Reverted to standard list item but polished
   Widget _buildMenuItem(
     IconData icon,
@@ -969,9 +1030,13 @@ class _ProfileScreenState extends State<ProfileScreen>
     VoidCallback onTap,
   ) {
     final isDark = _isDarkMode;
-    final cardColor = isDark ? const Color(0xFF0F2137) : Colors.white; // Navy blue for cards
+    final cardColor = isDark
+        ? const Color(0xFF0F2137)
+        : Colors.white; // Navy blue for cards
     final textColor = isDark ? Colors.white : const Color(0xFF101828);
-    final subTextColor = isDark ? const Color(0xFFA1A1AA) : const Color(0xFF667085);
+    final subTextColor = isDark
+        ? const Color(0xFFA1A1AA)
+        : const Color(0xFF667085);
 
     return GestureDetector(
       onTap: onTap,
@@ -981,12 +1046,16 @@ class _ProfileScreenState extends State<ProfileScreen>
           color: cardColor,
           borderRadius: BorderRadius.circular(16), // Softer corners
           border: Border.all(
-            color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFE5E7EB), // Subtle border
+            color: isDark
+                ? Colors.white.withOpacity(0.05)
+                : const Color(0xFFE5E7EB), // Subtle border
             width: 1,
           ),
           boxShadow: [
-             BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.2 : 0.02), // Very subtle shadow
+            BoxShadow(
+              color: Colors.black.withOpacity(
+                isDark ? 0.2 : 0.02,
+              ), // Very subtle shadow
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -1019,10 +1088,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: subTextColor,
-                      ),
+                      style: TextStyle(fontSize: 13, color: subTextColor),
                     ),
                   ],
                 ],
@@ -1287,7 +1353,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                         GestureDetector(
                           onTap: () async {
                             // Validation
-                            if (_profileData['name'].toString().trim().isEmpty) {
+                            if (_profileData['name']
+                                .toString()
+                                .trim()
+                                .isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Please enter your full name'),
@@ -1296,13 +1365,17 @@ class _ProfileScreenState extends State<ProfileScreen>
                               );
                               return;
                             }
-                            
+
                             // Name Validation (Letters and spaces only)
                             final nameRegex = RegExp(r'^[a-zA-Z\s]+$');
-                            if (!nameRegex.hasMatch(_profileData['name'].toString().trim())) {
-                                ScaffoldMessenger.of(context).showSnackBar(
+                            if (!nameRegex.hasMatch(
+                              _profileData['name'].toString().trim(),
+                            )) {
+                              ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Name must contain only letters'),
+                                  content: Text(
+                                    'Name must contain only letters',
+                                  ),
                                   backgroundColor: Colors.red,
                                 ),
                               );
@@ -1310,19 +1383,26 @@ class _ProfileScreenState extends State<ProfileScreen>
                             }
 
                             // Phone validation
-                            final phone = _profileData['phone'].toString().trim();
+                            final phone = _profileData['phone']
+                                .toString()
+                                .trim();
                             if (phone.isNotEmpty && phone.length != 9) {
                               setState(
-                                () => _phoneError = 'Phone number must be 9 digits',
+                                () => _phoneError =
+                                    'Phone number must be 9 digits',
                               );
                               return;
                             }
                             setState(() => _phoneError = null);
-                            
-                            if (_profileData['dateOfBirth'].toString().isEmpty) {
+
+                            if (_profileData['dateOfBirth']
+                                .toString()
+                                .isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Please select your date of birth'),
+                                  content: Text(
+                                    'Please select your date of birth',
+                                  ),
                                   backgroundColor: Colors.red,
                                 ),
                               );
@@ -1331,47 +1411,71 @@ class _ProfileScreenState extends State<ProfileScreen>
 
                             try {
                               setState(() => _isLoading = true);
-                              
+
                               // Split name into first and last
-                              final nameParts = _profileData['name'].toString().trim().split(' ');
-                              final firstName = nameParts.isNotEmpty ? nameParts.first : '';
-                              final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
-                                
+                              final nameParts = _profileData['name']
+                                  .toString()
+                                  .trim()
+                                  .split(' ');
+                              final firstName = nameParts.isNotEmpty
+                                  ? nameParts.first
+                                  : '';
+                              final lastName = nameParts.length > 1
+                                  ? nameParts.sublist(1).join(' ')
+                                  : '';
+
                               // Format Date of Birth to YYYY-MM-DD
                               String formattedDob = '';
                               try {
-                                  final dobStr = _profileData['dateOfBirth'].toString();
-                                  final parts = dobStr.split(' ');
-                                  if (parts.length == 3) {
-                                      final monthStr = parts[1];
-                                      final months = [
-                                        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-                                      ];
-                                      if (months.contains(monthStr)) {
-                                          final day = int.parse(parts[0]);
-                                          final year = int.parse(parts[2]);
-                                          final month = months.indexOf(monthStr) + 1;
-                                          formattedDob = '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
-                                      } else {
-                                          formattedDob = dobStr;
-                                      }
+                                final dobStr = _profileData['dateOfBirth']
+                                    .toString();
+                                final parts = dobStr.split(' ');
+                                if (parts.length == 3) {
+                                  final monthStr = parts[1];
+                                  final months = [
+                                    'Jan',
+                                    'Feb',
+                                    'Mar',
+                                    'Apr',
+                                    'May',
+                                    'Jun',
+                                    'Jul',
+                                    'Aug',
+                                    'Sep',
+                                    'Oct',
+                                    'Nov',
+                                    'Dec',
+                                  ];
+                                  if (months.contains(monthStr)) {
+                                    final day = int.parse(parts[0]);
+                                    final year = int.parse(parts[2]);
+                                    final month = months.indexOf(monthStr) + 1;
+                                    formattedDob =
+                                        '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
                                   } else {
-                                      formattedDob = dobStr; // Fallback
+                                    formattedDob = dobStr;
                                   }
+                                } else {
+                                  formattedDob = dobStr; // Fallback
+                                }
                               } catch (e) {
-                                  print('Error formatting date: $e');
-                                  formattedDob = _profileData['dateOfBirth'].toString();
+                                print('Error formatting date: $e');
+                                formattedDob = _profileData['dateOfBirth']
+                                    .toString();
                               }
 
                               final Map<String, String> updateData = {
                                 'first_name': firstName,
                                 'last_name': lastName,
-                                'phone_number': '${_profileData['phonePrefix']}${_profileData['phone']}',
+                                'phone_number':
+                                    '${_profileData['phonePrefix']}${_profileData['phone']}',
                                 'date_of_birth': formattedDob,
                               };
 
-                              await UserService().updateUserProfile(updateData, imageFile: _imageFile);
+                              await UserService().updateUserProfile(
+                                updateData,
+                                imageFile: _imageFile,
+                              );
 
                               // Refresh data
                               await _loadUserData();
@@ -1379,7 +1483,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Profile updated successfully'),
+                                    content: Text(
+                                      'Profile updated successfully',
+                                    ),
                                     backgroundColor: Color(0xFF10B981),
                                   ),
                                 );
@@ -1392,7 +1498,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('Failed to update profile: $e'),
+                                    content: Text(
+                                      'Failed to update profile: $e',
+                                    ),
                                     backgroundColor: const Color(0xFFFF4444),
                                   ),
                                 );
@@ -1421,27 +1529,27 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 ),
                               ],
                             ),
-                            child: _isLoading 
-                              ? const Center(
-                                  child: SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
+                            child: _isLoading
+                                ? const Center(
+                                    child: SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    ),
+                                  )
+                                : const Center(
+                                    child: Text(
+                                      'Save Changes',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
                                     ),
                                   ),
-                                )
-                              : const Center(
-                                  child: Text(
-                                    'Save Changes',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ),
                           ),
                         ),
                       ],
@@ -2436,7 +2544,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-
   // --- Settings & Privacy Screen ---
   Widget _buildSettingsPrivacyScreen() {
     final isDark = _isDarkMode;
@@ -2456,14 +2563,16 @@ class _ProfileScreenState extends State<ProfileScreen>
                   LucideIcons.bell,
                   'Notifications',
                   'Manage alerts and reminders',
-                  onTap: () => Navigator.pushNamed(context, '/notification-settings'),
+                  onTap: () =>
+                      Navigator.pushNamed(context, '/notification-settings'),
                 ),
                 const SizedBox(height: 16),
                 _buildSecurityItem(
                   LucideIcons.moon,
                   'Dark Mode',
                   'Customize your app appearance',
-                  onTap: () => Navigator.pushNamed(context, '/dark-mode-settings'),
+                  onTap: () =>
+                      Navigator.pushNamed(context, '/dark-mode-settings'),
                 ),
                 const SizedBox(height: 32),
                 _buildSectionTitle('SECURITY'),
@@ -2596,10 +2705,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         color: isDark ? const Color(0xFF111827) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
         ],
       ),
       child: Theme(
@@ -2633,8 +2739,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-
-
   Widget _buildSecurityItem(
     IconData icon,
     String title,
@@ -2651,10 +2755,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           color: isDark ? const Color(0xFF111827) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-            ),
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
           ],
         ),
         child: Row(
@@ -2687,19 +2788,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[500],
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                   ),
                 ],
               ),
             ),
-            Icon(
-              LucideIcons.chevronRight,
-              color: Colors.grey[400],
-              size: 20,
-            ),
+            Icon(LucideIcons.chevronRight, color: Colors.grey[400], size: 20),
           ],
         ),
       ),
@@ -2720,10 +2814,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         color: isDark ? const Color(0xFF111827) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
         ],
       ),
       child: Row(
@@ -2734,11 +2825,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               color: const Color(0xFF39A4E6).withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              icon,
-              color: const Color(0xFF39A4E6),
-              size: 20,
-            ),
+            child: Icon(icon, color: const Color(0xFF39A4E6), size: 20),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -2755,10 +2842,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[500],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                 ),
               ],
             ),
@@ -2784,19 +2868,41 @@ class _ProfileScreenState extends State<ProfileScreen>
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: isDark ? const Color(0xFF0F2137) : Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
           title: Text(
             'Change Password',
-            style: TextStyle(color: isDark ? Colors.white : const Color(0xFF111827)),
+            style: TextStyle(
+              color: isDark ? Colors.white : const Color(0xFF111827),
+            ),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildDialogField(LucideIcons.lock, 'Old Password', oldController, true, isDark),
+              _buildDialogField(
+                LucideIcons.lock,
+                'Old Password',
+                oldController,
+                true,
+                isDark,
+              ),
               const SizedBox(height: 16),
-              _buildDialogField(LucideIcons.shield, 'New Password', newController, true, isDark),
+              _buildDialogField(
+                LucideIcons.shield,
+                'New Password',
+                newController,
+                true,
+                isDark,
+              ),
               const SizedBox(height: 16),
-              _buildDialogField(LucideIcons.checkCircle, 'Confirm Password', confirmController, true, isDark),
+              _buildDialogField(
+                LucideIcons.checkCircle,
+                'Confirm Password',
+                confirmController,
+                true,
+                isDark,
+              ),
             ],
           ),
           actions: [
@@ -2812,22 +2918,26 @@ class _ProfileScreenState extends State<ProfileScreen>
                   );
                   return;
                 }
-                
+
                 Navigator.pop(context);
                 setState(() => _privacyLoading = true);
-                
+
                 final (success, message) = await AuthApi.changePassword(
                   email: _profileData['email'],
                   oldPassword: oldController.text,
                   newPassword: newController.text,
                 );
-                
+
                 setState(() => _privacyLoading = false);
-                
+
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(success ? 'Password changed successfully' : (message ?? 'Failed to change password')),
+                      content: Text(
+                        success
+                            ? 'Password changed successfully'
+                            : (message ?? 'Failed to change password'),
+                      ),
                       backgroundColor: success ? Colors.green : Colors.red,
                     ),
                   );
@@ -2835,9 +2945,14 @@ class _ProfileScreenState extends State<ProfileScreen>
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF39A4E6),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-              child: const Text('Change', style: TextStyle(color: Colors.white)),
+              child: const Text(
+                'Change',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),
@@ -2845,7 +2960,13 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildDialogField(IconData icon, String hint, TextEditingController controller, bool obscure, bool isDark) {
+  Widget _buildDialogField(
+    IconData icon,
+    String hint,
+    TextEditingController controller,
+    bool obscure,
+    bool isDark,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -2855,7 +2976,9 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: TextField(
         controller: controller,
         obscureText: obscure,
-        style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0A1929)),
+        style: TextStyle(
+          color: isDark ? Colors.white : const Color(0xFF0A1929),
+        ),
         decoration: InputDecoration(
           icon: Icon(icon, size: 20, color: Colors.grey[500]),
           hintText: hint,
@@ -2882,7 +3005,13 @@ class _ProfileScreenState extends State<ProfileScreen>
               style: TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 16),
-            _buildDialogField(LucideIcons.lock, 'Password', passwordController, true, isDark),
+            _buildDialogField(
+              LucideIcons.lock,
+              'Password',
+              passwordController,
+              true,
+              isDark,
+            ),
           ],
         ),
         actions: [
@@ -2896,11 +3025,12 @@ class _ProfileScreenState extends State<ProfileScreen>
               if (password.isEmpty) return;
 
               Navigator.pop(dialogContext);
-              
+
               showDialog(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => const Center(child: CircularProgressIndicator()),
+                builder: (context) =>
+                    const Center(child: CircularProgressIndicator()),
               );
 
               try {
@@ -2909,23 +3039,33 @@ class _ProfileScreenState extends State<ProfileScreen>
 
                 if (context.mounted) {
                   Navigator.pop(context); // Close loading
-                  Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                  Navigator.of(
+                    context,
+                  ).pushNamedAndRemoveUntil('/', (route) => false);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Account deleted successfully'), backgroundColor: Colors.green),
+                    const SnackBar(
+                      content: Text('Account deleted successfully'),
+                      backgroundColor: Colors.green,
+                    ),
                   );
                 }
               } catch (e) {
                 if (context.mounted) {
                   Navigator.pop(context); // Close loading
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                    SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: Colors.red,
+                    ),
                   );
                 }
               }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: const Text('Delete', style: TextStyle(color: Colors.white)),
           ),
@@ -2971,7 +3111,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget _buildScreenHeader(String title) {
     final isDark = _isDarkMode;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.fromLTRB(24, 40, 24, 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
