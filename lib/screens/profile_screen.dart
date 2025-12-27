@@ -685,9 +685,16 @@ class _ProfileScreenState extends State<ProfileScreen>
                             'My Profile',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 1.2,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black26,
+                                  offset: Offset(0, 2),
+                                  blurRadius: 4,
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -715,6 +722,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                   height: 110,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2),
                                     image: DecorationImage(
                                       image: _imageFile != null
                                           ? FileImage(_imageFile!)
@@ -777,7 +785,16 @@ class _ProfileScreenState extends State<ProfileScreen>
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      // Keep email hidden
+                      const SizedBox(height: 4),
+                      Text(
+                        _profileData['email'] ?? '',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -934,51 +951,34 @@ class _ProfileScreenState extends State<ProfileScreen>
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.all(16),
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF0F2137) : Colors.white,
+                        color: isDark
+                            ? const Color(0x1AEF4444) // Soft red tint dark
+                            : const Color(0xFFFEF2F2), // Soft red tint light
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: isDark
-                              ? Colors.white.withOpacity(0.05)
-                              : const Color(0xFFE5E7EB),
+                          color: const Color(0xFFEF4444).withOpacity(0.2),
                           width: 1,
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(
-                              isDark ? 0.2 : 0.02,
-                            ),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
                       ),
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEF4444).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              LucideIcons.logOut,
-                              color: Color(0xFFEF4444),
-                              size: 20,
-                            ),
+                          Icon(
+                            LucideIcons.logOut,
+                            color: const Color(0xFFEF4444),
+                            size: 20,
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Text(
-                              'Sign Out',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFFEF4444),
-                              ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Sign Out',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFFEF4444),
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ],
