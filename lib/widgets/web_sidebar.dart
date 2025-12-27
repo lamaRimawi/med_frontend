@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui';
 import '../models/user_model.dart';
 
@@ -22,46 +23,43 @@ class WebSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 280,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
-        border: Border(
-          right: BorderSide(
-            color: isDarkMode ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 20,
-            offset: const Offset(5, 0),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          _buildLogo(),
-          const SizedBox(height: 40),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  _navItem(0, LucideIcons.home, 'Overview'),
-                  _navItem(1, LucideIcons.fileText, 'My Reports'),
-                  _navItem(2, LucideIcons.camera, 'Quick Scan'),
-                  _navItem(3, LucideIcons.calendar, 'Timeline'),
-                  _navItem(4, LucideIcons.user, 'Profile Settings'),
-                  const Spacer(),
-                  _buildUserCard(),
-                ],
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          width: 280,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            color: (isDarkMode ? Colors.black : Colors.white).withOpacity(0.05),
+            border: Border(
+              right: BorderSide(
+                color: Colors.white.withOpacity(0.1),
               ),
             ),
           ),
-          _buildLogoutButton(),
-        ],
+          child: Column(
+            children: [
+              _buildLogo(),
+              const SizedBox(height: 40),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      _navItem(0, LucideIcons.home, 'Overview'),
+                      _navItem(1, LucideIcons.fileText, 'My Reports'),
+                      _navItem(2, LucideIcons.camera, 'Quick Scan'),
+                      _navItem(3, LucideIcons.calendar, 'Timeline'),
+                      _navItem(4, LucideIcons.user, 'Profile Settings'),
+                      const Spacer(),
+                    ],
+                  ),
+                ),
+              ),
+              _buildLogoutButton(),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -72,22 +70,33 @@ class WebSidebar extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF39A4E6).withOpacity(0.4),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
-            child: const Icon(LucideIcons.activity, color: Colors.white, size: 24),
+            child: const Icon(
+              LucideIcons.activity,
+              color: Colors.white,
+              size: 26,
+            ),
           ),
           const SizedBox(width: 15),
           Text(
             'MediScan',
             style: GoogleFonts.outfit(
-              fontSize: 22,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: isDarkMode ? Colors.white : const Color(0xFF111827),
+              color: isDarkMode ? Colors.white : const Color(0xFF1E293B),
               letterSpacing: 0.5,
             ),
           ),
@@ -99,27 +108,34 @@ class WebSidebar extends StatelessWidget {
   Widget _navItem(int index, IconData icon, String label) {
     final bool isActive = selectedIndex == index;
     final Color activeColor = const Color(0xFF39A4E6);
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: () => onTabSelected(index),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(15),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: isActive ? activeColor.withOpacity(0.1) : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
+              color: isActive
+                  ? activeColor.withOpacity(0.15)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(15),
+              border: isActive 
+                  ? Border.all(color: activeColor.withOpacity(0.3))
+                  : Border.all(color: Colors.transparent),
             ),
             child: Row(
               children: [
                 Icon(
                   icon,
                   size: 20,
-                  color: isActive ? activeColor : (isDarkMode ? Colors.grey[400] : Colors.grey[600]),
+                  color: isActive
+                      ? activeColor
+                      : (isDarkMode ? Colors.white60 : Colors.grey[600]),
                 ),
                 const SizedBox(width: 16),
                 Text(
@@ -127,102 +143,59 @@ class WebSidebar extends StatelessWidget {
                   style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                    color: isActive ? activeColor : (isDarkMode ? Colors.grey[400] : Colors.grey[600]),
-                  ),
-                ),
-                if (isActive) ...[
-                  const Spacer(),
-                  Container(
-                    width: 4,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: activeColor,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildUserCard() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDarkMode ? Colors.white.withOpacity(0.03) : const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDarkMode ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
-        ),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: const Color(0xFF39A4E6).withOpacity(0.1),
-            child: Text(
-              user?.fullName?.substring(0, 1).toUpperCase() ?? 'U',
-              style: GoogleFonts.outfit(
-                color: const Color(0xFF39A4E6),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user?.fullName ?? 'User Name',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.outfit(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : const Color(0xFF111827),
-                  ),
-                ),
-                Text(
-                  'Premium Plan',
-                  style: GoogleFonts.outfit(
-                    fontSize: 12,
-                    color: const Color(0xFF39A4E6),
-                    fontWeight: FontWeight.w500,
+                    color: isActive
+                        ? activeColor
+                        : (isDarkMode ? Colors.white70 : Colors.grey[600]),
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+          ).animate(target: isActive ? 1 : 0).scale(begin: const Offset(1, 1), end: const Offset(1.02, 1.02), duration: 200.ms),
+        ),
       ),
     );
   }
 
   Widget _buildLogoutButton() {
     return Padding(
-      padding: const EdgeInsets.all(20),
-      child: TextButton.icon(
-        onPressed: onLogout,
-        icon: const Icon(LucideIcons.logOut, size: 18, color: Color(0xFFEF4444)),
-        label: Text(
-          'Sign Out',
-          style: GoogleFonts.outfit(
-            color: const Color(0xFFEF4444),
-            fontWeight: FontWeight.w600,
-            fontSize: 15,
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: onLogout,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEF4444).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(
+                color: const Color(0xFFEF4444).withOpacity(0.2),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  LucideIcons.logOut,
+                  size: 20,
+                  color: Color(0xFFEF4444),
+                ),
+                const SizedBox(width: 16),
+                Text(
+                  'Sign Out',
+                  style: GoogleFonts.outfit(
+                    color: const Color(0xFFEF4444),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+            ),
           ),
-        ),
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      ),
+        )
+
+
     );
   }
 }

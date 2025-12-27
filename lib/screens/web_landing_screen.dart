@@ -184,7 +184,7 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
 
   Widget _buildHeroSection() {
     return Container(
-      height: MediaQuery.of(context).size.height,
+      constraints: BoxConstraints(minHeight: MediaQuery.of(context).size.height),
       width: double.infinity,
       child: Stack(
         children: [
@@ -222,7 +222,7 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
                           text: TextSpan(
                             style: GoogleFonts.outfit(
                               color: Colors.white,
-                              fontSize: 84,
+                              fontSize: 72,
                               fontWeight: FontWeight.bold,
                               height: 1.05,
                             ),
@@ -472,7 +472,7 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 22),
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
         decoration: BoxDecoration(
           color: isPrimary ? const Color(0xFF39A4E6) : Colors.transparent,
           borderRadius: BorderRadius.circular(16),

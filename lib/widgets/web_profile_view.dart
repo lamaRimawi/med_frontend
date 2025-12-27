@@ -1,23 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:io';
-import '../services/user_service.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
+import '../services/user_service.dart';
 import '../services/api_client.dart';
 import '../config/api_config.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:image_picker/image_picker.dart';
 import '../screens/settings_screen.dart';
 
 class WebProfileView extends StatefulWidget {
   final bool isDarkMode;
   final VoidCallback onLogout;
+  final VoidCallback? onProfileUpdated;
 
   const WebProfileView({
     super.key,
     required this.isDarkMode,
     required this.onLogout,
+    this.onProfileUpdated,
   });
 
   @override
@@ -37,7 +40,7 @@ class _WebProfileViewState extends State<WebProfileView> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _medicalHistoryController = TextEditingController();
   final TextEditingController _allergiesController = TextEditingController();
-  
+
   String _phonePrefix = '+962';
   String _selectedGender = '';
   String _dateOfBirth = '';
@@ -62,10 +65,33 @@ class _WebProfileViewState extends State<WebProfileView> {
     {'code': '+44', 'country': 'United Kingdom', 'flag': '🇬🇧'},
   ];
 
+  List<Map<String, String>> get _uniqueCountryCodes {
+    final seen = <String>{};
+    return _countryCodes.where((code) {
+      final value = code['code'];
+      if (value == null || seen.contains(value)) {
+        return false;
+      } else {
+        seen.add(value);
+        return true;
+      }
+    }).toList();
+  }
+
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final codes = _uniqueCountryCodes.map((c) => c['code']).toSet();
+      if (!codes.contains(_phonePrefix)) {
+        setState(() {
+          _phonePrefix = _uniqueCountryCodes.isNotEmpty
+              ? _uniqueCountryCodes.first['code']!
+              : '+962';
+        });
+      }
+    });
   }
 
   @override
@@ -124,18 +150,23 @@ class _WebProfileViewState extends State<WebProfileView> {
     setState(() {
       _profileData['name'] = user.fullName;
       _profileData['email'] = user.email;
-      
-      // Parse phone
+
       String fullPhone = user.phoneNumber;
       String phoneBody = fullPhone;
       String prefix = '+962';
-      
+
       final match = RegExp(r'^(\+\d{1,4})[\s-]*(.*)$').firstMatch(fullPhone);
       if (match != null) {
         prefix = match.group(1) ?? '+962';
         phoneBody = match.group(2) ?? '';
       }
-      
+
+      final codes = _uniqueCountryCodes.map((c) => c['code']).toSet();
+      if (!codes.contains(prefix)) {
+        prefix = _uniqueCountryCodes.isNotEmpty
+            ? _uniqueCountryCodes.first['code']!
+            : '+962';
+      }
       _phonePrefix = prefix;
       _profileData['phone'] = phoneBody.replaceAll(' ', '').trim();
       _profileData['dateOfBirth'] = user.dateOfBirth;
@@ -143,7 +174,6 @@ class _WebProfileViewState extends State<WebProfileView> {
       _profileData['medicalHistory'] = user.medicalHistory ?? '';
       _profileData['allergies'] = user.allergies ?? '';
 
-      // Update controllers
       _nameController.text = _profileData['name'];
       _emailController.text = _profileData['email'];
       _phoneController.text = _profileData['phone'];
@@ -169,11 +199,13 @@ class _WebProfileViewState extends State<WebProfileView> {
   Future<void> _saveProfile() async {
     try {
       setState(() => _isLoading = true);
-      
+
       final nameParts = _nameController.text.trim().split(' ');
       final firstName = nameParts.isNotEmpty ? nameParts.first : '';
-      final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
-      
+      final lastName = nameParts.length > 1
+          ? nameParts.sublist(1).join(' ')
+          : '';
+
       final Map<String, String> updateData = {
         'first_name': firstName,
         'last_name': lastName,
@@ -187,6 +219,8 @@ class _WebProfileViewState extends State<WebProfileView> {
       await _loadUserData();
 
       if (mounted) {
+        widget.onProfileUpdated?.call();
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profile updated successfully'),
@@ -211,173 +245,24 @@ class _WebProfileViewState extends State<WebProfileView> {
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = widget.isDarkMode ? const Color(0xFF1A1A1A) : const Color(0xFFF5F5F5);
-
-    return Container(
-      color: bgColor,
-      child: Column(
-        children: [
-          _buildHeader(),
-          Expanded(
-            child: _buildContent(),
+    return SizedBox.expand(
+      child: Scrollbar(
+        thumbVisibility: true,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
+            child: Column(
+              children: [
+                _buildPremiumHeader(),
+                _buildContent(),
+                const SizedBox(height: 40),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF4A9FD8), Color(0xFF3B8BC9)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(60, 30, 60, 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  if (_currentView != 'main')
-                    IconButton(
-                      icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
-                      onPressed: () => setState(() => _currentView = 'main'),
-                    ),
-                  Text(
-                    _getHeaderTitle(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-              if (_currentView == 'main') ...[
-                const SizedBox(height: 30),
-                Row(
-                  children: [
-                    Stack(
-                      children: [
-                          Container(
-                            width: 90,
-                            height: 90,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.3),
-                                width: 3,
-                              ),
-                              color: const Color(0xFF4A9FD8).withOpacity(0.2),
-                            ),
-                            child: _imageFile != null
-                                ? ClipOval(
-                                    child: Image.file(
-                                      _imageFile!,
-                                      fit: BoxFit.cover,
-                                      width: 90,
-                                      height: 90,
-                                    ),
-                                  )
-                                : (_profileData['avatar'] != null && _profileData['avatar']!.isNotEmpty
-                                    ? ClipOval(
-                                        child: Image.network(
-                                          _profileData['avatar']!,
-                                          headers: _token != null ? {'Authorization': 'Bearer $_token'} : null,
-                                          fit: BoxFit.cover,
-                                          width: 90,
-                                          height: 90,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return const Icon(
-                                              LucideIcons.user,
-                                              size: 40,
-                                              color: Color(0xFF4A9FD8),
-                                            );
-                                          },
-                                        ),
-                                      )
-                                    : const Icon(
-                                        LucideIcons.user,
-                                        size: 40,
-                                        color: Color(0xFF4A9FD8),
-                                      )),
-                          ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            onTap: _pickImage,
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                LucideIcons.camera,
-                                color: Color(0xFF4A9FD8),
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _profileData['name'],
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '$_phonePrefix ${_profileData['phone']}',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.95),
-                              fontSize: 15,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _profileData['email'],
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.95),
-                              fontSize: 15,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    ).animate().fadeIn(duration: 400.ms);
   }
 
   String _getHeaderTitle() {
@@ -406,57 +291,271 @@ class _WebProfileViewState extends State<WebProfileView> {
     }
   }
 
-  Widget _buildMainView() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 40),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: Column(
+  Widget _buildPremiumHeader() {
+    return Container(
+      padding: const EdgeInsets.only(bottom: 40),
+      child: Column(
+        children: [
+          Text(
+            _getHeaderTitle(),
+            style: GoogleFonts.outfit(
+              color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
+            ),
+          ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.2),
+          const SizedBox(height: 30),
+          Stack(
+            alignment: Alignment.center,
             children: [
-              _buildMenuItem(
-                icon: LucideIcons.user,
-                title: 'Edit Profile',
-                onTap: () => setState(() => _currentView = 'edit'),
-              ).animate().fadeIn(delay: 100.ms, duration: 300.ms).slideY(begin: 0.1),
-              const SizedBox(height: 16),
-              _buildMenuItem(
-                icon: LucideIcons.lock,
-                title: 'Privacy Policy',
-                onTap: () => setState(() => _currentView = 'privacy'),
-              ).animate().fadeIn(delay: 200.ms, duration: 300.ms).slideY(begin: 0.1),
-              const SizedBox(height: 16),
-              _buildMenuItem(
-                icon: LucideIcons.settings,
-                title: 'Settings',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                  );
-                },
-              ).animate().fadeIn(delay: 300.ms, duration: 300.ms).slideY(begin: 0.1),
-              const SizedBox(height: 16),
-              _buildMenuItem(
-                icon: LucideIcons.helpCircle,
-                title: 'Help',
-                onTap: () => setState(() => _currentView = 'help'),
-              ).animate().fadeIn(delay: 400.ms, duration: 300.ms).slideY(begin: 0.1),
-              const SizedBox(height: 16),
-              _buildMenuItem(
-                icon: LucideIcons.logOut,
-                title: 'Logout',
-                isLogout: true,
-                onTap: () async {
-                  final shouldLogout = await _showLogoutDialog();
-                  if (shouldLogout == true) {
-                    widget.onLogout();
-                  }
-                },
-              ).animate().fadeIn(delay: 500.ms, duration: 300.ms).slideY(begin: 0.1),
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const SweepGradient(
+                    colors: [Color(0xFF2193b0), Color(0xFF6dd5ed), Color(0xFF2193b0)],
+                  ),
+                ),
+              ).animate(onPlay: (controller) => controller.repeat())
+               .rotate(duration: 4.seconds),
+              
+              Container(
+                width: 92,
+                height: 92,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: widget.isDarkMode ? const Color(0xFF0F172A) : Colors.white,
+                  border: Border.all(
+                    color: Colors.transparent,
+                    width: 2,
+                  ),
+                ),
+                padding: const EdgeInsets.all(3),
+                child: ClipOval(
+                  child: _imageFile != null
+                    ? Image.file(_imageFile!, fit: BoxFit.cover)
+                    : (_profileData['avatar'] != null && _profileData['avatar']!.isNotEmpty
+                        ? Image.network(
+                            _profileData['avatar']!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => const Icon(LucideIcons.user, size: 40),
+                          )
+                        : const Icon(LucideIcons.user, size: 40)),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2193b0),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 5,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(LucideIcons.camera, color: Colors.white, size: 18),
+                  ),
+                ),
+              ),
+            ],
+          ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack),
+          const SizedBox(height: 24),
+          Text(
+            _profileData['name'],
+            style: GoogleFonts.outfit(
+              color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            alignment: WrapAlignment.center,
+            children: [
+              _buildModernChip(LucideIcons.phone, '$_phonePrefix ${_profileData['phone']}'),
+              _buildModernChip(LucideIcons.mail, _profileData['email']),
+            ],
+          ).animate().fadeIn(delay: 400.ms),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernChip(IconData icon, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: widget.isDarkMode 
+          ? Colors.white.withOpacity(0.05) 
+          : const Color(0xFF2193b0).withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: widget.isDarkMode 
+            ? Colors.white.withOpacity(0.1) 
+            : const Color(0xFF2193b0).withOpacity(0.1),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: const Color(0xFF2193b0)),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: GoogleFonts.inter(
+              color: widget.isDarkMode ? Colors.grey[300] : const Color(0xFF475569),
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMainView() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: Column(
+        children: [
+          const SizedBox(height: 10),
+          _buildNextGenMenuGrid(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNextGenMenuGrid() {
+    return Wrap(
+      spacing: 16,
+      runSpacing: 16,
+      children: [
+        _buildPremiumMenuCard(
+          icon: LucideIcons.user,
+          title: 'Edit Profile',
+          subtitle: 'Personal info',
+          color: const Color(0xFF3498db),
+          onTap: () => setState(() => _currentView = 'edit'),
+        ),
+        _buildPremiumMenuCard(
+          icon: LucideIcons.shieldCheck,
+          title: 'Privacy',
+          subtitle: 'Security data',
+          color: const Color(0xFF2ecc71),
+          onTap: () => setState(() => _currentView = 'privacy'),
+        ),
+        _buildPremiumMenuCard(
+          icon: LucideIcons.helpCircle,
+          title: 'Support',
+          subtitle: 'FAQs & help',
+          color: const Color(0xFFf1c40f),
+          onTap: () => setState(() => _currentView = 'help'),
+        ),
+        _buildPremiumMenuCard(
+          icon: LucideIcons.settings,
+          title: 'Settings',
+          subtitle: 'Preferences',
+          color: const Color(0xFF95a5a6),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SettingsScreen(),
+              ),
+            );
+          },
+        ),
+        _buildPremiumMenuCard(
+          icon: LucideIcons.logOut,
+          title: 'Logout',
+          subtitle: 'Sign out safely',
+          color: const Color(0xFFe74c3c),
+          isLogout: true,
+          onTap: () async {
+            final confirmed = await _showLogoutDialog();
+            if (confirmed == true) {
+              widget.onLogout();
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPremiumMenuCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+    bool isLogout = false,
+  }) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 200, // Slightly wider for better spacing
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: widget.isDarkMode 
+              ? Colors.white.withOpacity(0.03) 
+              : Colors.black.withOpacity(0.02),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: isLogout 
+                ? const Color(0xFFe74c3c).withOpacity(0.2) 
+                : Colors.white.withOpacity(0.05),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(icon, color: color, size: 24),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                title,
+                style: GoogleFonts.outfit(
+                  color: isLogout 
+                    ? const Color(0xFFe74c3c) 
+                    : (widget.isDarkMode ? Colors.white : const Color(0xFF1E293B)),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                subtitle,
+                style: GoogleFonts.inter(
+                  color: widget.isDarkMode ? Colors.grey[500] : const Color(0xFF64748B),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ],
           ),
-        ),
+        ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+         .shimmer(duration: 3.seconds, delay: 2.seconds, color: Colors.white.withOpacity(0.02)),
       ),
     );
   }
@@ -566,40 +665,55 @@ class _WebProfileViewState extends State<WebProfileView> {
               const SizedBox(height: 40),
               
               // Save Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _saveProfile,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4A9FD8),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : const Text(
-                          'Save Changes',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                ),
+              _buildPremiumButton(
+                onPressed: _isLoading ? null : _saveProfile,
+                isLoading: _isLoading,
+                text: 'Save Changes',
+              ),
+              const SizedBox(height: 20),
+              _buildPremiumButton(
+                onPressed: () => setState(() => _currentView = 'main'),
+                text: 'Back to Profile',
+                isSecondary: true,
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildPremiumButton({
+    required VoidCallback? onPressed,
+    required String text,
+    bool isLoading = false,
+    bool isSecondary = false,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isSecondary ? Colors.transparent : const Color(0xFF2193b0),
+          foregroundColor: isSecondary 
+            ? (widget.isDarkMode ? Colors.white : const Color(0xFF2193b0)) 
+            : Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: isSecondary 
+              ? BorderSide(color: const Color(0xFF2193b0).withOpacity(0.5)) 
+              : BorderSide.none,
+          ),
+          elevation: isSecondary ? 0 : 10,
+          shadowColor: const Color(0xFF2193b0).withOpacity(0.3),
+        ),
+        child: isLoading
+          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation(Colors.white)))
+          : Text(
+              text,
+              style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
       ),
     );
   }
@@ -611,42 +725,44 @@ class _WebProfileViewState extends State<WebProfileView> {
     int maxLines = 1,
     bool enabled = true,
   }) {
-    final cardColor = widget.isDarkMode ? const Color(0xFF2A2A2A) : Colors.white;
-    final textColor = widget.isDarkMode ? Colors.white : const Color(0xFF1A1A1A);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: 14,
+          style: GoogleFonts.inter(
+            fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: widget.isDarkMode ? Colors.grey[300] : Colors.grey[700],
+            color: widget.isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
           ),
         ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(12),
+            color: widget.isDarkMode 
+              ? Colors.white.withOpacity(0.05) 
+              : Colors.black.withOpacity(0.03),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: widget.isDarkMode
-                  ? Colors.white.withOpacity(0.1)
-                  : Colors.black.withOpacity(0.1),
+              color: widget.isDarkMode 
+                ? Colors.white.withOpacity(0.1) 
+                : Colors.black.withOpacity(0.05),
             ),
           ),
           child: Row(
             children: [
-              Icon(icon, color: const Color(0xFF4A9FD8), size: 20),
+              Icon(icon, color: const Color(0xFF2193b0), size: 20),
               const SizedBox(width: 12),
               Expanded(
                 child: TextField(
                   controller: controller,
                   enabled: enabled,
                   maxLines: maxLines,
-                  style: TextStyle(color: textColor, fontSize: 15),
+                  style: GoogleFonts.inter(
+                    color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
+                    fontSize: 15,
+                  ),
                   decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: 'Enter $label',
@@ -664,51 +780,51 @@ class _WebProfileViewState extends State<WebProfileView> {
   }
 
   Widget _buildPhoneField() {
-    final cardColor = widget.isDarkMode ? const Color(0xFF2A2A2A) : Colors.white;
-    final textColor = widget.isDarkMode ? Colors.white : const Color(0xFF1A1A1A);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Phone Number',
-          style: TextStyle(
-            fontSize: 14,
+          style: GoogleFonts.inter(
+            fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: widget.isDarkMode ? Colors.grey[300] : Colors.grey[700],
+            color: widget.isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
           ),
         ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(12),
+            color: widget.isDarkMode 
+              ? Colors.white.withOpacity(0.05) 
+              : Colors.black.withOpacity(0.03),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: widget.isDarkMode
-                  ? Colors.white.withOpacity(0.1)
-                  : Colors.black.withOpacity(0.1),
+              color: widget.isDarkMode 
+                ? Colors.white.withOpacity(0.1) 
+                : Colors.black.withOpacity(0.05),
             ),
           ),
           child: Row(
             children: [
-              const Icon(LucideIcons.phone, color: Color(0xFF4A9FD8), size: 20),
+              const Icon(LucideIcons.phone, color: Color(0xFF2193b0), size: 20),
               const SizedBox(width: 12),
               DropdownButton<String>(
                 value: _phonePrefix,
                 underline: const SizedBox(),
-                style: TextStyle(color: textColor, fontSize: 15),
-                dropdownColor: cardColor,
-                items: _countryCodes.map((code) {
+                style: GoogleFonts.inter(
+                  color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
+                  fontSize: 15,
+                ),
+                dropdownColor: widget.isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+                items: _uniqueCountryCodes.map((code) {
                   return DropdownMenuItem(
                     value: code['code'],
                     child: Text('${code['flag']} ${code['code']}'),
                   );
                 }).toList(),
                 onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _phonePrefix = value);
-                  }
+                  if (value != null) setState(() => _phonePrefix = value);
                 },
               ),
               const SizedBox(width: 8),
@@ -716,7 +832,10 @@ class _WebProfileViewState extends State<WebProfileView> {
                 child: TextField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
-                  style: TextStyle(color: textColor, fontSize: 15),
+                  style: GoogleFonts.inter(
+                    color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
+                    fontSize: 15,
+                  ),
                   decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: 'Phone number',
@@ -734,18 +853,15 @@ class _WebProfileViewState extends State<WebProfileView> {
   }
 
   Widget _buildDateField() {
-    final cardColor = widget.isDarkMode ? const Color(0xFF2A2A2A) : Colors.white;
-    final textColor = widget.isDarkMode ? Colors.white : const Color(0xFF1A1A1A);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Date of Birth',
-          style: TextStyle(
-            fontSize: 14,
+          style: GoogleFonts.inter(
+            fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: widget.isDarkMode ? Colors.grey[300] : Colors.grey[700],
+            color: widget.isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
           ),
         ),
         const SizedBox(height: 8),
@@ -766,24 +882,26 @@ class _WebProfileViewState extends State<WebProfileView> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
-              color: cardColor,
-              borderRadius: BorderRadius.circular(12),
+              color: widget.isDarkMode 
+                ? Colors.white.withOpacity(0.05) 
+                : Colors.black.withOpacity(0.03),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: widget.isDarkMode
-                    ? Colors.white.withOpacity(0.1)
-                    : Colors.black.withOpacity(0.1),
+                color: widget.isDarkMode 
+                  ? Colors.white.withOpacity(0.1) 
+                  : Colors.black.withOpacity(0.05),
               ),
             ),
             child: Row(
               children: [
-                const Icon(LucideIcons.calendar, color: Color(0xFF4A9FD8), size: 20),
+                const Icon(LucideIcons.calendar, color: Color(0xFF2193b0), size: 20),
                 const SizedBox(width: 12),
                 Text(
                   _dateOfBirth.isEmpty ? 'Select date' : _dateOfBirth,
-                  style: TextStyle(
+                  style: GoogleFonts.inter(
                     color: _dateOfBirth.isEmpty
                         ? (widget.isDarkMode ? Colors.grey[600] : Colors.grey[400])
-                        : textColor,
+                        : (widget.isDarkMode ? Colors.white : const Color(0xFF1E293B)),
                     fontSize: 15,
                   ),
                 ),
@@ -796,35 +914,34 @@ class _WebProfileViewState extends State<WebProfileView> {
   }
 
   Widget _buildGenderField() {
-    final cardColor = widget.isDarkMode ? const Color(0xFF2A2A2A) : Colors.white;
-    final textColor = widget.isDarkMode ? Colors.white : const Color(0xFF1A1A1A);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Gender',
-          style: TextStyle(
-            fontSize: 14,
+          style: GoogleFonts.inter(
+            fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: widget.isDarkMode ? Colors.grey[300] : Colors.grey[700],
+            color: widget.isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
           ),
         ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(12),
+            color: widget.isDarkMode 
+              ? Colors.white.withOpacity(0.05) 
+              : Colors.black.withOpacity(0.03),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: widget.isDarkMode
-                  ? Colors.white.withOpacity(0.1)
-                  : Colors.black.withOpacity(0.1),
+              color: widget.isDarkMode 
+                ? Colors.white.withOpacity(0.1) 
+                : Colors.black.withOpacity(0.05),
             ),
           ),
           child: Row(
             children: [
-              const Icon(LucideIcons.users, color: Color(0xFF4A9FD8), size: 20),
+              const Icon(LucideIcons.users, color: Color(0xFF2193b0), size: 20),
               const SizedBox(width: 12),
               Expanded(
                 child: DropdownButton<String>(
@@ -837,18 +954,16 @@ class _WebProfileViewState extends State<WebProfileView> {
                       color: widget.isDarkMode ? Colors.grey[600] : Colors.grey[400],
                     ),
                   ),
-                  style: TextStyle(color: textColor, fontSize: 15),
-                  dropdownColor: cardColor,
+                  style: GoogleFonts.inter(
+                    color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
+                    fontSize: 15,
+                  ),
+                  dropdownColor: widget.isDarkMode ? const Color(0xFF1E293B) : Colors.white,
                   items: ['Male', 'Female', 'Other'].map((gender) {
-                    return DropdownMenuItem(
-                      value: gender,
-                      child: Text(gender),
-                    );
+                    return DropdownMenuItem(value: gender, child: Text(gender));
                   }).toList(),
                   onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _selectedGender = value);
-                    }
+                    if (value != null) setState(() => _selectedGender = value);
                   },
                 ),
               ),
@@ -859,53 +974,31 @@ class _WebProfileViewState extends State<WebProfileView> {
     );
   }
 
-  String _getMonthName(int month) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return months[month - 1];
-  }
-
   Widget _buildPrivacyView() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 40),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Privacy Policy',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: widget.isDarkMode ? Colors.white : const Color(0xFF1A1A1A),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Your privacy is important to us. This privacy policy explains how we collect, use, and protect your personal information.',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: widget.isDarkMode ? Colors.grey[300] : Colors.grey[700],
-                  height: 1.6,
-                ),
-              ),
-              const SizedBox(height: 30),
-              _buildPrivacySection(
-                'Data Collection',
-                'We collect information you provide directly to us, including your name, email, phone number, and medical information.',
-              ),
-              _buildPrivacySection(
-                'Data Usage',
-                'Your data is used to provide and improve our services, communicate with you, and ensure the security of your account.',
-              ),
-              _buildPrivacySection(
-                'Data Protection',
-                'We implement appropriate security measures to protect your personal information from unauthorized access, alteration, or disclosure.',
-              ),
-            ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildPrivacySection(
+            'Data Collection',
+            'We collect information you provide directly to us, including your name, email, phone number, and medical information.',
           ),
-        ),
+          _buildPrivacySection(
+            'Data Usage',
+            'Your data is used to provide and improve our services, communicate with you, and ensure the security of your account.',
+          ),
+          _buildPrivacySection(
+            'Data Protection',
+            'We implement appropriate security measures to protect your personal information from unauthorized access, alteration, or disclosure.',
+          ),
+          const SizedBox(height: 30),
+          _buildPremiumButton(
+            onPressed: () => setState(() => _currentView = 'main'),
+            text: 'Back to Profile',
+            isSecondary: true,
+          ),
+        ],
       ),
     );
   }
@@ -918,18 +1011,18 @@ class _WebProfileViewState extends State<WebProfileView> {
         children: [
           Text(
             title,
-            style: TextStyle(
+            style: GoogleFonts.outfit(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: widget.isDarkMode ? Colors.white : const Color(0xFF1A1A1A),
+              color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             content,
-            style: TextStyle(
+            style: GoogleFonts.inter(
               fontSize: 15,
-              color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+              color: widget.isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
               height: 1.5,
             ),
           ),
@@ -939,83 +1032,71 @@ class _WebProfileViewState extends State<WebProfileView> {
   }
 
   Widget _buildHelpView() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 40),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Help & Support',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: widget.isDarkMode ? Colors.white : const Color(0xFF1A1A1A),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Need assistance? We\'re here to help!',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: widget.isDarkMode ? Colors.grey[300] : Colors.grey[700],
-                ),
-              ),
-              const SizedBox(height: 30),
-              _buildHelpCard(
-                LucideIcons.mail,
-                'Email Support',
-                'support@mediscan.com',
-                'Send us an email',
-              ),
-              const SizedBox(height: 16),
-              _buildHelpCard(
-                LucideIcons.phone,
-                'Phone Support',
-                '+962 79 123 4567',
-                'Call us anytime',
-              ),
-              const SizedBox(height: 16),
-              _buildHelpCard(
-                LucideIcons.messageCircle,
-                'Live Chat',
-                'Available 24/7',
-                'Chat with our team',
-              ),
-            ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Need assistance? We\'re here to help!',
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              color: widget.isDarkMode ? Colors.grey[300] : const Color(0xFF64748B),
+            ),
           ),
-        ),
+          const SizedBox(height: 30),
+          _buildHelpCard(
+            icon: LucideIcons.mail,
+            title: 'Email Support',
+            content: 'support@medtrack.com',
+            onTap: () {},
+          ),
+          const SizedBox(height: 16),
+          _buildHelpCard(
+            icon: LucideIcons.phone,
+            title: 'Call Us',
+            content: '+962 70 000 0000',
+            onTap: () {},
+          ),
+          const SizedBox(height: 40),
+          _buildPremiumButton(
+            onPressed: () => setState(() => _currentView = 'main'),
+            text: 'Back to Profile',
+            isSecondary: true,
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildHelpCard(IconData icon, String title, String subtitle, String action) {
-    final cardColor = widget.isDarkMode ? const Color(0xFF2A2A2A) : Colors.white;
-
+  Widget _buildHelpCard({
+    required IconData icon,
+    required String title,
+    required String content,
+    required VoidCallback onTap,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(widget.isDarkMode ? 0.3 : 0.08),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: widget.isDarkMode 
+          ? Colors.white.withOpacity(0.05) 
+          : Colors.black.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: widget.isDarkMode 
+            ? Colors.white.withOpacity(0.1) 
+            : Colors.black.withOpacity(0.05),
+        ),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF4A9FD8).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: const Color(0xFF2193b0).withOpacity(0.1),
+              shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: const Color(0xFF4A9FD8), size: 24),
+            child: Icon(icon, color: const Color(0xFF2193b0), size: 24),
           ),
           const SizedBox(width: 20),
           Expanded(
@@ -1024,115 +1105,50 @@ class _WebProfileViewState extends State<WebProfileView> {
               children: [
                 Text(
                   title,
-                  style: TextStyle(
+                  style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: widget.isDarkMode ? Colors.white : const Color(0xFF1A1A1A),
+                    color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
                   ),
                 ),
-                const SizedBox(height: 4),
                 Text(
-                  subtitle,
-                  style: TextStyle(
+                  content,
+                  style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                    color: widget.isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
                   ),
                 ),
               ],
             ),
           ),
-          Text(
-            action,
-            style: const TextStyle(
-              color: Color(0xFF4A9FD8),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          Icon(LucideIcons.externalLink, color: Colors.grey[400], size: 18),
         ],
       ),
     );
   }
 
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-    bool isLogout = false,
-  }) {
-    final cardColor = widget.isDarkMode ? const Color(0xFF2A2A2A) : Colors.white;
-    final iconColor = const Color(0xFF4A9FD8);
-    final textColor = isLogout 
-        ? const Color(0xFF4A9FD8) 
-        : (widget.isDarkMode ? Colors.white : const Color(0xFF1A1A1A));
-
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(widget.isDarkMode ? 0.3 : 0.08),
-                blurRadius: 15,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: iconColor, size: 22),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: textColor,
-                  ),
-                ),
-              ),
-              if (!isLogout)
-                Icon(
-                  LucideIcons.chevronRight,
-                  color: widget.isDarkMode ? Colors.grey[600] : Colors.grey[400],
-                  size: 20,
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
+  String _getMonthName(int month) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months[month - 1];
   }
 
   Future<bool?> _showLogoutDialog() {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: widget.isDarkMode ? const Color(0xFF2A2A2A) : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: widget.isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(
           'Logout',
-          style: TextStyle(
-            color: widget.isDarkMode ? Colors.white : const Color(0xFF1A1A1A),
+          style: GoogleFonts.outfit(
+            color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
             fontWeight: FontWeight.bold,
           ),
         ),
         content: Text(
           'Are you sure you want to log out?',
-          style: TextStyle(
-            color: widget.isDarkMode ? Colors.grey[300] : Colors.grey[700],
+          style: GoogleFonts.inter(
+            color: widget.isDarkMode ? Colors.grey[300] : const Color(0xFF64748B),
           ),
         ),
         actions: [
@@ -1140,21 +1156,17 @@ class _WebProfileViewState extends State<WebProfileView> {
             onPressed: () => Navigator.pop(context, false),
             child: Text(
               'Cancel',
-              style: TextStyle(
-                color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
-              ),
+              style: GoogleFonts.inter(color: Colors.grey[500]),
             ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4A9FD8),
+              backgroundColor: const Color(0xFFe74c3c),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text('Logout'),
+            child: Text('Logout', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
