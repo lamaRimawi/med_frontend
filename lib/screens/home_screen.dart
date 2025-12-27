@@ -263,8 +263,9 @@ class _HomeScreenState extends State<HomeScreen> {
         'day': '${dt.day}',
         'date':
             '${dt.day} ${_getMonthName(dt.month)} - ${_getDayName(dt.weekday)}',
-        'time':
-            '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}',
+        'time': (dt.hour == 0 && dt.minute == 0)
+            ? ''
+            : '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}',
         'title': title,
         'doctor': doctor,
         'status': status,
@@ -1096,14 +1097,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const SizedBox(height: 6),
                                     Row(
                                       children: [
-                                        Text(
-                                          filtered[i]['time'] ?? '',
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 12,
+                                        if ((filtered[i]['time'] ?? '').isNotEmpty) ...[
+                                          Text(
+                                            filtered[i]['time'] ?? '',
+                                            style: TextStyle(
+                                              color: Colors.grey[600],
+                                              fontSize: 12,
+                                            ),
                                           ),
-                                        ),
-                                        const SizedBox(width: 8),
+                                          const SizedBox(width: 8),
+                                        ],
                                         Expanded(
                                           child: Text(
                                             filtered[i]['title'] ?? '',
@@ -1936,75 +1939,95 @@ class _HomeScreenState extends State<HomeScreen> {
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final report = reports[index];
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
+        return GestureDetector(
+      onTap: () {
+        setState(() {
+          _showQuickView = null;
+          _showReports = true;
+          _selectedIndex = 1;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: _isDarkMode
+              ? Colors.white.withOpacity(0.05)
+              : Colors.blue.withOpacity(0.03),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
             color: _isDarkMode
-                ? const Color(0xFF374151)
-                : const Color(0xFFF9FAFB),
-            borderRadius: BorderRadius.circular(16),
+                ? Colors.white.withOpacity(0.1)
+                : Colors.blue.withOpacity(0.05),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      report['title'] ?? 'Report',
-                      style: TextStyle(
-                        color: _isDarkMode
-                            ? Colors.white
-                            : const Color(0xFF111827),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF39A4E6).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    LucideIcons.fileText,
+                    color: Color(0xFF39A4E6),
+                    size: 16,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    report['title'] ?? 'Report',
+                    style: TextStyle(
+                      color:
+                          _isDarkMode ? Colors.white : const Color(0xFF111827),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  _buildStatusBadge(report['status'] ?? 'Unknown'),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(
-                    LucideIcons.user,
-                    size: 14,
-                    color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      report['doctor'] ?? 'Unknown Doctor',
-                      style: TextStyle(
-                        color: _isDarkMode
-                            ? Colors.grey[400]
-                            : Colors.grey[600],
-                        fontSize: 12,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Icon(
-                    LucideIcons.calendar,
-                    size: 14,
-                    color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    report['date'] ?? '',
+                ),
+                Icon(
+                  LucideIcons.chevronRight,
+                  size: 16,
+                  color: _isDarkMode ? Colors.grey[600] : Colors.grey[400],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    report['doctor'] ?? 'General Practitioner',
                     style: TextStyle(
                       color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
                       fontSize: 12,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ],
-              ),
-            ],
-          ),
-        );
+                ),
+                const SizedBox(width: 12),
+                Icon(
+                  LucideIcons.calendar,
+                  size: 14,
+                  color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  report['date'] ?? '',
+                  style: TextStyle(
+                    color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
       },
     );
   }

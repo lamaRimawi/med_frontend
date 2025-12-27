@@ -939,7 +939,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
                                       : Colors.grey[500],
                                 ),
                               ),
-                              if (report.reportDate.contains(' '))
+                              if (report.reportDate.contains(' ') && 
+                                  report.reportDate.split(' ')[1] != '00:00:00')
                                 Text(
                                   report.reportDate.split(' ')[1], // Time only
                                   style: TextStyle(
