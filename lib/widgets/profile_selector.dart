@@ -69,7 +69,7 @@ class _ProfileSelectorState extends State<ProfileSelector> {
       );
     }
 
-    if (_profiles.isEmpty) return const SizedBox.shrink();
+    if (_profiles.length <= 1) return const SizedBox.shrink();
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),

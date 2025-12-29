@@ -22,8 +22,8 @@ class ApiConfig {
   static const String reportsTrends = '/reports/trends';
   static const String profiles = '/profiles/';
   static const String connections = '/connections/';
-  static const String connectionRequest = '/connections/request/';
-  static const String connectionRespond = '/connections/'; // usage: /connections/{id}/respond/
+  static const String connectionRequest = '/connections/request';
+  static const String connectionRespond = '/connections/'; // usage: /connections/{id}/respond
 
 
   // Temporary sample image URL for backend extraction testing

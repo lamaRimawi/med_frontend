@@ -53,7 +53,7 @@ class ConnectionService {
 
   static Future<void> respondToRequest(int id, String action) async {
     final response = await _client.post(
-      '${ApiConfig.connectionRespond}$id/respond/',
+      '${ApiConfig.connectionRespond}$id/respond',
       body: {'action': action},
       auth: true,
     );

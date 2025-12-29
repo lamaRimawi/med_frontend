@@ -33,7 +33,7 @@ class ProfileService {
 
   static Future<void> updateProfile(int id, UserProfile profile) async {
     final response = await _client.put(
-      '${ApiConfig.profiles}$id/',
+      '${ApiConfig.profiles}$id',
       body: profile.toJson(),
       auth: true,
     );
@@ -45,7 +45,7 @@ class ProfileService {
 
   static Future<void> deleteProfile(int id) async {
     final response = await _client.delete(
-      '${ApiConfig.profiles}$id/',
+      '${ApiConfig.profiles}$id',
       auth: true,
     );
 

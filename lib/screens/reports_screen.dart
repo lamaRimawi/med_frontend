@@ -45,6 +45,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   String? _error;
   User? _currentUser;
   int? _selectedProfileId;
+  String? _selectedProfileRelation;
 
   @override
   void initState() {
@@ -634,6 +635,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 onProfileSelected: (profile) {
                   setState(() {
                     _selectedProfileId = profile?.id;
+                    _selectedProfileRelation = profile?.relationship;
                     _isLoading = true;
                   });
                   _fetchReports();
@@ -903,6 +905,31 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (_selectedProfileRelation != null && _selectedProfileRelation != 'Self') ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          margin: const EdgeInsets.only(bottom: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF39A4E6).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(LucideIcons.user, size: 10, color: Color(0xFF39A4E6)),
+                              const SizedBox(width: 4),
+                              Text(
+                                _selectedProfileRelation!,
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF39A4E6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       Text(
                         title,
                         style: TextStyle(

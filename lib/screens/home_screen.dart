@@ -61,6 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedDate = 11;
   User? _currentUser;
   int? _selectedProfileId;
+  String? _selectedProfileRelation;
 
   // Recent reports data
   List<Map<String, dynamic>> _dates = [];
@@ -466,6 +467,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             onProfileSelected: (profile) {
                               setState(() {
                                 _selectedProfileId = profile?.id;
+                                _selectedProfileRelation = profile?.relationship;
                                 _isLoadingReports = true;
                               });
                               _loadReports();
@@ -1100,6 +1102,30 @@ class _HomeScreenState extends State<HomeScreen> {
                                             fontSize: 12,
                                           ),
                                         ),
+                                        if (_selectedProfileRelation != null && _selectedProfileRelation != 'Self') ...[
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF39A4E6).withOpacity(0.1),
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                const Icon(LucideIcons.user, size: 8, color: Color(0xFF39A4E6)),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  _selectedProfileRelation!,
+                                                  style: const TextStyle(
+                                                    fontSize: 8,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Color(0xFF39A4E6),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ],
                                     ),
                                     const SizedBox(height: 6),
