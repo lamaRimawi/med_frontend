@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/theme_toggle.dart';
 import '../models/profile_model.dart';
 import '../models/connection_model.dart';
 import '../services/profile_service.dart';
@@ -17,6 +18,10 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
   List<FamilyConnection> _sentConnections = [];
   List<FamilyConnection> _receivedConnections = [];
   bool _isLoading = true;
+  bool get _isDarkMode {
+    final themeProvider = ThemeProvider.of(context);
+    return themeProvider?.themeMode == ThemeMode.dark;
+  }
 
   @override
   void initState() {
@@ -54,17 +59,18 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
 
   @override
   Widget build(BuildContext context) {
+    final isDark = _isDarkMode;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0A1929) : Colors.white,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Family & Shared Access',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF0A1929) : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          icon: Icon(Icons.arrow_back_ios, color: isDark ? Colors.white : Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
         bottom: TabBar(
@@ -100,6 +106,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
   }
 
   Widget _buildProfilesTab() {
+    final isDark = _isDarkMode;
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: _profiles.length,
@@ -110,9 +117,10 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
         return Card(
           elevation: 0,
           margin: const EdgeInsets.only(bottom: 12),
+          color: isDark ? const Color(0xFF132F4C) : Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: Colors.grey.withOpacity(0.2)),
+            side: BorderSide(color: isDark ? const Color(0xFF1E4976) : Colors.grey.withOpacity(0.2)),
           ),
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -126,11 +134,11 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
             ),
             title: Text(
               profile.fullName,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : Colors.black),
             ),
             subtitle: Text(
               profile.relationship,
-              style: TextStyle(color: Colors.grey[600]),
+              style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
             ),
             trailing: isSelf
                 ? const Icon(Icons.person, color: Colors.grey)
@@ -159,11 +167,11 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.people_outline, size: 64, color: Colors.grey[300]),
+            Icon(Icons.people_outline, size: 64, color: _isDarkMode ? Colors.grey[700] : Colors.grey[300]),
             const SizedBox(height: 16),
             Text(
               'No active connections',
-              style: TextStyle(color: Colors.grey[600], fontSize: 16),
+              style: TextStyle(color: _isDarkMode ? Colors.grey[500] : Colors.grey[600], fontSize: 16),
             ),
           ],
         ),
@@ -174,22 +182,30 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
       padding: const EdgeInsets.all(16),
       children: [
         if (_receivedConnections.isNotEmpty) ...[
-          const Padding(
-            padding: EdgeInsets.only(left: 4, bottom: 12),
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 12),
             child: Text(
               'Received Requests',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              style: TextStyle(
+                fontWeight: FontWeight.bold, 
+                fontSize: 18, 
+                color: _isDarkMode ? Colors.white : Colors.black
+              ),
             ),
           ),
           ..._receivedConnections.map((conn) => _buildConnectionCard(conn, isReceived: true)),
           const SizedBox(height: 24),
         ],
         if (_sentConnections.isNotEmpty) ...[
-          const Padding(
-            padding: EdgeInsets.only(left: 4, bottom: 12),
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 12),
             child: Text(
               'Sent Requests',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              style: TextStyle(
+                fontWeight: FontWeight.bold, 
+                fontSize: 18, 
+                color: _isDarkMode ? Colors.white : Colors.black
+              ),
             ),
           ),
           ..._sentConnections.map((conn) => _buildConnectionCard(conn, isReceived: false)),
@@ -199,12 +215,14 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
   }
 
   Widget _buildConnectionCard(FamilyConnection conn, {required bool isReceived}) {
+    final isDark = _isDarkMode;
     return Card(
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 12),
+      color: isDark ? const Color(0xFF132F4C) : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.withOpacity(0.2)),
+        side: BorderSide(color: isDark ? const Color(0xFF1E4976) : Colors.grey.withOpacity(0.2)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -223,11 +241,11 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                     children: [
                       Text(
                         isReceived ? (conn.fromEmail ?? 'Unknown') : (conn.toEmail ?? 'Unknown'),
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black),
                       ),
                       Text(
                         'Role: ${conn.relationship} • Level: ${conn.accessLevel ?? 'view'}',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -346,7 +364,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: _isDarkMode ? Colors.grey[700] : Colors.grey[300],
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -354,12 +372,16 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                 const SizedBox(height: 24),
                 Text(
                   isEdit ? 'Edit Profile' : 'Add Family Member',
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                  style: TextStyle(
+                    fontSize: 24, 
+                    fontWeight: FontWeight.bold, 
+                    color: _isDarkMode ? Colors.white : const Color(0xFF1E293B)
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Fill in the details for your family member.',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  style: TextStyle(color: _isDarkMode ? Colors.grey[400] : Colors.grey[600], fontSize: 14),
                 ),
                 const SizedBox(height: 24),
                 _buildModernTextField(
@@ -396,10 +418,11 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                       builder: (context, child) {
                         return Theme(
                           data: Theme.of(context).copyWith(
-                            colorScheme: const ColorScheme.light(
+                            colorScheme: ColorScheme.light(
                               primary: Colors.blue,
-                              onPrimary: Colors.white,
-                              onSurface: Colors.black,
+                            onPrimary: Colors.white,
+                            onSurface: _isDarkMode ? Colors.white : Colors.black,
+                            surface: _isDarkMode ? const Color(0xFF132F4C) : Colors.white,
                             ),
                           ),
                           child: child!,
@@ -414,9 +437,13 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                   },
                 ),
                 const SizedBox(height: 24),
-                const Text(
+                 Text(
                   'Gender',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E293B)),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold, 
+                    fontSize: 16, 
+                    color: _isDarkMode ? Colors.white : const Color(0xFF1E293B)
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -493,7 +520,11 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+          style: TextStyle(
+            fontSize: 14, 
+            fontWeight: FontWeight.w600, 
+            color: _isDarkMode ? Colors.grey[400] : const Color(0xFF64748B)
+          ),
         ),
         const SizedBox(height: 8),
         TextField(
@@ -502,9 +533,10 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
           onTap: onTap,
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle: TextStyle(color: _isDarkMode ? Colors.grey[600] : Colors.grey[400]),
             prefixIcon: Icon(icon, color: Colors.blue, size: 20),
             filled: true,
-            fillColor: const Color(0xFFF8FAFC),
+            fillColor: _isDarkMode ? const Color(0xFF0A1929) : const Color(0xFFF8FAFC),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -512,7 +544,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderSide: BorderSide(color: _isDarkMode ? const Color(0xFF1E4976) : const Color(0xFFE2E8F0)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -534,7 +566,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
           color: isSelected ? Colors.blue.withOpacity(0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? Colors.blue : const Color(0xFFE2E8F0),
+            color: isSelected ? Colors.blue : (_isDarkMode ? const Color(0xFF1E4976) : const Color(0xFFE2E8F0)),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -550,7 +582,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
               value,
               style: TextStyle(
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? Colors.blue : const Color(0xFF1E293B),
+                color: isSelected ? Colors.blue : (_isDarkMode ? Colors.grey[300] : const Color(0xFF1E293B)),
               ),
             ),
           ],
@@ -571,7 +603,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) => Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: _isDarkMode ? const Color(0xFF132F4C) : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
           ),
           padding: EdgeInsets.only(
@@ -596,11 +628,18 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text('Share Health Access', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                Text(
+                  'Share Health Access', 
+                  style: TextStyle(
+                    fontSize: 24, 
+                    fontWeight: FontWeight.bold, 
+                    color: _isDarkMode ? Colors.white : const Color(0xFF1E293B)
+                  )
+                ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Send a request to link with another user account.',
-                  style: TextStyle(color: Color(0xFF64748B), fontSize: 14),
+                  style: TextStyle(color: _isDarkMode ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 14),
                 ),
                 const SizedBox(height: 24),
                 _buildModernTextField(
@@ -617,17 +656,21 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                   icon: Icons.link_outlined,
                 ),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'Access Level',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E293B)),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold, 
+                    fontSize: 16, 
+                    color: _isDarkMode ? Colors.white : const Color(0xFF1E293B)
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
+                    color: _isDarkMode ? const Color(0xFF0A1929) : const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: _isDarkMode ? const Color(0xFF1E4976) : const Color(0xFFE2E8F0)),
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
@@ -638,6 +681,8 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                         DropdownMenuItem(value: 'view', child: Text('View Only')),
                         DropdownMenuItem(value: 'manage', child: Text('View & Upload')),
                       ],
+                      dropdownColor: _isDarkMode ? const Color(0xFF132F4C) : Colors.white,
+                      style: TextStyle(color: _isDarkMode ? Colors.white : Colors.black),
                       onChanged: (v) => setModalState(() => accessLevel = v!),
                     ),
                   ),
@@ -701,13 +746,20 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Profile?'),
-        content: Text('Are you sure you want to delete ${profile.fullName}? All linked reports will remain but will lose the profile link.'),
+        backgroundColor: _isDarkMode ? const Color(0xFF132F4C) : Colors.white,
+        title: Text('Delete Profile?', style: TextStyle(color: _isDarkMode ? Colors.white : Colors.black)),
+        content: Text(
+          'Are you sure you want to delete ${profile.fullName}? All linked reports will remain but will lose the profile link.',
+          style: TextStyle(color: _isDarkMode ? Colors.grey[300] : Colors.black87),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel', style: TextStyle(color: _isDarkMode ? Colors.grey[400] : Colors.grey)),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
