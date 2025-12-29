@@ -8,6 +8,8 @@ import 'package:intl/intl.dart';
 import '../services/timeline_api.dart';
 import '../models/timeline_models.dart';
 import '../models/extracted_report_data.dart';
+import '../models/profile_model.dart';
+import '../widgets/profile_selector.dart';
 
 class TimelineScreen extends StatefulWidget {
   final VoidCallback onBack;
@@ -34,12 +36,12 @@ class _TimelineScreenState extends State<TimelineScreen> {
   // Patient Filtering
   List<String> _patientNames = [];
   String? _selectedPatient;
-  
   // UI State
   bool _isLoading = true;
   bool _isMetricLoading = false;
   String? _errorMessage;
   int? _touchedSpotIndex;
+  int? _selectedProfileId;
 
   @override
   void initState() {
@@ -69,7 +71,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
     try {
       // 1. Fetch the timeline to get report IDs
-      final timeline = await TimelineApi.getTimeline();
+      final timeline = await TimelineApi.getTimeline(profileId: _selectedProfileId);
       _timelineReports = timeline;
 
       // 2. Fetch details for each report to discover available metrics
@@ -165,7 +167,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
     try {
       // Use the specific API for trends if possible, or extract from cache
       // The API is preferred as it might handle normalization/units better.
-      final trends = await TimelineApi.getTrends([metric]);
+      final trends = await TimelineApi.getTrends([metric], profileId: _selectedProfileId);
       
       setState(() {
         // The API returns a Map<String, List<TrendDataPoint>>
@@ -308,49 +310,28 @@ class _TimelineScreenState extends State<TimelineScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Health Trends',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
-                if (_patientNames.length > 1)
-                  GestureDetector(
-                    onTap: () => _showPatientSelector(context, isDark, textColor),
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Row(
-                        children: [
-                          Text(
-                            _selectedPatient ?? 'Select Patient',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: isDark ? Colors.white70 : Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            LucideIcons.chevronDown,
-                            size: 14,
-                            color: isDark ? Colors.white70 : Colors.grey[600],
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                else if (_selectedPatient != null)
-                  Padding(
-                     padding: const EdgeInsets.only(top: 4),
-                     child: Text(
-                      _selectedPatient!,
+                Row(
+                  children: [
+                    Text(
+                      'Health Trends',
                       style: TextStyle(
-                        fontSize: 14,
-                        color: isDark ? Colors.white70 : Colors.grey[600],
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
                       ),
                     ),
-                  ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ProfileSelector(
+                  onProfileSelected: (profile) {
+                    setState(() {
+                      _selectedProfileId = profile?.id;
+                      _isLoading = true;
+                    });
+                    _loadTimelineData();
+                  },
+                ),
               ],
             ),
           ),

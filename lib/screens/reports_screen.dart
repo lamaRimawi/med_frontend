@@ -24,6 +24,8 @@ import '../config/api_config.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import '../models/profile_model.dart';
+import '../widgets/profile_selector.dart';
 import '../models/user_model.dart';
 import '../services/user_service.dart';
 
@@ -41,7 +43,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Map<int, String> _reportTypesMap = {};
   bool _isLoading = true;
   String? _error;
-  User? _currentUser; // Add this
+  User? _currentUser;
+  int? _selectedProfileId;
 
   @override
   void initState() {
@@ -99,7 +102,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         });
       }
 
-      final reports = await ReportsService().getReports();
+      final reports = await ReportsService().getReports(profileId: _selectedProfileId);
 
       // Fetch timeline to get report types
       try {
@@ -625,6 +628,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 12),
+              ProfileSelector(
+                onProfileSelected: (profile) {
+                  setState(() {
+                    _selectedProfileId = profile?.id;
+                    _isLoading = true;
+                  });
+                  _fetchReports();
+                },
               ),
               const SizedBox(height: 16),
               Row(

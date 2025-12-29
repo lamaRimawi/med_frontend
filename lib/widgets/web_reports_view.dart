@@ -7,6 +7,8 @@ import '../services/reports_service.dart';
 import '../services/api_client.dart';
 import '../config/api_config.dart';
 import 'dart:ui';
+import '../models/profile_model.dart';
+import '../widgets/profile_selector.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:file_saver/file_saver.dart';
@@ -39,6 +41,7 @@ class _WebReportsViewState extends State<WebReportsView> {
   List<Map<String, dynamic>> _selectedReportImages = [];
   bool _isDetailLoading = false;
   String? _authToken;
+  int? _selectedProfileId;
 
   @override
   void initState() {
@@ -53,7 +56,7 @@ class _WebReportsViewState extends State<WebReportsView> {
     });
 
     try {
-      final reports = await ReportsService().getReports();
+      final reports = await ReportsService().getReports(profileId: _selectedProfileId);
       
       // Fetch timeline to get report types
       try {
@@ -385,6 +388,20 @@ class _WebReportsViewState extends State<WebReportsView> {
                   letterSpacing: -0.5,
                 ),
               ).animate().fadeIn(duration: 600.ms).slideX(begin: -0.2),
+              const SizedBox(width: 20),
+              if (_selectedReport == null)
+                SizedBox(
+                  width: 300,
+                  child: ProfileSelector(
+                    onProfileSelected: (profile) {
+                      setState(() {
+                        _selectedProfileId = profile?.id;
+                        _isLoading = true;
+                      });
+                      _loadReports();
+                    },
+                  ),
+                ),
               const Spacer(),
               if (_selectedReport == null) ...[
                 Container(

@@ -23,6 +23,8 @@ import '../widgets/web_timeline_view.dart';
 import '../widgets/web_camera_upload_view.dart';
 import '../services/user_service.dart';
 import 'package:flutter/foundation.dart';
+import '../models/profile_model.dart';
+import '../widgets/profile_selector.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -58,6 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showAllReportTypes = false;
   int _selectedDate = 11;
   User? _currentUser;
+  int? _selectedProfileId;
 
   // Recent reports data
   List<Map<String, dynamic>> _dates = [];
@@ -83,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       // 2. Fetch fresh
-      final reports = await ReportsService().getReports();
+      final reports = await ReportsService().getReports(profileId: _selectedProfileId);
 
       // 3. Fetch timeline for better names
       try {
@@ -456,6 +459,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         _buildHeader(),
                         _buildSearchBar(),
+                        const SizedBox(height: 16),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: ProfileSelector(
+                            onProfileSelected: (profile) {
+                              setState(() {
+                                _selectedProfileId = profile?.id;
+                                _isLoadingReports = true;
+                              });
+                              _loadReports();
+                            },
+                          ),
+                        ),
                         const SizedBox(height: 24),
                         _buildRecentReports(),
                         _buildReportTypes(),

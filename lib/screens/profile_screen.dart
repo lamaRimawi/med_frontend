@@ -22,6 +22,7 @@ import 'reports_screen.dart';
 import 'dark_mode_screen.dart';
 import 'settings_screen.dart';
 import 'password_manager_screen.dart';
+import 'family_management_screen.dart';
 import '../config/api_config.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -822,6 +823,20 @@ class _ProfileScreenState extends State<ProfileScreen>
                     'Settings & Privacy',
                     'Biometrics, notifications, security',
                     () => setState(() => _currentScreen = 'settings'),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildMenuItem(
+                    LucideIcons.users,
+                    'Family & Shared Access',
+                    'Manage profiles and shared access',
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FamilyManagementScreen(),
+                        ),
+                      );
+                    },
                   ),
 
                   const SizedBox(height: 24),

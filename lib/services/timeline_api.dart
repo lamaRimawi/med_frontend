@@ -7,8 +7,12 @@ import 'api_client.dart';
 class TimelineApi {
   static final ApiClient _client = ApiClient.instance;
 
-  static Future<List<TimelineReport>> getTimeline() async {
-    final response = await _client.get(ApiConfig.reportsTimeline, auth: true);
+  static Future<List<TimelineReport>> getTimeline({int? profileId}) async {
+    String path = ApiConfig.reportsTimeline;
+    if (profileId != null) {
+      path = '$path?profile_id=$profileId';
+    }
+    final response = await _client.get(path, auth: true);
 
     if (response.statusCode == 200) {
       final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
@@ -30,11 +34,16 @@ class TimelineApi {
     }
   }
 
-  static Future<HealthTrends> getTrends(List<String> fieldNames) async {
+  static Future<HealthTrends> getTrends(List<String> fieldNames, {int? profileId}) async {
     final fieldNamesParam = fieldNames.join(',');
+    final Map<String, String> query = {'field_name': fieldNamesParam};
+    if (profileId != null) {
+      query['profile_id'] = profileId.toString();
+    }
+    
     final response = await _client.get(
       ApiConfig.reportsTrends,
-      query: {'field_name': fieldNamesParam},
+      query: query,
       auth: true,
     );
 

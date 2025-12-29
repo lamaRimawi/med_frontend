@@ -20,6 +20,11 @@ class ApiConfig {
   static const String reportsTimeline = '/reports/timeline';
   static const String reportsStats = '/reports/stats';
   static const String reportsTrends = '/reports/trends';
+  static const String profiles = '/profiles/';
+  static const String connections = '/connections/';
+  static const String connectionRequest = '/connections/request/';
+  static const String connectionRespond = '/connections/'; // usage: /connections/{id}/respond/
+
 
   // Temporary sample image URL for backend extraction testing
   // Replace with a real, publicly accessible URL of the captured image.

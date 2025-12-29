@@ -21,6 +21,9 @@ import 'package:mediScan/models/extracted_report_data.dart';
 
 import 'package:mediScan/models/uploaded_file.dart';
 import 'package:mediScan/config/api_config.dart';
+import 'package:mediScan/models/profile_model.dart';
+import 'package:mediScan/widgets/profile_selector.dart';
+import 'package:mediScan/screens/family_management_screen.dart';
 import 'package:mediScan/services/vlm_service.dart';
 
 enum ViewMode { camera, review, viewer, processing, success }
@@ -54,6 +57,9 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
   double processingProgress = 0;
   String processingStatus = '';
   ExtractedReportData? extractedData;
+
+  // Profile state
+  UserProfile? selectedProfile;
 
 
 
@@ -307,6 +313,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
       
       VlmService.extractFromImagesStreamed(
         capturedItems.map((e) => e.path).toList(),
+        profileId: selectedProfile?.id,
         onProgress: (status, percent) {
           if (!mounted) return;
           setState(() {
@@ -1376,6 +1383,49 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                       ),
                   ).animate().fadeIn(delay: (index * 50).ms).slideY(begin: 0.2, end: 0);
               },
+            ),
+          ),
+          // Profile Selector Integration
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Upload for Profile',
+                      style: TextStyle(
+                        color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const FamilyManagementScreen()),
+                        );
+                      },
+                      icon: const Icon(LucideIcons.users, size: 14),
+                      label: const Text('Manage Family', style: TextStyle(fontSize: 12)),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ProfileSelector(
+                  onProfileSelected: (profile) {
+                    setState(() => selectedProfile = profile);
+                  },
+                ),
+              ],
             ),
           ),
           Padding(

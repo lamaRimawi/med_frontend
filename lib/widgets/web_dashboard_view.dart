@@ -9,6 +9,8 @@ import '../config/api_config.dart';
 import '../services/timeline_api.dart';
 import '../services/reports_service.dart';
 import 'next_gen_background.dart';
+import '../models/profile_model.dart';
+import '../widgets/profile_selector.dart';
 
 class WebDashboardView extends StatefulWidget {
   final User? user;
@@ -41,6 +43,7 @@ class _WebDashboardViewState extends State<WebDashboardView> {
   String? _healthScore;
   bool _isLoadingStats = true;
   String? _welcomeMessage;
+  int? _selectedProfileId;
 
   @override
   void initState() {
@@ -63,7 +66,7 @@ class _WebDashboardViewState extends State<WebDashboardView> {
   Future<void> _loadStats() async {
     setState(() => _isLoadingStats = true);
     try {
-      final reports = await ReportsService().getReports();
+      final reports = await ReportsService().getReports(profileId: _selectedProfileId);
       final totalReports = reports.length;
       
       int totalTests = 0;
@@ -319,6 +322,18 @@ class _WebDashboardViewState extends State<WebDashboardView> {
                   letterSpacing: -1,
                 ),
               ).animate().fadeIn(duration: 600.ms).slideX(begin: -0.1, end: 0),
+              const SizedBox(height: 15),
+              SizedBox(
+                width: 300,
+                child: ProfileSelector(
+                   onProfileSelected: (profile) {
+                     setState(() {
+                       _selectedProfileId = profile?.id;
+                     });
+                     _loadStats();
+                   },
+                ),
+              ),
               const SizedBox(height: 15),
               Text(
                 'You have tracked ${widget.reports.length} reports so far.\nYour health journey is looking great!',

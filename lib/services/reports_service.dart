@@ -18,14 +18,25 @@ class ReportsService {
 
   List<Report>? get cachedReports => _cachedReports;
 
-  Future<List<Report>> getReports({bool forceRefresh = false}) async {
-    // Return cache if available and not forcing refresh (optional logic,
-    // but for now we always fetch to be safe, but we expose cache for UI to show instantly)
+  Future<List<Report>> getReports({bool forceRefresh = false, int? profileId}) async {
+    // Return cache only if no profile filter is applied and not forcing refresh
+    if (!forceRefresh && profileId == null && _cachedReports != null) {
+      // Small optimization: if cache is very fresh, return it immediately
+      if (_lastFetchTime != null && 
+          DateTime.now().difference(_lastFetchTime!).inSeconds < 10) {
+        return _cachedReports!;
+      }
+    }
 
     int retries = 3;
     while (retries > 0) {
       try {
-        final response = await _client.get(ApiConfig.reports, auth: true);
+        String path = ApiConfig.reports;
+        if (profileId != null) {
+          path = '$path?profile_id=$profileId';
+        }
+        
+        final response = await _client.get(path, auth: true);
 
         if (response.statusCode == 200) {
           final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
@@ -34,9 +45,11 @@ class ReportsService {
               .map((e) => Report.fromJson(e as Map<String, dynamic>))
               .toList();
 
-          // Update cache
-          _cachedReports = parsedReports;
-          _lastFetchTime = DateTime.now();
+          // Only update cache if it's for the main "Self" profile (profileId is null or matches self)
+          if (profileId == null) {
+            _cachedReports = parsedReports;
+            _lastFetchTime = DateTime.now();
+          }
 
           return parsedReports;
         } else {

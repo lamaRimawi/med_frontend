@@ -40,7 +40,7 @@ class ApiClient {
       }
     }
     final response = await http
-        .post(_uri(path, query), headers: mergedHeaders, body: body)
+        .post(_uri(path, query), headers: mergedHeaders, body: jsonEncode(body))
         .timeout(const Duration(seconds: 60));
 
     // Only throw exception for 401 if this was an authenticated request AND we don't want to skip global logout
@@ -98,7 +98,7 @@ class ApiClient {
       }
     }
     final response = await http
-        .put(_uri(path, query), headers: mergedHeaders, body: body)
+        .put(_uri(path, query), headers: mergedHeaders, body: jsonEncode(body))
         .timeout(const Duration(seconds: 60));
     if (response.statusCode == 401) {
       // Token expired or invalid
@@ -128,7 +128,7 @@ class ApiClient {
       }
     }
     final response = await http
-        .delete(_uri(path, query), headers: mergedHeaders, body: body)
+        .delete(_uri(path, query), headers: mergedHeaders, body: jsonEncode(body))
         .timeout(const Duration(seconds: 60));
     if (response.statusCode == 401) {
       final prefs = await SharedPreferences.getInstance();

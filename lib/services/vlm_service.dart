@@ -8,15 +8,17 @@ import 'api_client.dart';
 
 class VlmService {
   static Future<ExtractedReportData> extractFromImages(
-    List<String> filePaths,
-  ) async {
+    List<String> filePaths, {
+    int? profileId,
+  }) async {
     final client = ApiClient.instance;
 
-    print('VlmService: Uploading ${filePaths.length} files: $filePaths');
+    print('VlmService: Uploading ${filePaths.length} files: $filePaths for profile: $profileId');
     final http.Response res = await client.postMultipartMultiple(
       ApiConfig.vlmChat,
       auth: true,
       filePaths: filePaths,
+      fields: profileId != null ? {'profile_id': profileId.toString()} : null,
     );
 
     print('VlmService: Response status: ${res.statusCode}');
@@ -287,12 +289,14 @@ class VlmService {
       required Function(String status, double percent) onProgress,
       required Function(ExtractedReportData data) onComplete,
       required Function(String error) onError,
+      int? profileId,
     }) async {
     await extractFromImagesStreamed(
       [filePath],
       onProgress: onProgress,
       onComplete: onComplete,
       onError: onError,
+      profileId: profileId,
     );
   }
 
@@ -301,6 +305,7 @@ class VlmService {
       required Function(String status, double percent) onProgress,
       required Function(ExtractedReportData data) onComplete,
       required Function(String error) onError,
+      int? profileId,
     }) async {
     final client = ApiClient.instance;
     final token = await client.getToken();
@@ -316,6 +321,10 @@ class VlmService {
 
       for (var path in filePaths) {
         request.files.add(await http.MultipartFile.fromPath('file', path));
+      }
+      
+      if (profileId != null) {
+        request.fields['profile_id'] = profileId.toString();
       }
       
       request.headers['Authorization'] = 'Bearer $token';
