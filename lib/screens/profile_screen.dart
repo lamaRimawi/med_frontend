@@ -24,6 +24,9 @@ import 'settings_screen.dart';
 import 'password_manager_screen.dart';
 import 'family_management_screen.dart';
 import '../config/api_config.dart';
+import '../widgets/profile_switcher.dart';
+import '../services/profile_state_service.dart';
+import '../models/profile_model.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Function(String) onNavigate;
@@ -795,6 +798,20 @@ class _ProfileScreenState extends State<ProfileScreen>
                           fontWeight: FontWeight.w500,
                           letterSpacing: 0.5,
                         ),
+                      ),
+                      const SizedBox(height: 12),
+                      // Profile Switcher (Instagram-style)
+                      ProfileSwitcher(
+                        onProfileSwitched: (profile) async {
+                          // Reload user data for the new profile
+                          await _loadUserData();
+                          // Reload reports
+                          await _loadRecentReports();
+                          // Notify parent to refresh
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        },
                       ),
                     ],
                   ),

@@ -10,7 +10,7 @@ import '../services/timeline_api.dart';
 import '../services/reports_service.dart';
 import 'next_gen_background.dart';
 import '../models/profile_model.dart';
-import '../widgets/profile_selector.dart';
+import '../services/profile_state_service.dart';
 
 class WebDashboardView extends StatefulWidget {
   final User? user;
@@ -48,8 +48,37 @@ class _WebDashboardViewState extends State<WebDashboardView> {
   @override
   void initState() {
     super.initState();
+    _initializeProfile();
     _loadStats();
     _updateWelcomeMessage();
+    // Listen to profile changes
+    ProfileStateService().profileNotifier.addListener(_onProfileChanged);
+  }
+
+  @override
+  void dispose() {
+    ProfileStateService().profileNotifier.removeListener(_onProfileChanged);
+    super.dispose();
+  }
+
+  void _onProfileChanged() {
+    final profile = ProfileStateService().profileNotifier.value;
+    if (mounted) {
+      setState(() {
+        _selectedProfileId = profile?.id;
+        _isLoadingStats = true;
+      });
+      _loadStats();
+    }
+  }
+
+  Future<void> _initializeProfile() async {
+    final selectedProfile = await ProfileStateService().getSelectedProfile();
+    if (mounted) {
+      setState(() {
+        _selectedProfileId = selectedProfile?.id;
+      });
+    }
   }
 
   void _updateWelcomeMessage() {
@@ -322,18 +351,6 @@ class _WebDashboardViewState extends State<WebDashboardView> {
                   letterSpacing: -1,
                 ),
               ).animate().fadeIn(duration: 600.ms).slideX(begin: -0.1, end: 0),
-              const SizedBox(height: 15),
-              SizedBox(
-                width: 300,
-                child: ProfileSelector(
-                   onProfileSelected: (profile) {
-                     setState(() {
-                       _selectedProfileId = profile?.id;
-                     });
-                     _loadStats();
-                   },
-                ),
-              ),
               const SizedBox(height: 15),
               Text(
                 'You have tracked ${widget.reports.length} reports so far.\nYour health journey is looking great!',

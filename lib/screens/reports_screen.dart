@@ -28,6 +28,7 @@ import '../models/profile_model.dart';
 import '../widgets/profile_selector.dart';
 import '../models/user_model.dart';
 import '../services/user_service.dart';
+import '../services/profile_state_service.dart';
 
 class ReportsScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -50,8 +51,35 @@ class _ReportsScreenState extends State<ReportsScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeProfile();
     _loadInitialData();
     _loadUserProfile(); // Add this
+    // Listen to profile changes
+    ProfileStateService().profileNotifier.addListener(_onProfileChanged);
+  }
+
+
+  void _onProfileChanged() {
+    final profile = ProfileStateService().profileNotifier.value;
+    if (mounted) {
+      setState(() {
+        _selectedProfileId = profile?.id;
+        _selectedProfileRelation = profile?.relationship;
+        _isLoading = true;
+      });
+      _fetchReports();
+    }
+  }
+
+  Future<void> _initializeProfile() async {
+    // Load the selected profile from global state
+    final selectedProfile = await ProfileStateService().getSelectedProfile();
+    if (mounted) {
+      setState(() {
+        _selectedProfileId = selectedProfile?.id;
+        _selectedProfileRelation = selectedProfile?.relationship;
+      });
+    }
   }
 
   // Add this method
@@ -197,6 +225,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   @override
   void dispose() {
+    ProfileStateService().profileNotifier.removeListener(_onProfileChanged);
     _typeController.dispose();
     _dateController.dispose();
     _doctorController.dispose();
@@ -629,17 +658,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 12),
-              ProfileSelector(
-                onProfileSelected: (profile) {
-                  setState(() {
-                    _selectedProfileId = profile?.id;
-                    _selectedProfileRelation = profile?.relationship;
-                    _isLoading = true;
-                  });
-                  _fetchReports();
-                },
               ),
               const SizedBox(height: 16),
               Row(

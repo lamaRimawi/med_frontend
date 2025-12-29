@@ -10,6 +10,7 @@ import '../models/timeline_models.dart';
 import '../models/extracted_report_data.dart';
 import '../models/profile_model.dart';
 import '../widgets/profile_selector.dart';
+import '../services/profile_state_service.dart';
 
 class TimelineScreen extends StatefulWidget {
   final VoidCallback onBack;
@@ -47,10 +48,40 @@ class _TimelineScreenState extends State<TimelineScreen> {
   void initState() {
     super.initState();
     _initializeApp();
+    // Listen to profile changes
+    ProfileStateService().profileNotifier.addListener(_onProfileChanged);
+  }
+
+  @override
+  void dispose() {
+    ProfileStateService().profileNotifier.removeListener(_onProfileChanged);
+    super.dispose();
+  }
+
+  void _onProfileChanged() {
+    final profile = ProfileStateService().profileNotifier.value;
+    if (mounted) {
+      setState(() {
+        _selectedProfileId = profile?.id;
+        _isLoading = true;
+      });
+      _loadTimelineData();
+    }
   }
 
   Future<void> _initializeApp() async {
+    await _initializeProfile();
     await _loadTimelineData();
+  }
+
+  Future<void> _initializeProfile() async {
+    // Load the selected profile from global state
+    final selectedProfile = await ProfileStateService().getSelectedProfile();
+    if (mounted) {
+      setState(() {
+        _selectedProfileId = selectedProfile?.id;
+      });
+    }
   }
 
   // Demo Data Flag
@@ -264,6 +295,13 @@ class _TimelineScreenState extends State<TimelineScreen> {
                           _buildStatsCards(isDark, textColor, subTextColor),
                           const SizedBox(height: 20),
                           _buildHistoryList(isDark, textColor, subTextColor),
+                        ] else if (_availableMetrics.isEmpty) ...[
+                          // Empty state with chart and cards structure
+                          _buildEmptyChartSection(isDark, textColor, subTextColor),
+                          const SizedBox(height: 20),
+                          _buildEmptyStatsCards(isDark, textColor, subTextColor),
+                          const SizedBox(height: 20),
+                          _buildEmptyHistoryList(isDark, textColor, subTextColor),
                         ] else
                            Padding(
                             padding: const EdgeInsets.all(32.0),
@@ -321,16 +359,6 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 8),
-                ProfileSelector(
-                  onProfileSelected: (profile) {
-                    setState(() {
-                      _selectedProfileId = profile?.id;
-                      _isLoading = true;
-                    });
-                    _loadTimelineData();
-                  },
                 ),
               ],
             ),
@@ -468,7 +496,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     SizedBox(
                       height: 200,
                       child: _trendData.isEmpty
-                          ? Center(child: Text('No data points', style: TextStyle(color: subTextColor)))
+                          ? _buildEmptyChart(isDark, textColor, subTextColor)
                           : _buildLineChart(isDark, textColor),
                     ),
                   ],
@@ -993,6 +1021,301 @@ class _TimelineScreenState extends State<TimelineScreen> {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  // --- Empty State Widgets ---
+
+  Widget _buildEmptyChartSection(bool isDark, Color textColor, Color? subTextColor) {
+    final cardColor = isDark 
+        ? const Color(0xFF0F2137).withOpacity(0.8) 
+        : Colors.white.withOpacity(0.7);
+    
+    final borderColor = isDark 
+        ? Colors.white.withOpacity(0.1)
+        : Colors.white.withOpacity(0.5);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black.withOpacity(0.2) : Colors.blue.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF0F2137) : Colors.black.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            LucideIcons.activity,
+                            color: isDark ? Colors.white70 : Colors.black54,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Select Metric',
+                            style: TextStyle(
+                              color: isDark ? Colors.white70 : Colors.black54,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'No Data',
+                          style: TextStyle(
+                            color: textColor.withOpacity(0.5),
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '--',
+                          style: TextStyle(
+                            color: textColor.withOpacity(0.3),
+                            fontSize: 24,
+                            fontWeight: FontWeight.w300,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  height: 200,
+                  child: _buildEmptyChart(isDark, textColor, subTextColor),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ).animate().fadeIn().slideY(begin: 0.1, end: 0);
+  }
+
+  Widget _buildEmptyChart(bool isDark, Color textColor, Color? subTextColor) {
+    final gridColor = isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03);
+    
+    return LineChart(
+      LineChartData(
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: 20,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(
+              color: gridColor,
+              strokeWidth: 1,
+              dashArray: [5, 5],
+            );
+          },
+        ),
+        titlesData: FlTitlesData(
+          show: true,
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 30,
+              interval: 1,
+              getTitlesWidget: (value, meta) {
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    '',
+                    style: TextStyle(
+                      color: isDark ? Colors.white.withOpacity(0.3) : Colors.black.withOpacity(0.2),
+                      fontSize: 10,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              interval: 20,
+              reservedSize: 40,
+              getTitlesWidget: (value, meta) {
+                return Text(
+                  '',
+                  style: TextStyle(
+                    color: isDark ? Colors.white.withOpacity(0.3) : Colors.black.withOpacity(0.2),
+                    fontSize: 10,
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        borderData: FlBorderData(show: false),
+        minX: 0,
+        maxX: 6,
+        minY: 0,
+        maxY: 100,
+        lineBarsData: [],
+      ),
+    );
+  }
+
+  Widget _buildEmptyStatsCards(bool isDark, Color textColor, Color? subTextColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(child: _buildEmptyStatCard('Average', '--', LucideIcons.barChart3, isDark, textColor, subTextColor)),
+          const SizedBox(width: 12),
+          Expanded(child: _buildEmptyStatCard('Min', '--', LucideIcons.arrowDown, isDark, textColor, subTextColor)),
+          const SizedBox(width: 12),
+          Expanded(child: _buildEmptyStatCard('Max', '--', LucideIcons.arrowUp, isDark, textColor, subTextColor)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyStatCard(String label, String value, IconData icon, bool isDark, Color textColor, Color? subTextColor) {
+    return Opacity(
+      opacity: 0.5,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF0F2137) : Colors.white.withOpacity(0.7),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: isDark ? Colors.white.withOpacity(0.1) : Colors.white),
+          boxShadow: isDark ? null : [
+            BoxShadow(
+              color: Colors.blue.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: isDark ? Colors.white70 : const Color(0xFF39A4E6), size: 16),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: TextStyle(
+                color: textColor.withOpacity(0.5),
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                color: subTextColor?.withOpacity(0.5) ?? Colors.grey,
+                fontSize: 10,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyHistoryList(bool isDark, Color textColor, Color? subTextColor) {
+    final cardColor = isDark 
+        ? const Color(0xFF0F2137).withOpacity(0.8) 
+        : Colors.white.withOpacity(0.7);
+
+    return Opacity(
+      opacity: 0.5,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: isDark ? Colors.white.withOpacity(0.1) : Colors.white),
+          boxShadow: [
+            BoxShadow(
+              color: isDark ? Colors.black.withOpacity(0.2) : Colors.blue.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'History',
+              style: TextStyle(
+                color: textColor.withOpacity(0.5),
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: Column(
+                children: [
+                  Icon(
+                    LucideIcons.fileX,
+                    size: 48,
+                    color: subTextColor?.withOpacity(0.3) ?? Colors.grey[300],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No data available',
+                    style: TextStyle(
+                      color: subTextColor?.withOpacity(0.5) ?? Colors.grey,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Upload reports to see trends',
+                    style: TextStyle(
+                      color: subTextColor?.withOpacity(0.4) ?? Colors.grey[400],
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

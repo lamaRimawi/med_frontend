@@ -53,4 +53,51 @@ class ProfileService {
       throw Exception('Failed to delete profile');
     }
   }
+
+  /// Share a profile with another user by email
+  /// access_level: 'view', 'upload', or 'manage'
+  static Future<void> shareProfile({
+    required int profileId,
+    required String email,
+    required String accessLevel, // 'view', 'upload', 'manage'
+  }) async {
+    final response = await _client.post(
+      '${ApiConfig.profiles}$profileId/share',
+      body: {
+        'email': email,
+        'access_level': accessLevel,
+      },
+      auth: true,
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
+      final message = data['message']?.toString() ?? 
+                     data['detail']?.toString() ?? 
+                     'Failed to share profile';
+      throw Exception(message);
+    }
+  }
+
+  /// Transfer ownership of a profile to another user by email
+  static Future<void> transferOwnership({
+    required int profileId,
+    required String email,
+  }) async {
+    final response = await _client.post(
+      '${ApiConfig.profiles}$profileId/transfer',
+      body: {
+        'email': email,
+      },
+      auth: true,
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
+      final message = data['message']?.toString() ?? 
+                     data['detail']?.toString() ?? 
+                     'Failed to transfer ownership';
+      throw Exception(message);
+    }
+  }
 }

@@ -25,6 +25,7 @@ import '../services/user_service.dart';
 import 'package:flutter/foundation.dart';
 import '../models/profile_model.dart';
 import '../widgets/profile_selector.dart';
+import '../services/profile_state_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -72,9 +73,43 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeProfile();
     _loadUserData();
     _initializeDates();
     _loadReports();
+    // Listen to profile changes
+    ProfileStateService().profileNotifier.addListener(_onProfileChanged);
+  }
+
+  @override
+  void dispose() {
+    ProfileStateService().profileNotifier.removeListener(_onProfileChanged);
+    super.dispose();
+  }
+
+  void _onProfileChanged() {
+    final profile = ProfileStateService().profileNotifier.value;
+    if (mounted) {
+      setState(() {
+        _selectedProfileId = profile?.id;
+        _selectedProfileRelation = profile?.relationship;
+        _isLoadingReports = true;
+      });
+      _loadReports();
+    }
+  }
+
+  Future<void> _initializeProfile() async {
+    // Initialize default profile if none is selected
+    await ProfileStateService().initializeDefaultProfile();
+    // Load the selected profile
+    final selectedProfile = await ProfileStateService().getSelectedProfile();
+    if (mounted) {
+      setState(() {
+        _selectedProfileId = selectedProfile?.id;
+        _selectedProfileRelation = selectedProfile?.relationship;
+      });
+    }
   }
 
   Future<void> _loadReports() async {
@@ -460,20 +495,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         _buildHeader(),
                         _buildSearchBar(),
-                        const SizedBox(height: 16),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: ProfileSelector(
-                            onProfileSelected: (profile) {
-                              setState(() {
-                                _selectedProfileId = profile?.id;
-                                _selectedProfileRelation = profile?.relationship;
-                                _isLoadingReports = true;
-                              });
-                              _loadReports();
-                            },
-                          ),
-                        ),
                         const SizedBox(height: 24),
                         _buildRecentReports(),
                         _buildReportTypes(),

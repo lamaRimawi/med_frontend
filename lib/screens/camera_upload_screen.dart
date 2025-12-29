@@ -25,6 +25,7 @@ import 'package:mediScan/models/profile_model.dart';
 import 'package:mediScan/widgets/profile_selector.dart';
 import 'package:mediScan/screens/family_management_screen.dart';
 import 'package:mediScan/services/vlm_service.dart';
+import 'package:mediScan/services/profile_state_service.dart';
 
 enum ViewMode { camera, review, viewer, processing, success }
 
@@ -66,12 +67,35 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
   @override
   void initState() {
     super.initState();
+    _initializeProfile();
     // _initializeCamera(); // Removed for native scanner
     // _checkTutorial(); // Removed tutorial
+    // Listen to profile changes
+    ProfileStateService().profileNotifier.addListener(_onProfileChanged);
+  }
+
+  void _onProfileChanged() {
+    final profile = ProfileStateService().profileNotifier.value;
+    if (mounted) {
+      setState(() {
+        selectedProfile = profile;
+      });
+    }
+  }
+
+  Future<void> _initializeProfile() async {
+    // Load the selected profile from global state
+    final selectedProfile = await ProfileStateService().getSelectedProfile();
+    if (mounted) {
+      setState(() {
+        this.selectedProfile = selectedProfile;
+      });
+    }
   }
 
   @override
   void dispose() {
+    ProfileStateService().profileNotifier.removeListener(_onProfileChanged);
     _toastTimer?.cancel();
     super.dispose();
   }
@@ -1420,11 +1444,6 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                   ],
                 ),
                 const SizedBox(height: 8),
-                ProfileSelector(
-                  onProfileSelected: (profile) {
-                    setState(() => selectedProfile = profile);
-                  },
-                ),
               ],
             ),
           ),

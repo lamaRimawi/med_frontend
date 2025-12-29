@@ -9,6 +9,7 @@ import '../widgets/theme_toggle.dart';
 import '../utils/validators.dart';
 import '../services/auth_service.dart';
 import '../services/auth_api.dart';
+import '../services/profile_state_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -99,6 +100,14 @@ class _LoginScreenState extends State<LoginScreen> {
             _isAlertError = false;
             _isLoading = false;
           });
+
+          // Initialize default profile after login
+          try {
+            final profileStateService = ProfileStateService();
+            await profileStateService.initializeDefaultProfile();
+          } catch (e) {
+            debugPrint('Error initializing default profile: $e');
+          }
 
           Future.delayed(const Duration(milliseconds: 800), () {
             if (mounted) Navigator.pushReplacementNamed(context, '/home');

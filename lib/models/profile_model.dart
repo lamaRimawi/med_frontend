@@ -7,6 +7,8 @@ class UserProfile {
   final String gender;
   final String? createdAt;
   final int? linkedUserId;
+  final bool isShared; // Whether this profile is shared with the current user
+  final int? creatorId; // ID of the user who created/owns this profile
 
   UserProfile({
     required this.id,
@@ -17,9 +19,21 @@ class UserProfile {
     required this.gender,
     this.createdAt,
     this.linkedUserId,
+    this.isShared = false,
+    this.creatorId,
   });
 
   String get fullName => '$firstName $lastName';
+
+  /// Check if current user is the owner of this profile
+  /// Note: This requires the current user ID to be passed in
+  bool isOwner(int? currentUserId) {
+    if (currentUserId == null || creatorId == null) {
+      // If no creator_id, assume it's owned by current user (Self profile)
+      return relationship == 'Self' || !isShared;
+    }
+    return creatorId == currentUserId;
+  }
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
@@ -31,6 +45,8 @@ class UserProfile {
       gender: json['gender']?.toString() ?? '',
       createdAt: json['created_at']?.toString(),
       linkedUserId: json['linked_user_id'] as int?,
+      isShared: json['is_shared'] as bool? ?? false,
+      creatorId: json['creator_id'] as int?,
     );
   }
 

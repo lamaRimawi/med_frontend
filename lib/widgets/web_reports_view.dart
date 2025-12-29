@@ -8,7 +8,7 @@ import '../services/api_client.dart';
 import '../config/api_config.dart';
 import 'dart:ui';
 import '../models/profile_model.dart';
-import '../widgets/profile_selector.dart';
+import '../services/profile_state_service.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:file_saver/file_saver.dart';
@@ -46,7 +46,36 @@ class _WebReportsViewState extends State<WebReportsView> {
   @override
   void initState() {
     super.initState();
+    _initializeProfile();
     _loadReports();
+    // Listen to profile changes
+    ProfileStateService().profileNotifier.addListener(_onProfileChanged);
+  }
+
+  @override
+  void dispose() {
+    ProfileStateService().profileNotifier.removeListener(_onProfileChanged);
+    super.dispose();
+  }
+
+  void _onProfileChanged() {
+    final profile = ProfileStateService().profileNotifier.value;
+    if (mounted) {
+      setState(() {
+        _selectedProfileId = profile?.id;
+        _isLoading = true;
+      });
+      _loadReports();
+    }
+  }
+
+  Future<void> _initializeProfile() async {
+    final selectedProfile = await ProfileStateService().getSelectedProfile();
+    if (mounted) {
+      setState(() {
+        _selectedProfileId = selectedProfile?.id;
+      });
+    }
   }
 
   Future<void> _loadReports() async {
@@ -389,19 +418,6 @@ class _WebReportsViewState extends State<WebReportsView> {
                 ),
               ).animate().fadeIn(duration: 600.ms).slideX(begin: -0.2),
               const SizedBox(width: 20),
-              if (_selectedReport == null)
-                SizedBox(
-                  width: 300,
-                  child: ProfileSelector(
-                    onProfileSelected: (profile) {
-                      setState(() {
-                        _selectedProfileId = profile?.id;
-                        _isLoading = true;
-                      });
-                      _loadReports();
-                    },
-                  ),
-                ),
               const Spacer(),
               if (_selectedReport == null) ...[
                 Container(
