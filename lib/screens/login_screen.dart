@@ -149,19 +149,45 @@ class _LoginScreenState extends State<LoginScreen> {
       if (provider == 'Google') {
         final userData = await AuthService.signInWithGoogle();
         if (userData != null && mounted) {
-          // REAL LOGIN: Send userData['idToken'] to your backend 
-          final (success, message) = await AuthApi.loginWithGoogle(userData['idToken']);
+          // Send ID token to backend - backend should check if user exists and login/register accordingly
+          final (success, message) = await AuthApi.loginWithGoogle(userData['idToken'] as String);
           
           if (mounted) {
             if (success) {
-              setState(() {
-                _alertMessage = 'Signed in as ${userData['email']}';
-                _isAlertError = false;
-                _isLoading = false;
-              });
-              Future.delayed(const Duration(milliseconds: 800), () {
-                if (mounted) Navigator.pushReplacementNamed(context, '/home');
-              });
+              // Fetch user profile after successful login
+              final (profileSuccess, user, profileMessage) = await AuthApi.getUserProfile();
+              
+              if (!mounted) return;
+              
+              if (profileSuccess) {
+                // Initialize default profile after login
+                try {
+                  final profileStateService = ProfileStateService();
+                  await profileStateService.initializeDefaultProfile();
+                } catch (e) {
+                  debugPrint('Error initializing default profile: $e');
+                }
+                
+                setState(() {
+                  _alertMessage = 'Signed in as ${userData['email']}';
+                  _isAlertError = false;
+                  _isLoading = false;
+                });
+                Future.delayed(const Duration(milliseconds: 800), () {
+                  if (mounted) Navigator.pushReplacementNamed(context, '/home');
+                });
+              } else {
+                // Login succeeded but profile fetch failed - still navigate but warn
+                print('Warning: Profile fetch failed: $profileMessage');
+                setState(() {
+                  _alertMessage = 'Signed in as ${userData['email']}';
+                  _isAlertError = false;
+                  _isLoading = false;
+                });
+                Future.delayed(const Duration(milliseconds: 800), () {
+                  if (mounted) Navigator.pushReplacementNamed(context, '/home');
+                });
+              }
             } else {
               setState(() {
                 _alertMessage = message ?? 'Backend login failed';
@@ -177,21 +203,48 @@ class _LoginScreenState extends State<LoginScreen> {
       } else if (provider == 'Facebook') {
         final userData = await AuthService.signInWithFacebook();
         if (userData != null && mounted) {
-          // REAL LOGIN: Send accessToken to your backend
+          // Send access token to backend - backend should check if user exists and login/register accordingly
           final (success, message) =
-              await AuthApi.loginWithFacebook(userData['accessToken']);
+              await AuthApi.loginWithFacebook(userData['accessToken'] as String);
 
           if (mounted) {
             if (success) {
-              setState(() {
-                _alertMessage =
-                    'Signed in with Facebook: ${userData['email'] ?? userData['name']}';
-                _isAlertError = false;
-                _isLoading = false;
-              });
-              Future.delayed(const Duration(seconds: 2), () {
-                if (mounted) Navigator.pushReplacementNamed(context, '/home');
-              });
+              // Fetch user profile after successful login
+              final (profileSuccess, user, profileMessage) = await AuthApi.getUserProfile();
+              
+              if (!mounted) return;
+              
+              if (profileSuccess) {
+                // Initialize default profile after login
+                try {
+                  final profileStateService = ProfileStateService();
+                  await profileStateService.initializeDefaultProfile();
+                } catch (e) {
+                  debugPrint('Error initializing default profile: $e');
+                }
+                
+                setState(() {
+                  _alertMessage =
+                      'Signed in with Facebook: ${userData['email'] ?? userData['name']}';
+                  _isAlertError = false;
+                  _isLoading = false;
+                });
+                Future.delayed(const Duration(milliseconds: 800), () {
+                  if (mounted) Navigator.pushReplacementNamed(context, '/home');
+                });
+              } else {
+                // Login succeeded but profile fetch failed - still navigate but warn
+                print('Warning: Profile fetch failed: $profileMessage');
+                setState(() {
+                  _alertMessage =
+                      'Signed in with Facebook: ${userData['email'] ?? userData['name']}';
+                  _isAlertError = false;
+                  _isLoading = false;
+                });
+                Future.delayed(const Duration(milliseconds: 800), () {
+                  if (mounted) Navigator.pushReplacementNamed(context, '/home');
+                });
+              }
             } else {
               setState(() {
                 _alertMessage = message ?? 'Facebook backend login failed';
@@ -201,7 +254,6 @@ class _LoginScreenState extends State<LoginScreen> {
             }
           }
         } else {
-
           if (mounted) {
             setState(() {
               _alertMessage = 'Facebook Login cancelled or failed';

@@ -228,10 +228,19 @@ class _AuthModalState extends State<AuthModal> {
       if (provider == 'Google') {
         final userData = await AuthService.signInWithGoogle();
         if (userData != null && mounted) {
-          final (success, message) = await AuthApi.loginWithGoogle(userData['idToken']);
+          // Send ID token to backend - backend should check if user exists and login/register accordingly
+          final (success, message) = await AuthApi.loginWithGoogle(userData['idToken'] as String);
           if (mounted) {
             if (success) {
-              Navigator.pushReplacementNamed(context, '/home');
+              // Fetch user profile after successful login/registration
+              final (profileSuccess, _, profileMessage) = await AuthApi.getUserProfile();
+              if (profileSuccess) {
+                Navigator.pushReplacementNamed(context, '/home');
+              } else {
+                // Still navigate even if profile fetch fails
+                print('Warning: Profile fetch failed: $profileMessage');
+                Navigator.pushReplacementNamed(context, '/home');
+              }
             } else {
               setState(() {
                 _alertMessage = message ?? 'Google sync failed';
@@ -246,10 +255,19 @@ class _AuthModalState extends State<AuthModal> {
       } else if (provider == 'Facebook') {
         final userData = await AuthService.signInWithFacebook();
         if (userData != null && mounted) {
-          final (success, message) = await AuthApi.loginWithFacebook(userData['accessToken']);
+          // Send access token to backend - backend should check if user exists and login/register accordingly
+          final (success, message) = await AuthApi.loginWithFacebook(userData['accessToken'] as String);
           if (mounted) {
             if (success) {
-              Navigator.pushReplacementNamed(context, '/home');
+              // Fetch user profile after successful login/registration
+              final (profileSuccess, _, profileMessage) = await AuthApi.getUserProfile();
+              if (profileSuccess) {
+                Navigator.pushReplacementNamed(context, '/home');
+              } else {
+                // Still navigate even if profile fetch fails
+                print('Warning: Profile fetch failed: $profileMessage');
+                Navigator.pushReplacementNamed(context, '/home');
+              }
             } else {
               setState(() {
                 _alertMessage = message ?? 'Facebook sync failed';

@@ -82,35 +82,53 @@ class AuthApi {
 
     final client = ApiClient.instance;
 
-    final res = await client.post(
-      ApiConfig.googleLogin,
-      body: json.encode({'id_token': idToken}),
-    );
-
-    if (res.statusCode == 200 || res.statusCode == 201) {
-      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-      final token = data['access_token'] as String?;
-      if (token == null || token.isEmpty) {
-        return (false, 'No access token in response');
-      }
-      await prefs.setString('jwt_token', token);
-      await prefs.setString('last_login_method', 'google');
-
-      // Save email for session persistence/biometrics if available
-      final user = data['user'] as Map<String, dynamic>?;
-      final email = user?['email'] as String? ?? data['email'] as String?;
-      if (email != null) {
-        await prefs.setString('user_email', email);
-      }
-      
-      return (true, null);
-    }
-
     try {
-      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-      return (false, data['message']?.toString() ?? 'Google login failed');
-    } catch (_) {
-      return (false, 'Google login failed (${res.statusCode})');
+      print('🔵 Sending Google ID token to backend: ${ApiConfig.baseUrl}${ApiConfig.googleLogin}');
+      
+      final res = await client.post(
+        ApiConfig.googleLogin,
+        body: {'id_token': idToken}, // Pass Map directly, ApiClient will encode it
+      );
+
+      print('🔵 Backend response status: ${res.statusCode}');
+      print('🔵 Backend response body: ${res.body}');
+
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+        final token = data['access_token'] as String?;
+        if (token == null || token.isEmpty) {
+          print('❌ No access token in response');
+          return (false, 'No access token in response');
+        }
+        await prefs.setString('jwt_token', token);
+        await prefs.setString('last_login_method', 'google');
+
+        // Save email for session persistence/biometrics if available
+        final user = data['user'] as Map<String, dynamic>?;
+        final email = user?['email'] as String? ?? data['email'] as String?;
+        if (email != null) {
+          await prefs.setString('user_email', email);
+        }
+        
+        print('✅ Google login successful for email: $email');
+        return (true, null);
+      }
+
+      // Handle error responses
+      try {
+        final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+        final errorMessage = data['message']?.toString() ?? 
+                           data['detail']?.toString() ?? 
+                           'Google login failed';
+        print('❌ Google login failed: $errorMessage');
+        return (false, errorMessage);
+      } catch (e) {
+        print('❌ Failed to parse error response: $e');
+        return (false, 'Google login failed (${res.statusCode})');
+      }
+    } catch (e) {
+      print('❌ Google login exception: $e');
+      return (false, 'Network error: ${e.toString()}');
     }
   }
 
@@ -121,35 +139,53 @@ class AuthApi {
 
     final client = ApiClient.instance;
 
-    final res = await client.post(
-      ApiConfig.facebookLogin,
-      body: json.encode({'access_token': accessToken}),
-    );
-
-    if (res.statusCode == 200 || res.statusCode == 201) {
-      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-      final token = data['access_token'] as String?;
-      if (token == null || token.isEmpty) {
-        return (false, 'No access token in response');
-      }
-      await prefs.setString('jwt_token', token);
-      await prefs.setString('last_login_method', 'facebook');
-
-      // Save email for session persistence/biometrics if available
-      final user = data['user'] as Map<String, dynamic>?;
-      final email = user?['email'] as String? ?? data['email'] as String?;
-      if (email != null) {
-        await prefs.setString('user_email', email);
-      }
-      
-      return (true, null);
-    }
-
     try {
-      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-      return (false, data['message']?.toString() ?? 'Facebook login failed');
-    } catch (_) {
-      return (false, 'Facebook login failed (${res.statusCode})');
+      print('🔵 Sending Facebook access token to backend: ${ApiConfig.baseUrl}${ApiConfig.facebookLogin}');
+      
+      final res = await client.post(
+        ApiConfig.facebookLogin,
+        body: {'access_token': accessToken}, // Pass Map directly, ApiClient will encode it
+      );
+
+      print('🔵 Backend response status: ${res.statusCode}');
+      print('🔵 Backend response body: ${res.body}');
+
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+        final token = data['access_token'] as String?;
+        if (token == null || token.isEmpty) {
+          print('❌ No access token in response');
+          return (false, 'No access token in response');
+        }
+        await prefs.setString('jwt_token', token);
+        await prefs.setString('last_login_method', 'facebook');
+
+        // Save email for session persistence/biometrics if available
+        final user = data['user'] as Map<String, dynamic>?;
+        final email = user?['email'] as String? ?? data['email'] as String?;
+        if (email != null) {
+          await prefs.setString('user_email', email);
+        }
+        
+        print('✅ Facebook login successful for email: $email');
+        return (true, null);
+      }
+
+      // Handle error responses
+      try {
+        final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+        final errorMessage = data['message']?.toString() ?? 
+                           data['detail']?.toString() ?? 
+                           'Facebook login failed';
+        print('❌ Facebook login failed: $errorMessage');
+        return (false, errorMessage);
+      } catch (e) {
+        print('❌ Failed to parse error response: $e');
+        return (false, 'Facebook login failed (${res.statusCode})');
+      }
+    } catch (e) {
+      print('❌ Facebook login exception: $e');
+      return (false, 'Network error: ${e.toString()}');
     }
   }
 

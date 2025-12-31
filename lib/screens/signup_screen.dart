@@ -151,19 +151,37 @@ class _SignupScreenState extends State<SignupScreen> {
       if (provider == 'Google') {
         final userData = await AuthService.signInWithGoogle();
         if (userData != null && mounted) {
-          // REAL LOGIN/SIGNUP: Send userData['idToken'] to your backend
-          final (success, message) = await AuthApi.loginWithGoogle(userData['idToken']);
+          // Send ID token to backend - backend should check if user exists and login/register accordingly
+          final (success, message) = await AuthApi.loginWithGoogle(userData['idToken'] as String);
           
           if (mounted) {
             if (success) {
-              setState(() {
-                _alertMessage = 'Logged in with Google as ${userData['email']}';
-                _isAlertError = false;
-                _isLoading = false;
-              });
-              Future.delayed(const Duration(milliseconds: 1500), () {
-                if (mounted) Navigator.pushReplacementNamed(context, '/home');
-              });
+              // Fetch user profile after successful login/registration
+              final (profileSuccess, user, profileMessage) = await AuthApi.getUserProfile();
+              
+              if (!mounted) return;
+              
+              if (profileSuccess) {
+                setState(() {
+                  _alertMessage = 'Account created and logged in with Google as ${userData['email']}';
+                  _isAlertError = false;
+                  _isLoading = false;
+                });
+                Future.delayed(const Duration(milliseconds: 1500), () {
+                  if (mounted) Navigator.pushReplacementNamed(context, '/home');
+                });
+              } else {
+                // Login/registration succeeded but profile fetch failed - still navigate but warn
+                print('Warning: Profile fetch failed: $profileMessage');
+                setState(() {
+                  _alertMessage = 'Account created and logged in with Google as ${userData['email']}';
+                  _isAlertError = false;
+                  _isLoading = false;
+                });
+                Future.delayed(const Duration(milliseconds: 1500), () {
+                  if (mounted) Navigator.pushReplacementNamed(context, '/home');
+                });
+              }
             } else {
               setState(() {
                 _alertMessage = message ?? 'Backend synchronization failed';
@@ -179,22 +197,41 @@ class _SignupScreenState extends State<SignupScreen> {
       } else if (provider == 'Facebook') {
         final userData = await AuthService.signInWithFacebook();
         if (userData != null && mounted) {
-          // REAL SIGNUP/LOGIN: Send accessToken to your backend
+          // Send access token to backend - backend should check if user exists and login/register accordingly
           final (success, message) =
-              await AuthApi.loginWithFacebook(userData['accessToken']);
+              await AuthApi.loginWithFacebook(userData['accessToken'] as String);
 
           if (mounted) {
             if (success) {
-              setState(() {
-                _alertMessage =
-                    'Logged in with Facebook: ${userData['email'] ?? userData['name']}';
-                _isAlertError = false;
-                _isLoading = false;
-              });
+              // Fetch user profile after successful login/registration
+              final (profileSuccess, user, profileMessage) = await AuthApi.getUserProfile();
+              
+              if (!mounted) return;
+              
+              if (profileSuccess) {
+                setState(() {
+                  _alertMessage =
+                      'Account created and logged in with Facebook: ${userData['email'] ?? userData['name']}';
+                  _isAlertError = false;
+                  _isLoading = false;
+                });
 
-              Future.delayed(const Duration(seconds: 2), () {
-                if (mounted) Navigator.pushReplacementNamed(context, '/home');
-              });
+                Future.delayed(const Duration(milliseconds: 1500), () {
+                  if (mounted) Navigator.pushReplacementNamed(context, '/home');
+                });
+              } else {
+                // Login/registration succeeded but profile fetch failed - still navigate but warn
+                print('Warning: Profile fetch failed: $profileMessage');
+                setState(() {
+                  _alertMessage =
+                      'Account created and logged in with Facebook: ${userData['email'] ?? userData['name']}';
+                  _isAlertError = false;
+                  _isLoading = false;
+                });
+                Future.delayed(const Duration(milliseconds: 1500), () {
+                  if (mounted) Navigator.pushReplacementNamed(context, '/home');
+                });
+              }
             } else {
               setState(() {
                 _alertMessage = message ?? 'Facebook backend synchronization failed';
@@ -204,7 +241,6 @@ class _SignupScreenState extends State<SignupScreen> {
             }
           }
         } else {
-
           if (mounted) {
             setState(() {
               _alertMessage = 'Facebook Login cancelled or failed';
