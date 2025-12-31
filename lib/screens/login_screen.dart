@@ -46,14 +46,16 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final biometricType = await AuthService.getBiometricType();
       final availableBiometrics = await AuthService.getAvailableBiometrics();
-      
+
       setState(() {
         _biometricType = biometricType;
         // Keep the fingerprint icon as it was before
         _biometricIcon = LucideIcons.fingerprint;
       });
-      
-      print('✅ Loaded biometric type: $biometricType (Available: $availableBiometrics)');
+
+      print(
+        '✅ Loaded biometric type: $biometricType (Available: $availableBiometrics)',
+      );
     } catch (e) {
       print('⚠️ Error loading biometric type: $e');
       // Keep default values
@@ -174,14 +176,15 @@ class _LoginScreenState extends State<LoginScreen> {
             userData['idToken'] as String,
             accessToken: userData['accessToken'] as String?,
           );
-          
+
           if (mounted) {
             if (success) {
               // Fetch user profile after successful login
-              final (profileSuccess, user, profileMessage) = await AuthApi.getUserProfile();
-              
+              final (profileSuccess, user, profileMessage) =
+                  await AuthApi.getUserProfile();
+
               if (!mounted) return;
-              
+
               if (profileSuccess) {
                 // Initialize default profile after login
                 try {
@@ -190,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 } catch (e) {
                   debugPrint('Error initializing default profile: $e');
                 }
-                
+
                 setState(() {
                   _alertMessage = 'Signed in as ${userData['email']}';
                   _isAlertError = false;
@@ -219,7 +222,6 @@ class _LoginScreenState extends State<LoginScreen> {
               });
             }
           }
-
         } else {
           setState(() => _isLoading = false);
         }
@@ -227,16 +229,18 @@ class _LoginScreenState extends State<LoginScreen> {
         final userData = await AuthService.signInWithFacebook();
         if (userData != null && mounted) {
           // Send access token to backend - backend should check if user exists and login/register accordingly
-          final (success, message) =
-              await AuthApi.loginWithFacebook(userData['accessToken'] as String);
+          final (success, message) = await AuthApi.loginWithFacebook(
+            userData['accessToken'] as String,
+          );
 
           if (mounted) {
             if (success) {
               // Fetch user profile after successful login
-              final (profileSuccess, user, profileMessage) = await AuthApi.getUserProfile();
-              
+              final (profileSuccess, user, profileMessage) =
+                  await AuthApi.getUserProfile();
+
               if (!mounted) return;
-              
+
               if (profileSuccess) {
                 // Initialize default profile after login
                 try {
@@ -245,7 +249,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 } catch (e) {
                   debugPrint('Error initializing default profile: $e');
                 }
-                
+
                 setState(() {
                   _alertMessage =
                       'Signed in with Facebook: ${userData['email'] ?? userData['name']}';
@@ -291,17 +295,17 @@ class _LoginScreenState extends State<LoginScreen> {
         final isEnabled = prefs.getBool('biometric_enabled') ?? false;
 
         if (!isEnabled) {
-           if (!mounted) return;
-           setState(() {
-             _alertMessage = 'Biometric login is not enabled in Settings';
-             _isAlertError = true;
-             _isLoading = false;
-           });
-           return;
+          if (!mounted) return;
+          setState(() {
+            _alertMessage = 'Biometric login is not enabled in Settings';
+            _isAlertError = true;
+            _isLoading = false;
+          });
+          return;
         }
 
         final (success, message) = await AuthService.loginWithBiometrics();
-        
+
         if (!mounted) return;
 
         if (success) {
@@ -456,7 +460,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Login Form
                   CustomTextField(
-                    label: 'Email or Mobile Number',
+                    label: 'Email Address',
                     placeholder: 'example@mediscan.com',
                     icon: LucideIcons.mail,
                     controller: _emailController,
@@ -513,7 +517,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       Expanded(
                         child: Divider(
-                          color: isDark ? const Color(0xFF0F2137) : Colors.grey[200],
+                          color: isDark
+                              ? const Color(0xFF0F2137)
+                              : Colors.grey[200],
                           thickness: 1,
                         ),
                       ),
@@ -530,13 +536,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                 : Colors.white,
                             borderRadius: BorderRadius.circular(30),
                             border: Border.all(
-                              color: isDark ? const Color(0xFF0F2137) : Colors.grey[200]!,
+                              color: isDark
+                                  ? const Color(0xFF0F2137)
+                                  : Colors.grey[200]!,
                             ),
                           ),
                           child: Text(
                             'or sign in with',
                             style: TextStyle(
-                              color: isDark ? Colors.grey[500] : Colors.grey[400],
+                              color: isDark
+                                  ? Colors.grey[500]
+                                  : Colors.grey[400],
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
                             ),
@@ -545,7 +555,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       Expanded(
                         child: Divider(
-                          color: isDark ? const Color(0xFF0F2137) : Colors.grey[200],
+                          color: isDark
+                              ? const Color(0xFF0F2137)
+                              : Colors.grey[200],
                           thickness: 1,
                         ),
                       ),
@@ -562,10 +574,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(width: 24),
                       _buildSocialButton(LucideIcons.facebook, 'Facebook'),
                       const SizedBox(width: 24),
-                      _buildSocialButton(
-                        _biometricIcon,
-                        _biometricType,
-                      ),
+                      _buildSocialButton(_biometricIcon, _biometricType),
                     ],
                   ).animate().fadeIn(delay: 1000.ms).moveY(begin: 20, end: 0),
 
