@@ -39,6 +39,25 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     _emailController.addListener(_validateForm);
     _passwordController.addListener(_validateForm);
+    _loadBiometricType();
+  }
+
+  Future<void> _loadBiometricType() async {
+    try {
+      final biometricType = await AuthService.getBiometricType();
+      final availableBiometrics = await AuthService.getAvailableBiometrics();
+      
+      setState(() {
+        _biometricType = biometricType;
+        // Keep the fingerprint icon as it was before
+        _biometricIcon = LucideIcons.fingerprint;
+      });
+      
+      print('✅ Loaded biometric type: $biometricType (Available: $availableBiometrics)');
+    } catch (e) {
+      print('⚠️ Error loading biometric type: $e');
+      // Keep default values
+    }
   }
 
   @override

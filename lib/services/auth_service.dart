@@ -202,40 +202,67 @@ class AuthService {
   }
   static Future<(bool success, String? message)> loginWithBiometrics() async {
     try {
+      print('🔐 Starting biometric authentication...');
+      
+      // First, check if biometrics are available
+      final canAuth = await canCheckBiometrics() || await isDeviceSupported();
+      if (!canAuth) {
+        print('❌ Biometrics not available on this device');
+        return (false, 'Biometric authentication is not available on this device');
+      }
+
+      // Authenticate with biometrics (Face ID/Fingerprint)
       final authenticated = await authenticateWithBiometrics();
       if (!authenticated) {
-        return (false, 'Biometric authentication failed');
+        print('❌ Biometric authentication failed or cancelled');
+        return (false, 'Biometric authentication failed or cancelled');
       }
+
+      print('✅ Biometric authentication successful');
 
       // Check for stored credentials
       final prefs = await SharedPreferences.getInstance();
       final jwtToken = prefs.getString('jwt_token');
       
-      // If we have a valid token, we might check if it's expired or just let them in.
-      // But typically, "Login with Biometrics" implies re-authenticating to get a fresh session 
-      // OR mostly just bypassing the UI form if the token is valid.
-      // However, if the token is expired, we need the PASSWORD to re-login.
-      // AuthApi.login stores 'user_password' in SharedPrefs (insecure but requested 'functionality').
-      
-      final savedPassword = prefs.getString('user_password');
-      // For email, we might need to store it too or decode from token (if possible).
-      // Let's check if we save email. User model has email.
-      // We can also save email in login.
+      // First, try to verify existing token with backend
+      if (jwtToken != null && jwtToken.isNotEmpty) {
+        print('🔵 Checking existing token with backend...');
+        final (profileSuccess, user, profileMessage) = await AuthApi.getUserProfile();
+        
+        if (profileSuccess && user != null) {
+          print('✅ Valid session found, logged in successfully');
+          return (true, null);
+        } else {
+          print('⚠️ Token expired or invalid: $profileMessage');
+          // Token is expired, continue to password login
+        }
+      }
+
+      // If token is invalid/expired, use saved credentials to re-login
       final savedEmail = prefs.getString('user_email');
+      final savedPassword = prefs.getString('user_password');
 
       if (savedEmail != null && savedPassword != null) {
-        // Perform unexpected backend login
-        return await AuthApi.login(email: savedEmail, password: savedPassword);
-      } else if (jwtToken != null) {
-         // Fallback: If only token exists (maybe no restart), verify profile
-         final (success, _, msg) = await AuthApi.getUserProfile();
-         if (success) return (true, null);
-         return (false, 'Session expired. Please log in with password.');
+        print('🔵 Re-authenticating with backend using saved credentials...');
+        final (loginSuccess, loginMessage) = await AuthApi.login(
+          email: savedEmail,
+          password: savedPassword,
+        );
+        
+        if (loginSuccess) {
+          print('✅ Biometric login successful via backend');
+          return (true, null);
+        } else {
+          print('❌ Backend login failed: $loginMessage');
+          return (false, loginMessage ?? 'Login failed. Please log in with password.');
+        }
       } else {
-        return (false, 'No credentials found. Log in with password first.');
+        print('❌ No saved credentials found');
+        return (false, 'No saved credentials found. Please log in with password first.');
       }
     } catch (e) {
-      return (false, 'Error: $e');
+      print('❌ Biometric login error: $e');
+      return (false, 'Error: ${e.toString()}');
     }
   }
 }

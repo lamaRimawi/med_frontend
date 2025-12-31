@@ -337,21 +337,32 @@ class _AuthModalState extends State<AuthModal> {
 
     setState(() => _isLoading = true);
     try {
+      print('🔐 Starting WebAuthn login for email: $email');
+      
       // 1. Get Login Options from backend
+      print('🔵 Step 1: Getting login options from backend...');
       final (optionsSuccess, options, optionsMessage) = await AuthApi.getWebAuthnLoginOptions(email);
       
       if (!optionsSuccess || options == null) {
+        print('❌ Failed to get login options: $optionsMessage');
         throw optionsMessage ?? 'Failed to get login options';
       }
 
-      // 2. Invoke Browser API
+      print('✅ Login options received');
+
+      // 2. Invoke Browser API (Face ID/Fingerprint)
+      print('🔵 Step 2: Invoking browser biometric authentication...');
       final assertion = await WebAuthnService.getAssertion(options);
       
       if (assertion == null) {
+        print('❌ Biometric authentication cancelled or failed');
         throw 'Biometric authentication cancelled or failed';
       }
 
+      print('✅ Biometric authentication successful');
+
       // 3. Verify Assertion with backend
+      print('🔵 Step 3: Verifying assertion with backend...');
       final (verifySuccess, verifyMessage) = await AuthApi.verifyWebAuthnLogin(
         email: email, 
         assertion: assertion,
@@ -360,18 +371,38 @@ class _AuthModalState extends State<AuthModal> {
       if (!mounted) return;
 
       if (verifySuccess) {
-        setState(() {
-          _alertMessage = 'Biometric login successful!';
-          _isAlertError = false;
-          _isLoading = false;
-        });
-        Future.delayed(const Duration(milliseconds: 800), () {
-          if (mounted) Navigator.pushReplacementNamed(context, '/home');
-        });
+        // Fetch user profile after successful login
+        print('🔵 Fetching user profile...');
+        final (profileSuccess, _, profileMessage) = await AuthApi.getUserProfile();
+        
+        if (profileSuccess) {
+          print('✅ WebAuthn login completed successfully');
+          setState(() {
+            _alertMessage = 'Biometric login successful!';
+            _isAlertError = false;
+            _isLoading = false;
+          });
+          Future.delayed(const Duration(milliseconds: 800), () {
+            if (mounted) Navigator.pushReplacementNamed(context, '/home');
+          });
+        } else {
+          print('⚠️ Profile fetch failed: $profileMessage');
+          // Still navigate even if profile fetch fails
+          setState(() {
+            _alertMessage = 'Biometric login successful!';
+            _isAlertError = false;
+            _isLoading = false;
+          });
+          Future.delayed(const Duration(milliseconds: 800), () {
+            if (mounted) Navigator.pushReplacementNamed(context, '/home');
+          });
+        }
       } else {
+        print('❌ Verification failed: $verifyMessage');
         throw verifyMessage ?? 'Verification failed';
       }
     } catch (e) {
+      print('❌ WebAuthn login error: $e');
       if (mounted) {
         setState(() {
           _alertMessage = e.toString();

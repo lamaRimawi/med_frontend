@@ -541,18 +541,33 @@ class AuthApi {
   static Future<(bool success, Map<String, dynamic>? options, String? message)>
   getWebAuthnRegistrationOptions() async {
     final client = ApiClient.instance;
-    final res = await client.post(ApiConfig.webauthnRegOptions, auth: true);
-
-    if (res.statusCode == 200) {
-      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-      return (true, data, null);
-    }
-
+    
     try {
-      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-      return (false, null, data['message']?.toString() ?? 'Failed to get registration options');
-    } catch (_) {
-      return (false, null, 'Failed to get registration options (${res.statusCode})');
+      print('🔵 Requesting WebAuthn registration options from backend: ${ApiConfig.baseUrl}${ApiConfig.webauthnRegOptions}');
+      
+      final res = await client.post(ApiConfig.webauthnRegOptions, auth: true);
+
+      print('🔵 Backend response status: ${res.statusCode}');
+      print('🔵 Backend response body: ${res.body}');
+
+      if (res.statusCode == 200) {
+        final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+        print('✅ WebAuthn registration options received successfully');
+        return (true, data, null);
+      }
+
+      try {
+        final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+        final errorMessage = data['message']?.toString() ?? 'Failed to get registration options';
+        print('❌ WebAuthn registration options failed: $errorMessage');
+        return (false, null, errorMessage);
+      } catch (e) {
+        print('❌ Failed to parse error response: $e');
+        return (false, null, 'Failed to get registration options (${res.statusCode})');
+      }
+    } catch (e) {
+      print('❌ WebAuthn registration options exception: $e');
+      return (false, null, 'Network error: ${e.toString()}');
     }
   }
 
@@ -560,42 +575,73 @@ class AuthApi {
     Map<String, dynamic> credential,
   ) async {
     final client = ApiClient.instance;
-    final res = await client.post(
-      ApiConfig.webauthnRegVerify,
-      body: json.encode(credential),
-      auth: true,
-    );
-
-    if (res.statusCode == 200) {
-      return (true, 'Biometric login enabled successfully');
-    }
-
+    
     try {
-      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-      return (false, data['message']?.toString() ?? 'Failed to verify registration');
-    } catch (_) {
-      return (false, 'Failed to verify registration (${res.statusCode})');
+      print('🔵 Verifying WebAuthn registration with backend: ${ApiConfig.baseUrl}${ApiConfig.webauthnRegVerify}');
+      
+      final res = await client.post(
+        ApiConfig.webauthnRegVerify,
+        body: json.encode(credential),
+        auth: true,
+      );
+
+      print('🔵 Backend response status: ${res.statusCode}');
+      print('🔵 Backend response body: ${res.body}');
+
+      if (res.statusCode == 200) {
+        print('✅ WebAuthn registration verified successfully');
+        return (true, 'Biometric login enabled successfully');
+      }
+
+      try {
+        final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+        final errorMessage = data['message']?.toString() ?? 'Failed to verify registration';
+        print('❌ WebAuthn registration verification failed: $errorMessage');
+        return (false, errorMessage);
+      } catch (e) {
+        print('❌ Failed to parse error response: $e');
+        return (false, 'Failed to verify registration (${res.statusCode})');
+      }
+    } catch (e) {
+      print('❌ WebAuthn registration verification exception: $e');
+      return (false, 'Network error: ${e.toString()}');
     }
   }
 
   static Future<(bool success, Map<String, dynamic>? options, String? message)>
   getWebAuthnLoginOptions(String email) async {
     final client = ApiClient.instance;
-    final res = await client.post(
-      ApiConfig.webauthnLoginOptions,
-      body: json.encode({'email': email}),
-    );
-
-    if (res.statusCode == 200) {
-      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-      return (true, data, null);
-    }
-
+    
     try {
-      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-      return (false, null, data['message']?.toString() ?? 'Failed to get login options');
-    } catch (_) {
-      return (false, null, 'Failed to get login options (${res.statusCode})');
+      print('🔵 Requesting WebAuthn login options from backend: ${ApiConfig.baseUrl}${ApiConfig.webauthnLoginOptions}');
+      print('🔵 Email: $email');
+      
+      final res = await client.post(
+        ApiConfig.webauthnLoginOptions,
+        body: json.encode({'email': email}),
+      );
+
+      print('🔵 Backend response status: ${res.statusCode}');
+      print('🔵 Backend response body: ${res.body}');
+
+      if (res.statusCode == 200) {
+        final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+        print('✅ WebAuthn login options received successfully');
+        return (true, data, null);
+      }
+
+      try {
+        final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+        final errorMessage = data['message']?.toString() ?? 'Failed to get login options';
+        print('❌ WebAuthn login options failed: $errorMessage');
+        return (false, null, errorMessage);
+      } catch (e) {
+        print('❌ Failed to parse error response: $e');
+        return (false, null, 'Failed to get login options (${res.statusCode})');
+      }
+    } catch (e) {
+      print('❌ WebAuthn login options exception: $e');
+      return (false, null, 'Network error: ${e.toString()}');
     }
   }
 
@@ -607,30 +653,47 @@ class AuthApi {
     await prefs.remove('jwt_token');
 
     final client = ApiClient.instance;
-    final res = await client.post(
-      ApiConfig.webauthnLoginVerify,
-      body: json.encode({
-        'email': email,
-        ...assertion,
-      }),
-    );
-
-    if (res.statusCode == 200) {
-      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-      final token = data['access_token'] as String?;
-      if (token == null || token.isEmpty) {
-        return (false, 'No access token in response');
-      }
-      await prefs.setString('jwt_token', token);
-      await prefs.setString('user_email', email);
-      return (true, null);
-    }
-
+    
     try {
-      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-      return (false, data['message']?.toString() ?? 'Login failed');
-    } catch (_) {
-      return (false, 'Login failed (${res.statusCode})');
+      print('🔵 Verifying WebAuthn login with backend: ${ApiConfig.baseUrl}${ApiConfig.webauthnLoginVerify}');
+      print('🔵 Email: $email');
+      
+      final res = await client.post(
+        ApiConfig.webauthnLoginVerify,
+        body: json.encode({
+          'email': email,
+          ...assertion,
+        }),
+      );
+
+      print('🔵 Backend response status: ${res.statusCode}');
+      print('🔵 Backend response body: ${res.body}');
+
+      if (res.statusCode == 200) {
+        final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+        final token = data['access_token'] as String?;
+        if (token == null || token.isEmpty) {
+          print('❌ No access token in response');
+          return (false, 'No access token in response');
+        }
+        await prefs.setString('jwt_token', token);
+        await prefs.setString('user_email', email);
+        print('✅ WebAuthn login successful');
+        return (true, null);
+      }
+
+      try {
+        final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+        final errorMessage = data['message']?.toString() ?? 'Login failed';
+        print('❌ WebAuthn login failed: $errorMessage');
+        return (false, errorMessage);
+      } catch (e) {
+        print('❌ Failed to parse error response: $e');
+        return (false, 'Login failed (${res.statusCode})');
+      }
+    } catch (e) {
+      print('❌ WebAuthn login verification exception: $e');
+      return (false, 'Network error: ${e.toString()}');
     }
   }
 }
