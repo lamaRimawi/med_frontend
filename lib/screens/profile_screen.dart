@@ -866,7 +866,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     () => setState(() => _currentScreen = 'support'),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 40),
 
                   // Logout Button styled like menu items
                   GestureDetector(
@@ -1018,7 +1018,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ),
                   ),
                   const SizedBox(
-                    height: 100,
+                    height: 120,
                   ), // Extra space to avoid bottom nav bar
                 ],
               ),
