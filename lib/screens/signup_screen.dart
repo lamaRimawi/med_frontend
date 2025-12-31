@@ -174,8 +174,12 @@ class _SignupScreenState extends State<SignupScreen> {
             }
           }
           
-          // Send ID token to backend - backend should check if user exists and login/register accordingly
-          final (success, message) = await AuthApi.loginWithGoogle(userData['idToken'] as String);
+          // Send ID token and access token to backend - backend should check if user exists and login/register accordingly
+          // accessToken is needed to get birthday and phone number from Google
+          final (success, message) = await AuthApi.loginWithGoogle(
+            userData['idToken'] as String,
+            accessToken: userData['accessToken'] as String?,
+          );
           
           if (mounted) {
             if (success) {

@@ -16,7 +16,7 @@ class AuthApi {
     final prefs = await SharedPreferences.getInstance();
     final accountsJson = prefs.getString(_googleAccountsKey);
     Set<String> accounts = {};
-    
+
     if (accountsJson != null) {
       try {
         final List<dynamic> accountsList = json.decode(accountsJson);
@@ -25,7 +25,7 @@ class AuthApi {
         print('Error parsing Google accounts: $e');
       }
     }
-    
+
     accounts.add(email.toLowerCase().trim());
     await prefs.setString(_googleAccountsKey, json.encode(accounts.toList()));
     print('✅ Saved Google account: $email');
@@ -36,7 +36,7 @@ class AuthApi {
     final prefs = await SharedPreferences.getInstance();
     final accountsJson = prefs.getString(_facebookAccountsKey);
     Set<String> accounts = {};
-    
+
     if (accountsJson != null) {
       try {
         final List<dynamic> accountsList = json.decode(accountsJson);
@@ -45,7 +45,7 @@ class AuthApi {
         print('Error parsing Facebook accounts: $e');
       }
     }
-    
+
     accounts.add(email.toLowerCase().trim());
     await prefs.setString(_facebookAccountsKey, json.encode(accounts.toList()));
     print('✅ Saved Facebook account: $email');
@@ -55,12 +55,14 @@ class AuthApi {
   static Future<bool> hasGoogleAccount(String email) async {
     final prefs = await SharedPreferences.getInstance();
     final accountsJson = prefs.getString(_googleAccountsKey);
-    
+
     if (accountsJson == null) return false;
-    
+
     try {
       final List<dynamic> accountsList = json.decode(accountsJson);
-      final accounts = accountsList.map((e) => e.toString().toLowerCase().trim()).toSet();
+      final accounts = accountsList
+          .map((e) => e.toString().toLowerCase().trim())
+          .toSet();
       return accounts.contains(email.toLowerCase().trim());
     } catch (e) {
       print('Error checking Google account: $e');
@@ -72,12 +74,14 @@ class AuthApi {
   static Future<bool> hasFacebookAccount(String email) async {
     final prefs = await SharedPreferences.getInstance();
     final accountsJson = prefs.getString(_facebookAccountsKey);
-    
+
     if (accountsJson == null) return false;
-    
+
     try {
       final List<dynamic> accountsList = json.decode(accountsJson);
-      final accounts = accountsList.map((e) => e.toString().toLowerCase().trim()).toSet();
+      final accounts = accountsList
+          .map((e) => e.toString().toLowerCase().trim())
+          .toSet();
       return accounts.contains(email.toLowerCase().trim());
     } catch (e) {
       print('Error checking Facebook account: $e');
@@ -89,9 +93,9 @@ class AuthApi {
   static Future<List<String>> getGoogleAccounts() async {
     final prefs = await SharedPreferences.getInstance();
     final accountsJson = prefs.getString(_googleAccountsKey);
-    
+
     if (accountsJson == null) return [];
-    
+
     try {
       final List<dynamic> accountsList = json.decode(accountsJson);
       return accountsList.map((e) => e.toString()).toList();
@@ -105,9 +109,9 @@ class AuthApi {
   static Future<List<String>> getFacebookAccounts() async {
     final prefs = await SharedPreferences.getInstance();
     final accountsJson = prefs.getString(_facebookAccountsKey);
-    
+
     if (accountsJson == null) return [];
-    
+
     try {
       final List<dynamic> accountsList = json.decode(accountsJson);
       return accountsList.map((e) => e.toString()).toList();
@@ -124,7 +128,7 @@ class AuthApi {
     final client = ApiClient.instance;
     final res = await client.post(
       ApiConfig.verifyResetCode,
-      body: json.encode({'email': email, 'code': code}),
+      body: {'email': email, 'code': code},
     );
 
     if (res.statusCode == 200) {
@@ -150,15 +154,15 @@ class AuthApi {
   }) async {
     // Get SharedPreferences instance
     final prefs = await SharedPreferences.getInstance();
-    
+
     // Clear any old token before attempting new login
     await prefs.remove('jwt_token');
-    
+
     final client = ApiClient.instance;
 
     final res = await client.post(
       ApiConfig.login,
-      body: json.encode({'email': email, 'password': password}),
+      body: {'email': email, 'password': password},
     );
 
     if (res.statusCode == 200) {
@@ -168,12 +172,12 @@ class AuthApi {
         return (false, 'No access token in response');
       }
       await prefs.setString('jwt_token', token);
-      
+
       // Save the password locally after successful login
       await prefs.setString('user_password', password);
       // Save the email locally for biometric login
       await prefs.setString('user_email', email);
-      
+
       return (true, null);
     }
 
@@ -186,18 +190,39 @@ class AuthApi {
   }
 
   static Future<(bool success, String? message)> loginWithGoogle(
-      String idToken) async {
+    String idToken, {
+    String? accessToken,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('jwt_token');
 
     final client = ApiClient.instance;
 
     try {
-      print('🔵 Sending Google ID token to backend: ${ApiConfig.baseUrl}${ApiConfig.googleLogin}');
-      
+      print(
+        '🔵 Sending Google authentication to backend: ${ApiConfig.baseUrl}${ApiConfig.googleLogin}',
+      );
+      print('📋 Google Data Being Sent:');
+      print('   - ID Token: ${idToken.substring(0, 50)}...');
+      if (accessToken != null && accessToken.isNotEmpty) {
+        print(
+          '   - Access Token: ${accessToken.substring(0, 50)}... ✅ (for birthday & phone)',
+        );
+      } else {
+        print(
+          '   - Access Token: ❌ Not available (birthday & phone may not be retrieved)',
+        );
+      }
+
+      // Send both id_token and access_token if available
+      final body = <String, dynamic>{'id_token': idToken};
+      if (accessToken != null && accessToken.isNotEmpty) {
+        body['access_token'] = accessToken;
+      }
+
       final res = await client.post(
         ApiConfig.googleLogin,
-        body: {'id_token': idToken}, // Pass Map directly, ApiClient will encode it
+        body: body, // Pass Map directly, ApiClient will encode it
       );
 
       print('🔵 Backend response status: ${res.statusCode}');
@@ -221,7 +246,7 @@ class AuthApi {
           // Save this Google account to prevent duplicate account creation
           await _saveGoogleAccount(email);
         }
-        
+
         print('✅ Google login successful for email: $email');
         return (true, null);
       }
@@ -229,9 +254,10 @@ class AuthApi {
       // Handle error responses
       try {
         final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-        final errorMessage = data['message']?.toString() ?? 
-                           data['detail']?.toString() ?? 
-                           'Google login failed';
+        final errorMessage =
+            data['message']?.toString() ??
+            data['detail']?.toString() ??
+            'Google login failed';
         print('❌ Google login failed: $errorMessage');
         return (false, errorMessage);
       } catch (e) {
@@ -245,18 +271,28 @@ class AuthApi {
   }
 
   static Future<(bool success, String? message)> loginWithFacebook(
-      String accessToken) async {
+    String accessToken,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('jwt_token');
 
     final client = ApiClient.instance;
 
     try {
-      print('🔵 Sending Facebook access token to backend: ${ApiConfig.baseUrl}${ApiConfig.facebookLogin}');
-      
+      print(
+        '🔵 Sending Facebook access token to backend: ${ApiConfig.baseUrl}${ApiConfig.facebookLogin}',
+      );
+      print('📋 Facebook Data Being Sent:');
+      print('   - Access Token: ${accessToken.substring(0, 50)}...');
+      print(
+        '   - Permissions requested: email, public_profile, user_birthday, user_phone_number',
+      );
+
       final res = await client.post(
         ApiConfig.facebookLogin,
-        body: {'access_token': accessToken}, // Pass Map directly, ApiClient will encode it
+        body: {
+          'access_token': accessToken,
+        }, // Pass Map directly, ApiClient will encode it
       );
 
       print('🔵 Backend response status: ${res.statusCode}');
@@ -280,7 +316,7 @@ class AuthApi {
           // Save this Facebook account to prevent duplicate account creation
           await _saveFacebookAccount(email);
         }
-        
+
         print('✅ Facebook login successful for email: $email');
         return (true, null);
       }
@@ -288,9 +324,10 @@ class AuthApi {
       // Handle error responses
       try {
         final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-        final errorMessage = data['message']?.toString() ?? 
-                           data['detail']?.toString() ?? 
-                           'Facebook login failed';
+        final errorMessage =
+            data['message']?.toString() ??
+            data['detail']?.toString() ??
+            'Facebook login failed';
         print('❌ Facebook login failed: $errorMessage');
         return (false, errorMessage);
       } catch (e) {
@@ -328,14 +365,14 @@ class AuthApi {
 
     final res = await client.post(
       ApiConfig.register,
-      body: json.encode({
+      body: {
         'first_name': firstName,
         'last_name': lastName,
         'email': email,
         'phone_number': phone,
         'password': password,
         'date_of_birth': dobString,
-      }),
+      },
     );
 
     if (res.statusCode == 200 || res.statusCode == 201) {
@@ -363,7 +400,7 @@ class AuthApi {
     final client = ApiClient.instance;
     final res = await client.post(
       ApiConfig.forgotPassword,
-      body: json.encode({'email': email}),
+      body: {'email': email},
     );
 
     if (res.statusCode == 200) {
@@ -392,7 +429,7 @@ class AuthApi {
     final client = ApiClient.instance;
     final res = await client.post(
       ApiConfig.verifyEmail,
-      body: json.encode({'email': email, 'code': code}),
+      body: {'email': email, 'code': code},
     );
 
     if (res.statusCode == 200) {
@@ -413,7 +450,7 @@ class AuthApi {
     final client = ApiClient.instance;
     final res = await client.post(
       ApiConfig.resendVerification,
-      body: json.encode({'email': email}),
+      body: {'email': email},
     );
 
     if (res.statusCode == 200) {
@@ -436,11 +473,7 @@ class AuthApi {
     final client = ApiClient.instance;
     final res = await client.post(
       ApiConfig.resetPassword,
-      body: json.encode({
-        'email': email,
-        'code': code,
-        'new_password': newPassword,
-      }),
+      body: {'email': email, 'code': code, 'new_password': newPassword},
     );
 
     if (res.statusCode == 200) {
@@ -463,11 +496,11 @@ class AuthApi {
     final client = ApiClient.instance;
     final res = await client.post(
       ApiConfig.changePassword,
-      body: json.encode({
+      body: {
         'email': email,
         'old_password': oldPassword,
         'new_password': newPassword,
-      }),
+      },
       auth: true,
       skipGlobalLogoutOn401: true,
     );
@@ -519,7 +552,7 @@ class AuthApi {
     final client = ApiClient.instance;
     final res = await client.put(
       ApiConfig.userProfile,
-      body: json.encode(user.toJson()),
+      body: user.toJson(),
       auth: true,
     );
 
@@ -541,10 +574,12 @@ class AuthApi {
   static Future<(bool success, Map<String, dynamic>? options, String? message)>
   getWebAuthnRegistrationOptions() async {
     final client = ApiClient.instance;
-    
+
     try {
-      print('🔵 Requesting WebAuthn registration options from backend: ${ApiConfig.baseUrl}${ApiConfig.webauthnRegOptions}');
-      
+      print(
+        '🔵 Requesting WebAuthn registration options from backend: ${ApiConfig.baseUrl}${ApiConfig.webauthnRegOptions}',
+      );
+
       final res = await client.post(ApiConfig.webauthnRegOptions, auth: true);
 
       print('🔵 Backend response status: ${res.statusCode}');
@@ -558,12 +593,17 @@ class AuthApi {
 
       try {
         final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-        final errorMessage = data['message']?.toString() ?? 'Failed to get registration options';
+        final errorMessage =
+            data['message']?.toString() ?? 'Failed to get registration options';
         print('❌ WebAuthn registration options failed: $errorMessage');
         return (false, null, errorMessage);
       } catch (e) {
         print('❌ Failed to parse error response: $e');
-        return (false, null, 'Failed to get registration options (${res.statusCode})');
+        return (
+          false,
+          null,
+          'Failed to get registration options (${res.statusCode})',
+        );
       }
     } catch (e) {
       print('❌ WebAuthn registration options exception: $e');
@@ -575,13 +615,15 @@ class AuthApi {
     Map<String, dynamic> credential,
   ) async {
     final client = ApiClient.instance;
-    
+
     try {
-      print('🔵 Verifying WebAuthn registration with backend: ${ApiConfig.baseUrl}${ApiConfig.webauthnRegVerify}');
-      
+      print(
+        '🔵 Verifying WebAuthn registration with backend: ${ApiConfig.baseUrl}${ApiConfig.webauthnRegVerify}',
+      );
+
       final res = await client.post(
         ApiConfig.webauthnRegVerify,
-        body: json.encode(credential),
+        body: credential,
         auth: true,
       );
 
@@ -595,7 +637,8 @@ class AuthApi {
 
       try {
         final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-        final errorMessage = data['message']?.toString() ?? 'Failed to verify registration';
+        final errorMessage =
+            data['message']?.toString() ?? 'Failed to verify registration';
         print('❌ WebAuthn registration verification failed: $errorMessage');
         return (false, errorMessage);
       } catch (e) {
@@ -611,14 +654,16 @@ class AuthApi {
   static Future<(bool success, Map<String, dynamic>? options, String? message)>
   getWebAuthnLoginOptions(String email) async {
     final client = ApiClient.instance;
-    
+
     try {
-      print('🔵 Requesting WebAuthn login options from backend: ${ApiConfig.baseUrl}${ApiConfig.webauthnLoginOptions}');
+      print(
+        '🔵 Requesting WebAuthn login options from backend: ${ApiConfig.baseUrl}${ApiConfig.webauthnLoginOptions}',
+      );
       print('🔵 Email: $email');
-      
+
       final res = await client.post(
         ApiConfig.webauthnLoginOptions,
-        body: json.encode({'email': email}),
+        body: {'email': email},
       );
 
       print('🔵 Backend response status: ${res.statusCode}');
@@ -632,7 +677,8 @@ class AuthApi {
 
       try {
         final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-        final errorMessage = data['message']?.toString() ?? 'Failed to get login options';
+        final errorMessage =
+            data['message']?.toString() ?? 'Failed to get login options';
         print('❌ WebAuthn login options failed: $errorMessage');
         return (false, null, errorMessage);
       } catch (e) {
@@ -653,17 +699,16 @@ class AuthApi {
     await prefs.remove('jwt_token');
 
     final client = ApiClient.instance;
-    
+
     try {
-      print('🔵 Verifying WebAuthn login with backend: ${ApiConfig.baseUrl}${ApiConfig.webauthnLoginVerify}');
+      print(
+        '🔵 Verifying WebAuthn login with backend: ${ApiConfig.baseUrl}${ApiConfig.webauthnLoginVerify}',
+      );
       print('🔵 Email: $email');
-      
+
       final res = await client.post(
         ApiConfig.webauthnLoginVerify,
-        body: json.encode({
-          'email': email,
-          ...assertion,
-        }),
+        body: {'email': email, ...assertion},
       );
 
       print('🔵 Backend response status: ${res.statusCode}');

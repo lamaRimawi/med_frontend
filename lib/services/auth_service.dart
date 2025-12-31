@@ -37,12 +37,15 @@ class AuthService {
 
       if (user != null) {
         print('Google Sign-In successful: ${user.email}');
+        print('Google Display Name: ${user.displayName}');
+        print('Google Photo URL: ${user.photoURL}');
         return {
           'id': user.uid,
           'email': user.email,
           'displayName': user.displayName,
           'photoUrl': user.photoURL,
           'idToken': googleAuth.idToken, // To send to backend
+          'accessToken': googleAuth.accessToken, // Important for getting birthday and phone
         };
       }
       return null;
@@ -78,6 +81,7 @@ class AuthService {
           'displayName': user.displayName,
           'photoUrl': user.photoURL,
           'idToken': googleAuth.idToken,
+          'accessToken': googleAuth.accessToken, // Important for getting birthday and phone
         };
       }
       return null;
@@ -90,16 +94,31 @@ class AuthService {
   // Facebook Login
   static Future<Map<String, dynamic>?> signInWithFacebook() async {
     try {
+      // Request additional permissions for birthday and phone number
       final LoginResult result = await FacebookAuth.instance.login(
-        permissions: const ['email', 'public_profile'],
+        permissions: const [
+          'email',
+          'public_profile',
+          'user_birthday',      // For date of birth
+          'user_phone_number',  // For phone number (if available)
+        ],
       );
 
       if (result.status == LoginStatus.success) {
-        // Get user data
-        final userData = await FacebookAuth.instance.getUserData();
+        // Get user data with all requested permissions
+        final userData = await FacebookAuth.instance.getUserData(
+          fields: 'email,name,first_name,last_name,picture,birthday,phone',
+        );
         print('Facebook Login successful');
         print('Access Token: ${result.accessToken?.tokenString}');
         print('User Data: $userData');
+        print('📋 Facebook Data Retrieved:');
+        print('   - Email: ${userData['email']}');
+        print('   - Name: ${userData['name']}');
+        print('   - First Name: ${userData['first_name']}');
+        print('   - Last Name: ${userData['last_name']}');
+        print('   - Birthday: ${userData['birthday']}');
+        print('   - Phone: ${userData['phone']}');
 
         // TODO: Send token to your backend
         // final response = await http.post(

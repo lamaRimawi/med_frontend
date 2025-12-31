@@ -10,10 +10,7 @@ class UserService {
 
   Future<User> getUserProfile() async {
     try {
-      final response = await _client.get(
-        ApiConfig.userProfile,
-        auth: true,
-      );
+      final response = await _client.get(ApiConfig.userProfile, auth: true);
 
       if (response.statusCode == 200) {
         final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
@@ -29,7 +26,10 @@ class UserService {
     }
   }
 
-  Future<void> updateUserProfile(Map<String, String> data, {File? imageFile}) async {
+  Future<void> updateUserProfile(
+    Map<String, String> data, {
+    File? imageFile,
+  }) async {
     try {
       final response = await _client.putMultipart(
         ApiConfig.userProfile,
@@ -51,13 +51,13 @@ class UserService {
       final response = await _client.delete(
         ApiConfig.deleteAccount,
         auth: true,
-        body: json.encode({'password': password}),
+        body: {'password': password},
       );
 
       if (response.statusCode != 200) {
         throw Exception('Failed to delete account: ${response.statusCode}');
       }
-      
+
       // Clear all local data upon successful deletion
       await User.clearFromPrefs();
       final prefs = await SharedPreferences.getInstance();

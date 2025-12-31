@@ -56,7 +56,10 @@ class _WebLandingScreenState extends State<WebLandingScreen> {
     if (lastMethod == 'google') {
       final userData = await AuthService.trySilentGoogleLogin();
       if (userData != null && mounted) {
-        final (success, _) = await AuthApi.loginWithGoogle(userData['idToken']);
+        final (success, _) = await AuthApi.loginWithGoogle(
+          userData['idToken'] as String? ?? '',
+          accessToken: userData['accessToken'] as String?,
+        );
         if (success && mounted) {
           Navigator.pushReplacementNamed(context, '/home');
         }
