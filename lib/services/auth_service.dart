@@ -17,13 +17,14 @@ class AuthService {
   static Future<Map<String, dynamic>?> signInWithGoogle() async {
     try {
       print('Google Sign-In initiated');
-      
+
       // Trigger the authentication flow
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null; // User cancelled
 
       // Obtain the auth details from the request
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
       // Create a new credential
       final AuthCredential credential = GoogleAuthProvider.credential(
@@ -32,7 +33,9 @@ class AuthService {
       );
 
       // Once signed in, return the UserCredential
-      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+      final UserCredential userCredential = await _auth.signInWithCredential(
+        credential,
+      );
       final User? user = userCredential.user;
 
       if (user != null) {
@@ -45,10 +48,24 @@ class AuthService {
           'displayName': user.displayName,
           'photoUrl': user.photoURL,
           'idToken': googleAuth.idToken, // To send to backend
-          'accessToken': googleAuth.accessToken, // Important for getting birthday and phone
+          'accessToken': googleAuth
+              .accessToken, // Important for getting birthday and phone
         };
       }
       return null;
+    } on PlatformException catch (error) {
+      print(
+        'Google Sign-In Platform Exception: ${error.code} - ${error.message}',
+      );
+      if (error.code == 'sign_in_failed' || error.code == 'exception') {
+        print(
+          '⚠️ This is often caused by a missing SHA-1 fingerprint in the Firebase Console.',
+        );
+        print(
+          '⚠️ Make sure you have added the SHA-1 fingerprint of your debug keystore to the Firebase project settings.',
+        );
+      }
+      rethrow;
     } catch (error) {
       print('Google Sign-In Error: $error');
       rethrow;
@@ -62,16 +79,20 @@ class AuthService {
 
   static Future<Map<String, dynamic>?> trySilentGoogleLogin() async {
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signInSilently();
+      final GoogleSignInAccount? googleUser = await _googleSignIn
+          .signInSilently();
       if (googleUser == null) return null;
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+      final UserCredential userCredential = await _auth.signInWithCredential(
+        credential,
+      );
       final User? user = userCredential.user;
 
       if (user != null) {
@@ -81,7 +102,8 @@ class AuthService {
           'displayName': user.displayName,
           'photoUrl': user.photoURL,
           'idToken': googleAuth.idToken,
-          'accessToken': googleAuth.accessToken, // Important for getting birthday and phone
+          'accessToken': googleAuth
+              .accessToken, // Important for getting birthday and phone
         };
       }
       return null;
@@ -94,20 +116,15 @@ class AuthService {
   // Facebook Login
   static Future<Map<String, dynamic>?> signInWithFacebook() async {
     try {
-      // Request additional permissions for birthday and phone number
+      // Request additional permissions
       final LoginResult result = await FacebookAuth.instance.login(
-        permissions: const [
-          'email',
-          'public_profile',
-          'user_birthday',      // For date of birth
-          'user_phone_number',  // For phone number (if available)
-        ],
+        permissions: const ['email', 'public_profile'],
       );
 
       if (result.status == LoginStatus.success) {
         // Get user data with all requested permissions
         final userData = await FacebookAuth.instance.getUserData(
-          fields: 'email,name,first_name,last_name,picture,birthday,phone',
+          fields: 'email,name,first_name,last_name,picture',
         );
         print('Facebook Login successful');
         print('Access Token: ${result.accessToken?.tokenString}');
@@ -117,8 +134,6 @@ class AuthService {
         print('   - Name: ${userData['name']}');
         print('   - First Name: ${userData['first_name']}');
         print('   - Last Name: ${userData['last_name']}');
-        print('   - Birthday: ${userData['birthday']}');
-        print('   - Phone: ${userData['phone']}');
 
         // TODO: Send token to your backend
         // final response = await http.post(
@@ -126,12 +141,11 @@ class AuthService {
         //   body: {'accessToken': result.accessToken?.tokenString},
         // );
 
-        return {
-          ...userData,
-          'accessToken': result.accessToken?.tokenString,
-        };
+        return {...userData, 'accessToken': result.accessToken?.tokenString};
       } else {
-        print('Facebook Login failed: status=${result.status}, message=${result.message}');
+        print(
+          'Facebook Login failed: status=${result.status}, message=${result.message}',
+        );
         return null;
       }
     } catch (e, stack) {
@@ -219,15 +233,19 @@ class AuthService {
     }
     return 'Biometric';
   }
+
   static Future<(bool success, String? message)> loginWithBiometrics() async {
     try {
       print('🔐 Starting biometric authentication...');
-      
+
       // First, check if biometrics are available
       final canAuth = await canCheckBiometrics() || await isDeviceSupported();
       if (!canAuth) {
         print('❌ Biometrics not available on this device');
-        return (false, 'Biometric authentication is not available on this device');
+        return (
+          false,
+          'Biometric authentication is not available on this device',
+        );
       }
 
       // Authenticate with biometrics (Face ID/Fingerprint)
@@ -242,12 +260,13 @@ class AuthService {
       // Check for stored credentials
       final prefs = await SharedPreferences.getInstance();
       final jwtToken = prefs.getString('jwt_token');
-      
+
       // First, try to verify existing token with backend
       if (jwtToken != null && jwtToken.isNotEmpty) {
         print('🔵 Checking existing token with backend...');
-        final (profileSuccess, user, profileMessage) = await AuthApi.getUserProfile();
-        
+        final (profileSuccess, user, profileMessage) =
+            await AuthApi.getUserProfile();
+
         if (profileSuccess && user != null) {
           print('✅ Valid session found, logged in successfully');
           return (true, null);
@@ -267,17 +286,23 @@ class AuthService {
           email: savedEmail,
           password: savedPassword,
         );
-        
+
         if (loginSuccess) {
           print('✅ Biometric login successful via backend');
           return (true, null);
         } else {
           print('❌ Backend login failed: $loginMessage');
-          return (false, loginMessage ?? 'Login failed. Please log in with password.');
+          return (
+            false,
+            loginMessage ?? 'Login failed. Please log in with password.',
+          );
         }
       } else {
         print('❌ No saved credentials found');
-        return (false, 'No saved credentials found. Please log in with password first.');
+        return (
+          false,
+          'No saved credentials found. Please log in with password first.',
+        );
       }
     } catch (e) {
       print('❌ Biometric login error: $e');
