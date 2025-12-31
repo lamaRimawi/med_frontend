@@ -151,6 +151,29 @@ class _SignupScreenState extends State<SignupScreen> {
       if (provider == 'Google') {
         final userData = await AuthService.signInWithGoogle();
         if (userData != null && mounted) {
+          final email = userData['email'] as String?;
+          
+          // Check if this Google account already exists
+          if (email != null) {
+            final accountExists = await AuthApi.hasGoogleAccount(email);
+            if (accountExists) {
+              // Account already exists, redirect to login
+              setState(() {
+                _alertMessage = 'This Google account is already registered. Please log in instead.';
+                _isAlertError = true;
+                _isLoading = false;
+              });
+              
+              // Navigate to login screen after a delay
+              Future.delayed(const Duration(seconds: 2), () {
+                if (mounted) {
+                  Navigator.pushReplacementNamed(context, '/login');
+                }
+              });
+              return;
+            }
+          }
+          
           // Send ID token to backend - backend should check if user exists and login/register accordingly
           final (success, message) = await AuthApi.loginWithGoogle(userData['idToken'] as String);
           
@@ -197,6 +220,29 @@ class _SignupScreenState extends State<SignupScreen> {
       } else if (provider == 'Facebook') {
         final userData = await AuthService.signInWithFacebook();
         if (userData != null && mounted) {
+          final email = userData['email'] as String?;
+          
+          // Check if this Facebook account already exists
+          if (email != null) {
+            final accountExists = await AuthApi.hasFacebookAccount(email);
+            if (accountExists) {
+              // Account already exists, redirect to login
+              setState(() {
+                _alertMessage = 'This Facebook account is already registered. Please log in instead.';
+                _isAlertError = true;
+                _isLoading = false;
+              });
+              
+              // Navigate to login screen after a delay
+              Future.delayed(const Duration(seconds: 2), () {
+                if (mounted) {
+                  Navigator.pushReplacementNamed(context, '/login');
+                }
+              });
+              return;
+            }
+          }
+          
           // Send access token to backend - backend should check if user exists and login/register accordingly
           final (success, message) =
               await AuthApi.loginWithFacebook(userData['accessToken'] as String);

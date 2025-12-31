@@ -7,6 +7,116 @@ import '../models/user_model.dart';
 import 'api_client.dart';
 
 class AuthApi {
+  // Keys for storing social accounts
+  static const String _googleAccountsKey = 'google_accounts';
+  static const String _facebookAccountsKey = 'facebook_accounts';
+
+  // Save a Google account email to the list of registered accounts
+  static Future<void> _saveGoogleAccount(String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    final accountsJson = prefs.getString(_googleAccountsKey);
+    Set<String> accounts = {};
+    
+    if (accountsJson != null) {
+      try {
+        final List<dynamic> accountsList = json.decode(accountsJson);
+        accounts = accountsList.map((e) => e.toString()).toSet();
+      } catch (e) {
+        print('Error parsing Google accounts: $e');
+      }
+    }
+    
+    accounts.add(email.toLowerCase().trim());
+    await prefs.setString(_googleAccountsKey, json.encode(accounts.toList()));
+    print('✅ Saved Google account: $email');
+  }
+
+  // Save a Facebook account email to the list of registered accounts
+  static Future<void> _saveFacebookAccount(String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    final accountsJson = prefs.getString(_facebookAccountsKey);
+    Set<String> accounts = {};
+    
+    if (accountsJson != null) {
+      try {
+        final List<dynamic> accountsList = json.decode(accountsJson);
+        accounts = accountsList.map((e) => e.toString()).toSet();
+      } catch (e) {
+        print('Error parsing Facebook accounts: $e');
+      }
+    }
+    
+    accounts.add(email.toLowerCase().trim());
+    await prefs.setString(_facebookAccountsKey, json.encode(accounts.toList()));
+    print('✅ Saved Facebook account: $email');
+  }
+
+  // Check if a Google account exists in saved accounts
+  static Future<bool> hasGoogleAccount(String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    final accountsJson = prefs.getString(_googleAccountsKey);
+    
+    if (accountsJson == null) return false;
+    
+    try {
+      final List<dynamic> accountsList = json.decode(accountsJson);
+      final accounts = accountsList.map((e) => e.toString().toLowerCase().trim()).toSet();
+      return accounts.contains(email.toLowerCase().trim());
+    } catch (e) {
+      print('Error checking Google account: $e');
+      return false;
+    }
+  }
+
+  // Check if a Facebook account exists in saved accounts
+  static Future<bool> hasFacebookAccount(String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    final accountsJson = prefs.getString(_facebookAccountsKey);
+    
+    if (accountsJson == null) return false;
+    
+    try {
+      final List<dynamic> accountsList = json.decode(accountsJson);
+      final accounts = accountsList.map((e) => e.toString().toLowerCase().trim()).toSet();
+      return accounts.contains(email.toLowerCase().trim());
+    } catch (e) {
+      print('Error checking Facebook account: $e');
+      return false;
+    }
+  }
+
+  // Get all saved Google accounts
+  static Future<List<String>> getGoogleAccounts() async {
+    final prefs = await SharedPreferences.getInstance();
+    final accountsJson = prefs.getString(_googleAccountsKey);
+    
+    if (accountsJson == null) return [];
+    
+    try {
+      final List<dynamic> accountsList = json.decode(accountsJson);
+      return accountsList.map((e) => e.toString()).toList();
+    } catch (e) {
+      print('Error getting Google accounts: $e');
+      return [];
+    }
+  }
+
+  // Get all saved Facebook accounts
+  static Future<List<String>> getFacebookAccounts() async {
+    final prefs = await SharedPreferences.getInstance();
+    final accountsJson = prefs.getString(_facebookAccountsKey);
+    
+    if (accountsJson == null) return [];
+    
+    try {
+      final List<dynamic> accountsList = json.decode(accountsJson);
+      return accountsList.map((e) => e.toString()).toList();
+    } catch (e) {
+      print('Error getting Facebook accounts: $e');
+      return [];
+    }
+  }
+
   static Future<(bool success, String? message)> verifyResetCode({
     required String email,
     required String code,
@@ -108,6 +218,8 @@ class AuthApi {
         final email = user?['email'] as String? ?? data['email'] as String?;
         if (email != null) {
           await prefs.setString('user_email', email);
+          // Save this Google account to prevent duplicate account creation
+          await _saveGoogleAccount(email);
         }
         
         print('✅ Google login successful for email: $email');
@@ -165,6 +277,8 @@ class AuthApi {
         final email = user?['email'] as String? ?? data['email'] as String?;
         if (email != null) {
           await prefs.setString('user_email', email);
+          // Save this Facebook account to prevent duplicate account creation
+          await _saveFacebookAccount(email);
         }
         
         print('✅ Facebook login successful for email: $email');

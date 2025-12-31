@@ -228,6 +228,23 @@ class _AuthModalState extends State<AuthModal> {
       if (provider == 'Google') {
         final userData = await AuthService.signInWithGoogle();
         if (userData != null && mounted) {
+          final email = userData['email'] as String?;
+          
+          // If in signup mode, check if account already exists
+          if (!_isLogin && email != null) {
+            final accountExists = await AuthApi.hasGoogleAccount(email);
+            if (accountExists) {
+              // Account already exists, show message and switch to login mode
+              setState(() {
+                _alertMessage = 'This Google account is already registered. Please log in instead.';
+                _isAlertError = true;
+                _isLoading = false;
+                _isLogin = true; // Switch to login mode
+              });
+              return;
+            }
+          }
+          
           // Send ID token to backend - backend should check if user exists and login/register accordingly
           final (success, message) = await AuthApi.loginWithGoogle(userData['idToken'] as String);
           if (mounted) {
@@ -255,6 +272,23 @@ class _AuthModalState extends State<AuthModal> {
       } else if (provider == 'Facebook') {
         final userData = await AuthService.signInWithFacebook();
         if (userData != null && mounted) {
+          final email = userData['email'] as String?;
+          
+          // If in signup mode, check if account already exists
+          if (!_isLogin && email != null) {
+            final accountExists = await AuthApi.hasFacebookAccount(email);
+            if (accountExists) {
+              // Account already exists, show message and switch to login mode
+              setState(() {
+                _alertMessage = 'This Facebook account is already registered. Please log in instead.';
+                _isAlertError = true;
+                _isLoading = false;
+                _isLogin = true; // Switch to login mode
+              });
+              return;
+            }
+          }
+          
           // Send access token to backend - backend should check if user exists and login/register accordingly
           final (success, message) = await AuthApi.loginWithFacebook(userData['accessToken'] as String);
           if (mounted) {
