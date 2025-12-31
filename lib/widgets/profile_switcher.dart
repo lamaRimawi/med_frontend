@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../models/profile_model.dart';
 import '../services/profile_service.dart';
 import '../services/profile_state_service.dart';
+import '../services/user_service.dart';
 import '../widgets/theme_toggle.dart';
 
 /// Instagram-style profile switcher widget
@@ -10,10 +11,7 @@ import '../widgets/theme_toggle.dart';
 class ProfileSwitcher extends StatefulWidget {
   final Function(UserProfile)? onProfileSwitched;
 
-  const ProfileSwitcher({
-    super.key,
-    this.onProfileSwitched,
-  });
+  const ProfileSwitcher({super.key, this.onProfileSwitched});
 
   @override
   State<ProfileSwitcher> createState() => _ProfileSwitcherState();
@@ -34,13 +32,54 @@ class _ProfileSwitcherState extends State<ProfileSwitcher> {
     try {
       final profiles = await ProfileService.getProfiles();
       final currentProfile = await ProfileStateService().getSelectedProfile();
-      
+
+      // Fetch current user details to ensure "Self" profile is up-to-date
+      try {
+        final user = await UserService().getUserProfile();
+
+        // Update the "Self" profile in the list with the latest user details
+        for (var i = 0; i < profiles.length; i++) {
+          if (profiles[i].relationship == 'Self') {
+            profiles[i] = UserProfile(
+              id: profiles[i].id,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              relationship: profiles[i].relationship,
+              dateOfBirth: user.dateOfBirth,
+              gender: user.gender ?? profiles[i].gender,
+              createdAt: profiles[i].createdAt,
+              linkedUserId: profiles[i].linkedUserId,
+              isShared: profiles[i].isShared,
+              creatorId: profiles[i].creatorId,
+            );
+            break;
+          }
+        }
+      } catch (e) {
+        print('Error fetching user details for switcher: $e');
+      }
+
       setState(() {
         _profiles = profiles;
-        _currentProfile = currentProfile ?? profiles.firstWhere(
+
+        // Find the updated "Self" profile to use as current if it was selected
+        final updatedSelfProfile = profiles.firstWhere(
           (p) => p.relationship == 'Self',
           orElse: () => profiles.first,
         );
+
+        // If currently selected is Self, update it with the fresh data
+        if (_currentProfile?.relationship == 'Self' ||
+            _currentProfile == null) {
+          _currentProfile = updatedSelfProfile;
+        } else {
+          // Otherwise keep the selected ID but update object from new list if exists
+          _currentProfile = profiles.firstWhere(
+            (p) => p.id == _currentProfile!.id,
+            orElse: () => updatedSelfProfile,
+          );
+        }
+
         _isLoading = false;
       });
     } catch (e) {
@@ -50,8 +89,9 @@ class _ProfileSwitcherState extends State<ProfileSwitcher> {
   }
 
   void _showProfileSwitcherModal() {
-    final isDark = ThemeProvider.of(context)?.themeMode == ThemeMode.dark ?? false;
-    
+    final isDark =
+        ThemeProvider.of(context)?.themeMode == ThemeMode.dark ?? false;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -108,11 +148,14 @@ class _ProfileSwitcherState extends State<ProfileSwitcher> {
               child: ListView.builder(
                 shrinkWrap: true,
                 itemCount: _profiles.length,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 itemBuilder: (context, index) {
                   final profile = _profiles[index];
                   final isSelected = _currentProfile?.id == profile.id;
-                  
+
                   return _buildProfileItem(profile, isSelected, isDark);
                 },
               ),
@@ -132,20 +175,24 @@ class _ProfileSwitcherState extends State<ProfileSwitcher> {
         setState(() {
           _currentProfile = profile;
         });
-        
+
         if (widget.onProfileSwitched != null) {
           widget.onProfileSwitched!(profile);
         }
-        
+
         Navigator.pop(context);
-        
+
         // Show success message
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
                 children: [
-                  const Icon(LucideIcons.checkCircle, color: Colors.white, size: 20),
+                  const Icon(
+                    LucideIcons.checkCircle,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                   const SizedBox(width: 12),
                   Text('Switched to ${profile.fullName}'),
                 ],
@@ -164,13 +211,17 @@ class _ProfileSwitcherState extends State<ProfileSwitcher> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected
-              ? (isDark ? const Color(0xFF1E4976) : Colors.blue.withOpacity(0.1))
+              ? (isDark
+                    ? const Color(0xFF1E4976)
+                    : Colors.blue.withOpacity(0.1))
               : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? Colors.blue
-                : (isDark ? const Color(0xFF1E4976) : Colors.grey.withOpacity(0.2)),
+                : (isDark
+                      ? const Color(0xFF1E4976)
+                      : Colors.grey.withOpacity(0.2)),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -216,7 +267,10 @@ class _ProfileSwitcherState extends State<ProfileSwitcher> {
                       if (profile.isShared) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.orange.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(4),
@@ -238,11 +292,7 @@ class _ProfileSwitcherState extends State<ProfileSwitcher> {
             ),
             // Selected indicator
             if (isSelected)
-              const Icon(
-                LucideIcons.checkCircle,
-                color: Colors.blue,
-                size: 24,
-              ),
+              const Icon(LucideIcons.checkCircle, color: Colors.blue, size: 24),
           ],
         ),
       ),
@@ -255,19 +305,19 @@ class _ProfileSwitcherState extends State<ProfileSwitcher> {
       return const SizedBox.shrink();
     }
 
-    final isDark = ThemeProvider.of(context)?.themeMode == ThemeMode.dark ?? false;
+    final isDark =
+        ThemeProvider.of(context)?.themeMode == ThemeMode.dark ?? false;
 
     return GestureDetector(
       onTap: _showProfileSwitcherModal,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isDark ? Colors.white.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
+          color: isDark
+              ? Colors.white.withOpacity(0.1)
+              : Colors.blue.withOpacity(0.1),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: Colors.blue.withOpacity(0.3),
-            width: 1,
-          ),
+          border: Border.all(color: Colors.blue.withOpacity(0.3), width: 1),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -281,16 +331,10 @@ class _ProfileSwitcherState extends State<ProfileSwitcher> {
               ),
             ),
             const SizedBox(width: 8),
-            const Icon(
-              LucideIcons.chevronDown,
-              color: Colors.white,
-              size: 16,
-            ),
+            const Icon(LucideIcons.chevronDown, color: Colors.white, size: 16),
           ],
         ),
       ),
     );
   }
 }
-
-

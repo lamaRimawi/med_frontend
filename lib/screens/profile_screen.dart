@@ -56,6 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   bool _shareMedicalData = true;
   bool _profileVisible = true;
   bool _privacyLoading = false;
+  int _profileUpdateCounter = 0;
 
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
@@ -726,7 +727,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                                   height: 110,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 2),
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2,
+                                    ),
                                     image: DecorationImage(
                                       image: _imageFile != null
                                           ? FileImage(_imageFile!)
@@ -802,6 +806,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                       const SizedBox(height: 12),
                       // Profile Switcher (Instagram-style)
                       ProfileSwitcher(
+                        key: ValueKey(_profileUpdateCounter),
                         onProfileSwitched: (profile) async {
                           // Reload user data for the new profile
                           await _loadUserData();
@@ -1524,6 +1529,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 setState(() {
                                   _showCalendarDropdown = false;
                                   _currentScreen = 'main';
+                                  _profileUpdateCounter++; // Force ProfileSwitcher refresh
                                 });
                               }
                             } catch (e) {

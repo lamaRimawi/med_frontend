@@ -122,7 +122,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       // 2. Fetch fresh
-      final reports = await ReportsService().getReports(profileId: _selectedProfileId);
+      final reports = await ReportsService().getReports(
+        profileId: _selectedProfileId,
+      );
 
       // 3. Fetch timeline for better names
       try {
@@ -167,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (report.reportName != null && report.reportName!.isNotEmpty) {
       return report.reportName!;
     }
-    
+
     // Priority 0: Check if we have the type from timeline
     if (_reportTypesMap.containsKey(report.reportId)) {
       final type = _reportTypesMap[report.reportId];
@@ -437,6 +439,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _activeTab = 'home';
             _selectedIndex = 0;
           });
+          _loadUserData(); // Refresh user data (name, etc.) on Home
         },
       );
     } else if (_showReports) {
@@ -470,13 +473,13 @@ class _HomeScreenState extends State<HomeScreen> {
           await _loadReports();
         },
       );
-    // } else if (_showRecords) {
-    //   body = MedicalRecordScreen(
-    //     onBack: () => setState(() {
-    //       _showRecords = false;
-    //       _activeTab = 'home';
-    //     }),
-    //   );
+      // } else if (_showRecords) {
+      //   body = MedicalRecordScreen(
+      //     onBack: () => setState(() {
+      //       _showRecords = false;
+      //       _activeTab = 'home';
+      //     }),
+      //   );
     } else {
       body = Stack(
         children: [
@@ -524,7 +527,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
         if (isDesktop) {
           return Scaffold(
-            backgroundColor: _isDarkMode ? const Color(0xFF0A1929) : const Color(0xFFF9FAFB),
+            backgroundColor: _isDarkMode
+                ? const Color(0xFF0A1929)
+                : const Color(0xFFF9FAFB),
             body: NextGenBackground(
               isDarkMode: _isDarkMode,
               child: Column(
@@ -544,48 +549,65 @@ class _HomeScreenState extends State<HomeScreen> {
                     user: _currentUser,
                     isDarkMode: _isDarkMode,
                     onLogout: () {
-                      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/login',
+                        (route) => false,
+                      );
                     },
-                    onToggleTheme: () => ThemeProvider.of(context)?.toggleTheme(),
+                    onToggleTheme: () =>
+                        ThemeProvider.of(context)?.toggleTheme(),
                   ),
                   Expanded(
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
-                      child: _showReports 
-                        ? WebReportsView(
-                            isDarkMode: _isDarkMode,
-                            onBack: () => setState(() => _showReports = false),
-                          )
-                        : _showTimeline 
+                      child: _showReports
+                          ? WebReportsView(
+                              isDarkMode: _isDarkMode,
+                              onBack: () =>
+                                  setState(() => _showReports = false),
+                            )
+                          : _showTimeline
                           ? WebTimelineView(
                               isDarkMode: _isDarkMode,
-                              onBack: () => setState(() => _showTimeline = false),
+                              onBack: () =>
+                                  setState(() => _showTimeline = false),
                             )
-                          : _showProfile 
-                            ? WebProfileView(
-                                isDarkMode: _isDarkMode,
-                                onLogout: () => Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false),
-                                onProfileUpdated: () => _loadUserData(),
-                              )
-                            : _showCameraUpload
-                              ? WebCameraUploadView(
-                                  isDarkMode: _isDarkMode,
-                                  onClose: () async {
-                                    setState(() => _showCameraUpload = false);
-                                    await Future.delayed(const Duration(milliseconds: 500));
-                                    _loadReports();
-                                  },
-                                )
-                              : WebDashboardView(
-                                  user: _currentUser,
-                                  isDarkMode: _isDarkMode,
-                                  searchQuery: _searchQuery,
-                                  onSearchChanged: (val) => setState(() => _searchQuery = val),
-                                  reports: _reports,
-                                  onUploadTap: () => setState(() => _showCameraUpload = true),
-                                  onToggleNotifications: () => setState(() => _showNotifications = !_showNotifications),
-                                  showNotifications: _showNotifications,
-                                ),
+                          : _showProfile
+                          ? WebProfileView(
+                              isDarkMode: _isDarkMode,
+                              onLogout: () => Navigator.pushNamedAndRemoveUntil(
+                                context,
+                                '/login',
+                                (route) => false,
+                              ),
+                              onProfileUpdated: () => _loadUserData(),
+                            )
+                          : _showCameraUpload
+                          ? WebCameraUploadView(
+                              isDarkMode: _isDarkMode,
+                              onClose: () async {
+                                setState(() => _showCameraUpload = false);
+                                await Future.delayed(
+                                  const Duration(milliseconds: 500),
+                                );
+                                _loadReports();
+                              },
+                            )
+                          : WebDashboardView(
+                              user: _currentUser,
+                              isDarkMode: _isDarkMode,
+                              searchQuery: _searchQuery,
+                              onSearchChanged: (val) =>
+                                  setState(() => _searchQuery = val),
+                              reports: _reports,
+                              onUploadTap: () =>
+                                  setState(() => _showCameraUpload = true),
+                              onToggleNotifications: () => setState(
+                                () => _showNotifications = !_showNotifications,
+                              ),
+                              showNotifications: _showNotifications,
+                            ),
                     ),
                   ),
                 ],
@@ -595,7 +617,9 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         return Scaffold(
-          backgroundColor: _isDarkMode ? const Color(0xFF0A1929) : const Color(0xFFF9FAFB),
+          backgroundColor: _isDarkMode
+              ? const Color(0xFF0A1929)
+              : const Color(0xFFF9FAFB),
           extendBody: true,
           body: body,
           bottomNavigationBar: ModernBottomNavBar(
@@ -640,7 +664,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                   
                     const SizedBox(height: 4),
                     Text(
                       _currentUser?.fullName.toUpperCase() ?? 'User',
@@ -1123,17 +1146,29 @@ class _HomeScreenState extends State<HomeScreen> {
                                             fontSize: 12,
                                           ),
                                         ),
-                                        if (_selectedProfileRelation != null && _selectedProfileRelation != 'Self') ...[
+                                        if (_selectedProfileRelation != null &&
+                                            _selectedProfileRelation !=
+                                                'Self') ...[
                                           const SizedBox(width: 8),
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
                                             decoration: BoxDecoration(
-                                              color: const Color(0xFF39A4E6).withOpacity(0.1),
-                                              borderRadius: BorderRadius.circular(4),
+                                              color: const Color(
+                                                0xFF39A4E6,
+                                              ).withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
                                             ),
                                             child: Row(
                                               children: [
-                                                const Icon(LucideIcons.user, size: 8, color: Color(0xFF39A4E6)),
+                                                const Icon(
+                                                  LucideIcons.user,
+                                                  size: 8,
+                                                  color: Color(0xFF39A4E6),
+                                                ),
                                                 const SizedBox(width: 4),
                                                 Text(
                                                   _selectedProfileRelation!,
@@ -1152,7 +1187,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const SizedBox(height: 6),
                                     Row(
                                       children: [
-                                        if ((filtered[i]['time'] ?? '').isNotEmpty) ...[
+                                        if ((filtered[i]['time'] ?? '')
+                                            .isNotEmpty) ...[
                                           Text(
                                             filtered[i]['time'] ?? '',
                                             style: TextStyle(
@@ -1995,94 +2031,99 @@ class _HomeScreenState extends State<HomeScreen> {
       itemBuilder: (context, index) {
         final report = reports[index];
         return GestureDetector(
-      onTap: () {
-        setState(() {
-          _showQuickView = null;
-          _showReports = true;
-          _selectedIndex = 1;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: _isDarkMode
-              ? Colors.white.withOpacity(0.05)
-              : Colors.blue.withOpacity(0.03),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: _isDarkMode
-                ? Colors.white.withOpacity(0.1)
-                : Colors.blue.withOpacity(0.05),
-          ),
-        ),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF39A4E6).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    LucideIcons.fileText,
-                    color: Color(0xFF39A4E6),
-                    size: 16,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    report['title'] ?? 'Report',
-                    style: TextStyle(
-                      color:
-                          _isDarkMode ? Colors.white : const Color(0xFF111827),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Icon(
-                  LucideIcons.chevronRight,
-                  size: 16,
-                  color: _isDarkMode ? Colors.grey[600] : Colors.grey[400],
-                ),
-              ],
+          onTap: () {
+            setState(() {
+              _showQuickView = null;
+              _showReports = true;
+              _selectedIndex = 1;
+            });
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: _isDarkMode
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.blue.withOpacity(0.03),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: _isDarkMode
+                    ? Colors.white.withOpacity(0.1)
+                    : Colors.blue.withOpacity(0.05),
+              ),
             ),
-            const SizedBox(height: 12),
-            Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: Text(
-                    report['doctor'] ?? 'General Practitioner',
-                    style: TextStyle(
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF39A4E6).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        LucideIcons.fileText,
+                        color: Color(0xFF39A4E6),
+                        size: 16,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        report['title'] ?? 'Report',
+                        style: TextStyle(
+                          color: _isDarkMode
+                              ? Colors.white
+                              : const Color(0xFF111827),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      LucideIcons.chevronRight,
+                      size: 16,
+                      color: _isDarkMode ? Colors.grey[600] : Colors.grey[400],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        report['doctor'] ?? 'General Practitioner',
+                        style: TextStyle(
+                          color: _isDarkMode
+                              ? Colors.grey[400]
+                              : Colors.grey[600],
+                          fontSize: 12,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Icon(
+                      LucideIcons.calendar,
+                      size: 14,
                       color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                      fontSize: 12,
                     ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Icon(
-                  LucideIcons.calendar,
-                  size: 14,
-                  color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  report['date'] ?? '',
-                  style: TextStyle(
-                    color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                    fontSize: 12,
-                  ),
+                    const SizedBox(width: 4),
+                    Text(
+                      report['date'] ?? '',
+                      style: TextStyle(
+                        color: _isDarkMode
+                            ? Colors.grey[400]
+                            : Colors.grey[600],
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
+          ),
+        );
       },
     );
   }
