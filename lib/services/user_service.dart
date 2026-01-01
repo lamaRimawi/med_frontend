@@ -46,6 +46,22 @@ class UserService {
     }
   }
 
+  Future<void> updateUserSettings(Map<String, dynamic> settings) async {
+    try {
+      final response = await _client.put(
+        ApiConfig.userProfile,
+        body: settings,
+        auth: true,
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to update settings: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error updating settings: $e');
+    }
+  }
+
   Future<void> deleteAccount(String password) async {
     try {
       final response = await _client.delete(

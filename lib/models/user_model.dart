@@ -11,6 +11,12 @@ class User {
   final String? allergies;
   final String? profileImageUrl;
 
+  final bool notificationsEnabled;
+  final bool twoFactorEnabled;
+  final bool biometricEnabled;
+  final bool shareMedicalData;
+  final bool profileVisible;
+
   User({
     required this.firstName,
     required this.lastName,
@@ -21,6 +27,11 @@ class User {
     this.medicalHistory,
     this.allergies,
     this.profileImageUrl,
+    this.notificationsEnabled = true,
+    this.twoFactorEnabled = false,
+    this.biometricEnabled = false,
+    this.shareMedicalData = true,
+    this.profileVisible = true,
   });
 
   String get fullName => '$firstName $lastName';
@@ -36,6 +47,11 @@ class User {
       medicalHistory: json['medical_history']?.toString(),
       allergies: json['allergies']?.toString(),
       profileImageUrl: json['profile_image_url']?.toString(),
+      notificationsEnabled: json['notifications_enabled'] ?? true,
+      twoFactorEnabled: json['two_factor_enabled'] ?? false,
+      biometricEnabled: json['biometric_enabled'] ?? false,
+      shareMedicalData: json['share_medical_data'] ?? true,
+      profileVisible: json['profile_visible'] ?? true,
     );
   }
 
@@ -50,6 +66,11 @@ class User {
       'medical_history': medicalHistory,
       'allergies': allergies,
       'profile_image_url': profileImageUrl,
+      'notifications_enabled': notificationsEnabled,
+      'two_factor_enabled': twoFactorEnabled,
+      'biometric_enabled': biometricEnabled,
+      'share_medical_data': shareMedicalData,
+      'profile_visible': profileVisible,
     };
   }
 
@@ -73,6 +94,11 @@ class User {
     if (user.profileImageUrl != null) {
       await prefs.setString('user_profile_image_url', user.profileImageUrl!);
     }
+    await prefs.setBool('user_notifications_enabled', user.notificationsEnabled);
+    await prefs.setBool('user_two_factor_enabled', user.twoFactorEnabled);
+    await prefs.setBool('user_biometric_enabled', user.biometricEnabled);
+    await prefs.setBool('user_share_medical_data', user.shareMedicalData);
+    await prefs.setBool('user_profile_visible', user.profileVisible);
   }
 
   // Load from SharedPreferences
@@ -99,6 +125,11 @@ class User {
         medicalHistory: prefs.getString('user_medical_history'),
         allergies: prefs.getString('user_allergies'),
         profileImageUrl: prefs.getString('user_profile_image_url'),
+        notificationsEnabled: prefs.getBool('user_notifications_enabled') ?? true,
+        twoFactorEnabled: prefs.getBool('user_two_factor_enabled') ?? false,
+        biometricEnabled: prefs.getBool('user_biometric_enabled') ?? false,
+        shareMedicalData: prefs.getBool('user_share_medical_data') ?? true,
+        profileVisible: prefs.getBool('user_profile_visible') ?? true,
       );
     }
     return null;
@@ -116,6 +147,11 @@ class User {
     await prefs.remove('user_medical_history');
     await prefs.remove('user_allergies');
     await prefs.remove('user_profile_image_url');
+    await prefs.remove('user_notifications_enabled');
+    await prefs.remove('user_two_factor_enabled');
+    await prefs.remove('user_biometric_enabled');
+    await prefs.remove('user_share_medical_data');
+    await prefs.remove('user_profile_visible');
   }
 }
 

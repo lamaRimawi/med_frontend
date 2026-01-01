@@ -400,6 +400,28 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
   }
 
+  Future<void> _updateSetting(String key, bool value) async {
+    setState(() => _privacyLoading = true);
+    try {
+      await UserService().updateUserSettings({
+        key: value,
+      });
+      // Refresh local user data to be sure
+      await _loadUserData();
+    } catch (e) {
+      debugPrint('Error updating setting $key: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update setting: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _privacyLoading = false);
+      }
+    }
+  }
+
   void _updateLocalUserState(User user) {
     setState(() {
       _profileData['name'] = user.fullName;
@@ -461,6 +483,13 @@ class _ProfileScreenState extends State<ProfileScreen>
         _profileData['avatar'] =
             'https://api.dicebear.com/7.x/avataaars/svg?seed=${user.firstName}';
       }
+
+      // Sync settings
+      _notificationsEnabled = user.notificationsEnabled;
+      _twoFactorEnabled = user.twoFactorEnabled;
+      _biometricEnabled = user.biometricEnabled;
+      _shareMedicalData = user.shareMedicalData;
+      _profileVisible = user.profileVisible;
     });
   }
 
@@ -2592,6 +2621,12 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: Column(
         children: [
           _buildScreenHeader('Settings & Privacy'),
+          if (_privacyLoading)
+            const LinearProgressIndicator(
+              backgroundColor: Colors.transparent,
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF39A4E6)),
+              minHeight: 2,
+            ),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
@@ -2636,8 +2671,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                       await _handleWebAuthnRegistration(val);
                     } else {
                       setState(() => _biometricEnabled = val);
-                      final prefs = await SharedPreferences.getInstance();
-                      await prefs.setBool('biometric_enabled', val);
+                      await _updateSetting('biometric_enabled', val);
                     }
                   },
                 ),
@@ -2649,8 +2683,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   _twoFactorEnabled,
                   (val) async {
                     setState(() => _twoFactorEnabled = val);
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool('two_factor_enabled', val);
+                    await _updateSetting('two_factor_enabled', val);
                   },
                 ),
                 const SizedBox(height: 32),
@@ -2662,8 +2695,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   _shareMedicalData,
                   (val) async {
                     setState(() => _shareMedicalData = val);
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool('share_medical_data', val);
+                    await _updateSetting('share_medical_data', val);
                   },
                 ),
                 const SizedBox(height: 16),
@@ -2674,8 +2706,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   _profileVisible,
                   (val) async {
                     setState(() => _profileVisible = val);
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool('profile_visible', val);
+                    await _updateSetting('profile_visible', val);
                   },
                 ),
                 const SizedBox(height: 32),

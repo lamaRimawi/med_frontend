@@ -1,5 +1,8 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../services/user_service.dart';
+import '../models/user_model.dart';
+import '../services/api_client.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
@@ -12,6 +15,43 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   bool _generalNotification = true;
   bool _sound = true;
   bool _vibrate = true;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final user = await User.loadFromPrefs();
+    if (user != null) {
+      setState(() {
+        _generalNotification = user.notificationsEnabled;
+      });
+    }
+  }
+
+  Future<void> _updateNotificationSetting(bool value) async {
+    setState(() {
+      _generalNotification = value;
+      _isLoading = true;
+    });
+    try {
+      await UserService().updateUserSettings({
+        'notifications_enabled': value,
+      });
+      // Refresh local data
+      final user = await UserService().getUserProfile();
+      await User.saveToPrefs(user);
+    } catch (e) {
+      debugPrint('Error updating notification setting: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +97,12 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
               ),
             ),
           ),
+          if (_isLoading)
+            const LinearProgressIndicator(
+              backgroundColor: Colors.transparent,
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF39A4E6)),
+              minHeight: 2,
+            ),
 
           // Settings List
           Expanded(
@@ -66,7 +112,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 _buildSettingTile(
                   title: 'General Notification',
                   value: _generalNotification,
-                  onChanged: (value) => setState(() => _generalNotification = value),
+                  onChanged: (value) => _updateNotificationSetting(value),
                   isDark: isDark,
                 ),
                 const SizedBox(height: 12),
