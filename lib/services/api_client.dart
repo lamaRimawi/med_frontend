@@ -108,9 +108,27 @@ class ApiClient {
   Future<List<Map<String, dynamic>>> getNotifications() async {
     try {
       final response = await get('/users/notifications', auth: true);
+      
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data.cast<Map<String, dynamic>>();
+        final dynamic jsonData = jsonDecode(response.body);
+        
+        if (jsonData is List) {
+          final list = jsonData.cast<Map<String, dynamic>>();
+          debugPrint('Fetched ${list.length} notifications');
+          return list;
+        } else if (jsonData is Map && jsonData.containsKey('notifications')) {
+          final List<dynamic> list = jsonData['notifications'];
+          debugPrint('Fetched ${list.length} notifications');
+          return list.cast<Map<String, dynamic>>();
+        } else if (jsonData is Map && jsonData.containsKey('data')) {
+           final dynamic data = jsonData['data'];
+           if (data is List) {
+             debugPrint('Fetched ${data.length} notifications');
+             return data.cast<Map<String, dynamic>>();
+           }
+        }
+      } else {
+        debugPrint('Notifications API error: ${response.statusCode}');
       }
       return [];
     } catch (e) {

@@ -114,6 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _isLoadingNotifications = true);
     try {
       final notificationsData = await ApiClient.instance.getNotifications();
+      debugPrint('Notifications API Response: $notificationsData');
       if (mounted) {
         setState(() {
           _notifications = notificationsData

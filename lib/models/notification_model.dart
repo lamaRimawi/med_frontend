@@ -19,12 +19,12 @@ class InAppNotification {
 
   factory InAppNotification.fromJson(Map<String, dynamic> json) {
     return InAppNotification(
-      id: json['id'],
+      id: json['id'] ?? 0,
       title: json['title'] ?? '',
       message: json['message'] ?? '',
       type: json['type'] ?? 'general',
-      createdAt: DateTime.parse(json['created_at']),
-      isRead: json['is_read'] ?? false,
+      createdAt: DateTime.parse(json['created_at'] ?? json['createdAt'] ?? DateTime.now().toIso8601String()),
+      isRead: json['is_read'] ?? json['isRead'] ?? false,
       data: json['data'] is Map<String, dynamic> ? json['data'] : null,
     );
   }
