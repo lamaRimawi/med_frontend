@@ -17,7 +17,7 @@ class WebDashboardView extends StatefulWidget {
   final bool isDarkMode;
   final String searchQuery;
   final Function(String) onSearchChanged;
-  final List<Map<String, String>> reports;
+  final List<Map<String, dynamic>> reports;
   final int unreadCount;
   final VoidCallback onUploadTap;
   final VoidCallback onToggleNotifications;
@@ -535,7 +535,7 @@ class _WebDashboardViewState extends State<WebDashboardView> {
     );
   }
 
-  Widget _buildReportTile(Map<String, String> report, int index) {
+  Widget _buildReportTile(Map<String, dynamic> report, int index) {
     bool isNormal = report['status'] == 'Normal';
     Color statusColor = isNormal ? const Color(0xFF10B981) : const Color(0xFFEF4444);
 

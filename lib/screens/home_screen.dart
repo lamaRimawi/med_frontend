@@ -70,10 +70,11 @@ class _HomeScreenState extends State<HomeScreen> {
   User? _currentUser;
   int? _selectedProfileId;
   String? _selectedProfileRelation;
+  int? _initialReportId;
 
   // Recent reports data
   List<Map<String, dynamic>> _dates = [];
-  List<Map<String, String>> _reports = [];
+  List<Map<String, dynamic>> _reports = [];
   bool _isLoadingReports = true;
   Map<int, String> _reportTypesMap = {};
 
@@ -352,6 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (title.length > 30) title = title.substring(0, 27) + '...';
 
       return {
+        'id': '${r.reportId}',
         'day': '${dt.day}',
         'date':
             '${dt.day} ${_getMonthName(dt.month)} - ${_getDayName(dt.weekday)}',
@@ -495,10 +497,12 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     } else if (_showReports) {
       body = ReportsScreen(
+        initialReportId: _initialReportId,
         onBack: () => setState(() {
           _showReports = false;
           _activeTab = 'home';
           _selectedIndex = 0;
+          _initialReportId = null; // Reset after coming back
         }),
       );
     } else if (_showTimeline) {
@@ -2066,126 +2070,148 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () {}, // Prevent closing when tapping modal
             child:
                 Container(
-                      margin: const EdgeInsets.all(16),
-                      constraints: const BoxConstraints(
-                        maxWidth: 600,
-                        maxHeight: 700,
+                  margin: const EdgeInsets.fromLTRB(20, 40, 20, 100), // More bottom margin to avoid nav bar
+                  constraints: const BoxConstraints(
+                    maxWidth: 500,
+                    maxHeight: 600,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _isDarkMode
+                        ? const Color(0xFF0F172A)
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(32),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 40,
+                        offset: const Offset(0, 15),
                       ),
-                      decoration: BoxDecoration(
-                        color: _isDarkMode
-                            ? const Color(0xFF1F2937)
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(32),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 30,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Header
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
-                              ),
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(32),
-                                topRight: Radius.circular(32),
-                              ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Header
+                        Container(
+                          padding: const EdgeInsets.all(28),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: _isDarkMode 
+                                ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                                : [const Color(0xFF39A4E6), const Color(0xFF2B8FD9)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      title,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    title,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: -0.5,
                                     ),
-                                    const SizedBox(height: 4),
-                                    const Text(
-                                      'Quick overview',
-                                      style: TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                GestureDetector(
-                                  onTap: () =>
-                                      setState(() => _showQuickView = null),
-                                  child: Container(
-                                    width: 40,
-                                    height: 40,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                     decoration: BoxDecoration(
                                       color: Colors.white.withOpacity(0.15),
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: const Icon(
-                                      LucideIcons.x,
-                                      color: Colors.white,
-                                      size: 20,
+                                    child: const Text(
+                                      'Quick overview',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
+                                  ),
+                                ],
+                              ),
+                              GestureDetector(
+                                onTap: () => setState(() => _showQuickView = null),
+                                child: Container(
+                                  width: 44,
+                                  height: 44,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: const Icon(
+                                    LucideIcons.x,
+                                    color: Colors.white,
+                                    size: 22,
                                   ),
                                 ),
-                              ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Content
+                        Flexible(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: _isDarkMode ? const Color(0xFF0F172A) : Colors.white,
+                            ),
+                            child: _buildQuickViewContent(type),
+                          ),
+                        ),
+                        // Footer
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: _isDarkMode ? const Color(0xFF0F172A) : Colors.white,
+                            border: Border(
+                              top: BorderSide(
+                                color: _isDarkMode ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+                              ),
                             ),
                           ),
-                          // Content
-                          Flexible(
-                            child: Container(
-                              padding: const EdgeInsets.all(24),
-                              child: _buildQuickViewContent(type),
-                            ),
-                          ),
-                          // Footer
-                          Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _showQuickView = null;
-                                    _showReports = true;
-                                    _selectedIndex = 1;
-                                  });
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF39A4E6),
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _showQuickView = null;
+                                  _showReports = true;
+                                  _selectedIndex = 1;
+                                  _initialReportId = null;
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF39A4E6),
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
-                                child: const Text(
-                                  'View All Reports',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                              ),
+                              child: const Text(
+                                'Explore All Reports',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.2,
                                 ),
                               ),
                             ),
                           ),
-                        ],
-                      ),
-                    )
+                        ),
+                      ],
+                    ),
+                  ),
+                )
                     .animate()
                     .fadeIn(duration: const Duration(milliseconds: 200))
                     .scale(
@@ -2230,11 +2256,34 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(LucideIcons.fileX, size: 48, color: Colors.grey[400]),
-            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: _isDarkMode ? Colors.white.withOpacity(0.03) : Colors.black.withOpacity(0.03),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                LucideIcons.fileSearch, 
+                size: 64, 
+                color: _isDarkMode ? Colors.grey[700] : Colors.grey[300]
+              ),
+            ),
+            const SizedBox(height: 20),
             Text(
-              'No reports found',
-              style: TextStyle(color: Colors.grey[500], fontSize: 16),
+              'No records found',
+              style: TextStyle(
+                color: _isDarkMode ? Colors.grey[400] : Colors.grey[600], 
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Try another category or upload new reports.',
+              style: TextStyle(
+                color: _isDarkMode ? Colors.grey[600] : Colors.grey[500], 
+                fontSize: 14,
+              ),
             ),
           ],
         ),
@@ -2242,105 +2291,149 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       shrinkWrap: true,
+      physics: const BouncingScrollPhysics(),
       itemCount: reports.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      separatorBuilder: (context, index) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
         final report = reports[index];
+        final reportId = int.tryParse(report['id'] ?? '');
+        final isNormal = report['status'] == 'Normal';
+
         return GestureDetector(
           onTap: () {
-            setState(() {
-              _showQuickView = null;
-              _showReports = true;
-              _selectedIndex = 1;
-            });
+            if (reportId != null) {
+              setState(() {
+                _initialReportId = reportId;
+                _showQuickView = null;
+                _showReports = true;
+                _selectedIndex = 1;
+              });
+            }
           },
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: _isDarkMode
-                  ? Colors.white.withOpacity(0.05)
-                  : Colors.blue.withOpacity(0.03),
-              borderRadius: BorderRadius.circular(16),
+                  ? Colors.white.withOpacity(0.03)
+                  : Colors.grey[50],
+              borderRadius: BorderRadius.circular(24),
               border: Border.all(
                 color: _isDarkMode
-                    ? Colors.white.withOpacity(0.1)
-                    : Colors.blue.withOpacity(0.05),
+                    ? Colors.white.withOpacity(0.05)
+                    : Colors.black.withOpacity(0.05),
               ),
+              boxShadow: _isDarkMode ? [] : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            child: Column(
+            child: Row(
               children: [
-                Row(
+                // Icon with status indicator
+                Stack(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      width: 52,
+                      height: 52,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF39A4E6).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
+                        color: (isNormal ? Colors.green : Colors.orange).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         LucideIcons.fileText,
-                        color: Color(0xFF39A4E6),
-                        size: 16,
+                        color: isNormal ? Colors.green : Colors.orange,
+                        size: 24,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        report['title'] ?? 'Report',
-                        style: TextStyle(
-                          color: _isDarkMode
-                              ? Colors.white
-                              : const Color(0xFF111827),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: isNormal ? Colors.green : Colors.orange,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: _isDarkMode ? const Color(0xFF0F172A) : Colors.white,
+                            width: 2,
+                          ),
                         ),
                       ),
-                    ),
-                    Icon(
-                      LucideIcons.chevronRight,
-                      size: 16,
-                      color: _isDarkMode ? Colors.grey[600] : Colors.grey[400],
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        report['doctor'] ?? 'General Practitioner',
-                        style: TextStyle(
-                          color: _isDarkMode
-                              ? Colors.grey[400]
-                              : Colors.grey[600],
-                          fontSize: 12,
-                        ),
+                const SizedBox(width: 16),
+                // Text Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        report['title'] ?? 'Report',
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: _isDarkMode ? Colors.white : const Color(0xFF111827),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Icon(
-                      LucideIcons.calendar,
-                      size: 14,
-                      color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      report['date'] ?? '',
-                      style: TextStyle(
-                        color: _isDarkMode
-                            ? Colors.grey[400]
-                            : Colors.grey[600],
-                        fontSize: 12,
+                      const SizedBox(height: 4),
+                      Text(
+                        report['doctor'] ?? 'General Practitioner',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: _isDarkMode ? Colors.grey[500] : Colors.grey[600],
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(
+                            LucideIcons.calendar, 
+                            size: 12, 
+                            color: _isDarkMode ? Colors.grey[600] : Colors.grey[400]
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            report['date'] ?? '',
+                            style: TextStyle(
+                              color: _isDarkMode ? Colors.grey[600] : Colors.grey[400],
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // Action Icon
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: _isDarkMode ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    LucideIcons.chevronRight,
+                    color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                    size: 16,
+                  ),
                 ),
               ],
             ),
           ),
-        );
+        ).animate().fadeIn(delay: Duration(milliseconds: index * 50)).slideX(begin: 0.1, end: 0);
       },
     );
   }

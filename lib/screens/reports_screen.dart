@@ -34,8 +34,9 @@ import '../services/profile_state_service.dart';
 
 class ReportsScreen extends StatefulWidget {
   final VoidCallback? onBack;
+  final int? initialReportId;
 
-  const ReportsScreen({super.key, this.onBack});
+  const ReportsScreen({super.key, this.onBack, this.initialReportId});
 
   @override
   State<ReportsScreen> createState() => _ReportsScreenState();
@@ -100,6 +101,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
   }
 
+  bool _hasHandledInitialReport = false;
+
   Future<void> _initializeProfile() async {
     // Load the selected profile from global state
     final selectedProfile = await ProfileStateService().getSelectedProfile();
@@ -111,8 +114,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
       });
     }
   }
-
-  // Add this method
   Future<void> _loadUserProfile() async {
     try {
       // Try to load from prefs first
@@ -153,8 +154,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Future<void> _fetchReports({bool silent = false}) async {
+    if (!mounted) return;
     try {
-
       if (!silent) {
         setState(() {
           _isLoading = true;
@@ -195,6 +196,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
           _isLoading = false;
           _error = null;
         });
+
+        // Handle initial report navigation
+        if (widget.initialReportId != null && !_hasHandledInitialReport) {
+          final initialReport = _reports.where((r) => r.reportId == widget.initialReportId).firstOrNull;
+          if (initialReport != null) {
+            _hasHandledInitialReport = true;
+            Future.microtask(() => _handleViewReport(initialReport));
+          }
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -207,7 +217,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           return;
         }
         
-        // Handle Access Verification Exception from actual API call (in case hasValidSession was wrong or expired)
+        // Handle Access Verification Exception from actual API call
         if (e is AccessVerificationException) {
           setState(() => _isLoading = false);
           await _showVerificationModal();
@@ -219,10 +229,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Failed to update reports: $e')),
           );
-          // Ensure loading is false
-          setState(() {
-            _isLoading = false;
-          });
+          setState(() => _isLoading = false);
         } else {
           // No data, show full error
           setState(() {
