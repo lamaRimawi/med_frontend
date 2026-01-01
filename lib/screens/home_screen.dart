@@ -122,8 +122,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       // 2. Fetch fresh
+      final isSelf = _selectedProfileRelation == 'Self' || _selectedProfileId == null;
       final reports = await ReportsService().getReports(
-        profileId: _selectedProfileId,
+        profileId: isSelf ? null : _selectedProfileId,
       );
 
       // 3. Fetch timeline for better names
@@ -266,7 +267,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _mapReportsToUi(List<Report> reports) {
-    _reports = reports.map((r) {
+    _reports = reports.where((r) {
+      // Strict Profile Filtering
+      if (_selectedProfileId != null) {
+        if (r.profileId != null) {
+          return r.profileId == _selectedProfileId;
+        } else {
+          // If report has no profile ID, assume it belongs to 'Self' (Owner)
+          return _selectedProfileRelation == 'Self';
+        }
+      }
+      return true;
+    }).map((r) {
       // Parse date
       DateTime dt;
       try {
@@ -666,7 +678,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     const SizedBox(height: 4),
                     Text(
-                      _currentUser?.fullName.toUpperCase() ?? 'User',
+                      _currentUser?.fullName.toUpperCase() ?? 'USER',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -675,6 +687,15 @@ class _HomeScreenState extends State<HomeScreen> {
                             : const Color(0xFF111827),
                       ),
                     ),
+                    if (_selectedProfileRelation != null && _selectedProfileRelation != 'Self')
+                      Text(
+                        'Viewing ${_selectedProfileRelation}\'s Records',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: const Color(0xFF39A4E6),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                   ],
                 ),
               ),
