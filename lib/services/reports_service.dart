@@ -47,6 +47,7 @@ class ReportsService {
         Map<String, String>? headers;
         if (profileId != null) {
            final sessionToken = await _client.getSessionToken('profile', profileId.toString());
+           print('ReportsService: Fetching for profile $profileId. Token found: ${sessionToken != null}');
            if (sessionToken != null) {
              headers = {'X-Access-Session-Token': sessionToken};
            }

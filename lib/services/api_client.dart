@@ -331,6 +331,7 @@ class ApiClient {
     final prefs = await SharedPreferences.getInstance();
     final key = 'session_token_${resourceType}_$resourceId';
     final expiry = DateTime.now().add(Duration(minutes: expiresInMinutes)).toIso8601String();
+    print('Saving Session Token Key: $key, Expiry: $expiry (Minutes: $expiresInMinutes)');
     await prefs.setString(key, jsonEncode({'token': token, 'expiry': expiry}));
   }
 
@@ -349,16 +350,22 @@ class ApiClient {
       await prefs.reload(); // Force reload to ensure we have the latest token
       final key = 'session_token_${resourceType}_$resourceId';
       final dataStr = prefs.getString(key);
-      if (dataStr == null) return null;
+      if (dataStr == null) {
+        print('Get Session Token: No token found for key $key');
+        return null;
+      }
       
       final data = jsonDecode(dataStr);
       final expiry = DateTime.parse(data['expiry']);
       if (DateTime.now().isAfter(expiry)) {
+        print('Get Session Token: Token expired for key $key (Expired at $expiry)');
         await prefs.remove(key);
         return null;
       }
+      print('Get Session Token: Found valid token for key $key');
       return data['token'];
     } catch (e) {
+      print('Get Session Token Error: $e');
       return null;
     }
   }

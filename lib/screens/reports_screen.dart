@@ -48,13 +48,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
   User? _currentUser;
   int? _selectedProfileId;
   String? _selectedProfileRelation;
+  UserProfile? _selectedProfile; // Added for name display
 
   @override
   void initState() {
     super.initState();
     _initializeProfile();
     _loadInitialData();
-    _loadUserProfile(); // Add this
+    _loadUserProfile(); 
     // Listen to profile changes
     ProfileStateService().profileNotifier.addListener(_onProfileChanged);
   }
@@ -64,6 +65,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final profile = ProfileStateService().profileNotifier.value;
     if (mounted) {
       setState(() {
+        _selectedProfile = profile;
         _selectedProfileId = profile?.id;
         _selectedProfileRelation = profile?.relationship;
         _isLoading = true; // Show loading indicator
@@ -79,6 +81,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final selectedProfile = await ProfileStateService().getSelectedProfile();
     if (mounted) {
       setState(() {
+        _selectedProfile = selectedProfile;
         _selectedProfileId = selectedProfile?.id;
         _selectedProfileRelation = selectedProfile?.relationship;
       });
@@ -127,23 +130,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Future<void> _fetchReports({bool silent = false}) async {
     try {
-       // Check if we need verification before even trying
-       if (_selectedProfileId != null && _selectedProfileRelation != 'Self') {
-          final hasAccess = await ApiClient.instance.hasValidSession(
-            'profile', 
-            _selectedProfileId.toString()
-          );
-
-          if (!hasAccess) {
-             // If we don't have a local token, we can assumptively show the verification modal
-             // This avoids the "Empty Request -> 403 -> Modal" lag
-             if (mounted) {
-               setState(() => _isLoading = false); // Stop loading indicator
-               await _showVerificationModal();
-               return;
-             }
-          }
-       }
 
       if (!silent) {
         setState(() {
@@ -726,13 +712,29 @@ class _ReportsScreenState extends State<ReportsScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      'My Medical Reports',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : const Color(0xFF111827),
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _selectedProfileRelation == 'Self' || _selectedProfile == null
+                              ? 'My Medical Reports'
+                              : 'Medical Reports for ${_selectedProfile?.firstName ?? "Family Member"}',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : const Color(0xFF111827),
+                          ),
+                        ),
+                        if (_selectedProfileRelation != 'Self' && _selectedProfile != null)
+                          Text(
+                             'Viewing ${_selectedProfile!.firstName}\'s Records',
+                             style: TextStyle(
+                               fontSize: 12, 
+                               color: const Color(0xFF39A4E6), 
+                               fontWeight: FontWeight.w500
+                             ),
+                          )
+                      ],
                     ),
                   ),
                 ],
@@ -894,11 +896,63 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
 
     if (_error != null) {
+      final isVerificationError = _error.toString().contains('Unauthorized') || 
+                                  _error.toString().contains('Verification') ||
+                                  _error.toString().contains('403') ||
+                                  _error.toString().contains('401');
+
+      if (isVerificationError) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+               Container(
+                 padding: const EdgeInsets.all(20),
+                 decoration: BoxDecoration(
+                   color: const Color(0xFF39A4E6).withOpacity(0.1),
+                   shape: BoxShape.circle,
+                 ),
+                 child: const Icon(LucideIcons.lock, size: 48, color: Color(0xFF39A4E6)),
+               ),
+               const SizedBox(height: 24),
+               Text(
+                 'Access Locked',
+                 style: TextStyle(
+                   fontSize: 20, 
+                   fontWeight: FontWeight.bold,
+                   color: _isDarkMode ? Colors.white : Colors.black
+                 ),
+               ),
+               const SizedBox(height: 8),
+               Padding(
+                 padding: const EdgeInsets.symmetric(horizontal: 40),
+                 child: Text(
+                   'Security verification is required to view these records.',
+                   textAlign: TextAlign.center,
+                   style: TextStyle(color: Colors.grey[600]),
+                 ),
+               ),
+               const SizedBox(height: 24),
+               ElevatedButton(
+                  onPressed: _showVerificationModal,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF39A4E6),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+                  child: const Text('Unlock Access', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+               ),
+            ],
+          ),
+        );
+      }
+
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text('Error: $_error', style: const TextStyle(color: Colors.red)),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => _fetchReports(silent: false),
               child: const Text('Retry'),
@@ -1057,36 +1111,24 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         children: [
                           Icon(
                             LucideIcons.calendar,
-                            size: 12,
+                            size: 14,
                             color: isDark
                                 ? Colors.grey[400]
                                 : Colors.grey[500],
                           ),
-                          const SizedBox(width: 4),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                report.reportDate.split(' ')[0], // Date only
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: isDark
-                                      ? Colors.grey[400]
-                                      : Colors.grey[500],
-                                ),
-                              ),
-                              if (report.reportDate.contains(' ') && 
-                                  report.reportDate.split(' ')[1] != '00:00:00')
-                                Text(
-                                  report.reportDate.split(' ')[1], // Time only
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: isDark
-                                        ? Colors.grey[500]
-                                        : Colors.grey[600],
-                                  ),
-                                ),
-                            ],
+                          const SizedBox(width: 6),
+                          Text(
+                            // Ensure valid date format or fallback
+                            report.reportDate.contains('T') 
+                                ? report.reportDate.split('T')[0] 
+                                : report.reportDate.split(' ')[0], 
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: isDark
+                                  ? Colors.grey[300]
+                                  : Colors.grey[600],
+                            ),
                           ),
                         ],
                       ),
