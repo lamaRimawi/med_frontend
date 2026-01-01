@@ -7,12 +7,14 @@ class AccessVerificationModal extends StatefulWidget {
   final String resourceType;
   final dynamic resourceId; // Can be int or String
   final VoidCallback? onSuccess;
+  final bool isFirstTimeSetup;
 
   const AccessVerificationModal({
     super.key,
     required this.resourceType,
     required this.resourceId,
     this.onSuccess,
+    this.isFirstTimeSetup = false,
   });
 
   @override
@@ -30,13 +32,14 @@ class _AccessVerificationModalState extends State<AccessVerificationModal> {
   @override
   void initState() {
     super.initState();
+    // Auto-request code on mount
     _requestVerificationCode();
   }
 
   @override
   void dispose() {
-    _codeController.dispose();
     _timer?.cancel();
+    _codeController.dispose();
     super.dispose();
   }
 
@@ -185,7 +188,7 @@ class _AccessVerificationModalState extends State<AccessVerificationModal> {
           
           // Title and Description
           Text(
-            "Security Verification",
+            widget.isFirstTimeSetup ? "Verify New Profile" : "Security Verification",
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 20,
@@ -195,7 +198,9 @@ class _AccessVerificationModalState extends State<AccessVerificationModal> {
           ),
           const SizedBox(height: 12),
           Text(
-            "To access sensitive medical reports, please enter the 6-digit code sent to your email.",
+            widget.isFirstTimeSetup 
+                ? "To complete setup and secure this profile, please enter the 6-digit code sent to your email."
+                : "To access sensitive medical reports, please enter the 6-digit code sent to your email.",
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,

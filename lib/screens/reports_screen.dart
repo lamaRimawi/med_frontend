@@ -66,7 +66,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
       setState(() {
         _selectedProfileId = profile?.id;
         _selectedProfileRelation = profile?.relationship;
-        _isLoading = true;
+        _isLoading = true; // Show loading indicator
+        _reports = []; // Clear previous data immediately
+        _error = null; // Clear previous errors
       });
       _fetchReports();
     }
@@ -125,6 +127,24 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Future<void> _fetchReports({bool silent = false}) async {
     try {
+       // Check if we need verification before even trying
+       if (_selectedProfileId != null && _selectedProfileRelation != 'Self') {
+          final hasAccess = await ApiClient.instance.hasValidSession(
+            'profile', 
+            _selectedProfileId.toString()
+          );
+
+          if (!hasAccess) {
+             // If we don't have a local token, we can assumptively show the verification modal
+             // This avoids the "Empty Request -> 403 -> Modal" lag
+             if (mounted) {
+               setState(() => _isLoading = false); // Stop loading indicator
+               await _showVerificationModal();
+               return;
+             }
+          }
+       }
+
       if (!silent) {
         setState(() {
           _isLoading = true;
@@ -170,33 +190,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
           return;
         }
         
-        // Handle Access Verification
+        // Handle Access Verification Exception from actual API call (in case hasValidSession was wrong or expired)
         if (e is AccessVerificationException) {
-          // Hide loading to show modal cleanly
-          setState(() {
-             _isLoading = false;
-          });
-          
-          final verified = await showDialog<bool>(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => AccessVerificationModal(
-              resourceType: 'profile',
-              resourceId: _selectedProfileId ?? 0, // Fallback, though we normally have one if we got here
-            ),
-          );
-
-          if (verified == true) {
-            // Retry fetching
-            _fetchReports();
-          } else {
-             // User cancelled, maybe show error or go back?
-             if (_reports.isEmpty) {
-                setState(() {
-                  _error = "Access verification required to view reports";
-                });
-             }
-          }
+          setState(() => _isLoading = false);
+          await _showVerificationModal();
           return;
         }
 
@@ -217,6 +214,36 @@ class _ReportsScreenState extends State<ReportsScreen> {
           });
         }
       }
+    }
+  }
+
+  Future<void> _showVerificationModal() async {
+    // Show modal bottom sheet
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AccessVerificationModal(
+        resourceType: 'profile',
+        resourceId: _selectedProfileId ?? 0,
+      ),
+    );
+
+    if (result == true) {
+      // Verified successfully, retry fetching
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+      _fetchReports();
+    } else {
+       // Cancelled/Failed
+       if (_reports.isEmpty && mounted) {
+          setState(() {
+            _error = "Verification required to view reports";
+            _isLoading = false;
+          });
+       }
     }
   }
 

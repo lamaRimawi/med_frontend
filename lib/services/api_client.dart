@@ -334,9 +334,19 @@ class ApiClient {
     await prefs.setString(key, jsonEncode({'token': token, 'expiry': expiry}));
   }
 
+  Future<bool> hasValidSession(String resourceType, String resourceId) async {
+    try {
+      final token = await getSessionToken(resourceType, resourceId);
+      return token != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<String?> getSessionToken(String resourceType, String resourceId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      await prefs.reload(); // Force reload to ensure we have the latest token
       final key = 'session_token_${resourceType}_$resourceId';
       final dataStr = prefs.getString(key);
       if (dataStr == null) return null;

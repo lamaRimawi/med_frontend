@@ -68,18 +68,22 @@ class _ProfileSwitcherState extends State<ProfileSwitcher> {
           orElse: () => profiles.first,
         );
 
-        // If currently selected is Self, update it with the fresh data
-        if (_currentProfile?.relationship == 'Self' ||
-            _currentProfile == null) {
-          _currentProfile = updatedSelfProfile;
-        } else {
-          // Otherwise keep the selected ID but update object from new list if exists
+        // If we have a persisted profile, try to find it in the new list
+        if (currentProfile != null) {
           _currentProfile = profiles.firstWhere(
-            (p) => p.id == _currentProfile!.id,
+            (p) => p.id == currentProfile.id,
             orElse: () => updatedSelfProfile,
           );
+        } else {
+          // Fallback to Self if no persisted profile
+          _currentProfile = updatedSelfProfile;
         }
 
+        // Additional check: if _currentProfile is still null or not in list (edge case), default to Self
+        if (_currentProfile == null) {
+           _currentProfile = updatedSelfProfile;
+        }
+        
         _isLoading = false;
       });
     } catch (e) {

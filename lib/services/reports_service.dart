@@ -14,16 +14,23 @@ class ReportsService {
 
   // In-memory cache
   List<Report>? _cachedReports;
+  int? _cachedProfileId; // Track which profile the cache belongs to
   DateTime? _lastFetchTime;
 
   List<Report>? get cachedReports => _cachedReports;
 
   Future<List<Report>> getReports({bool forceRefresh = false, int? profileId}) async {
-    // Return cache only if no profile filter is applied and not forcing refresh
-    if (!forceRefresh && profileId == null && _cachedReports != null) {
+    // Return cache only if:
+    // 1. Not forcing refresh
+    // 2. Cache exists
+    // 3. Cache belongs to the requested profile (profileId matches)
+    if (!forceRefresh && 
+        _cachedReports != null && 
+        _cachedProfileId == profileId) {
+      
       // Small optimization: if cache is very fresh, return it immediately
       if (_lastFetchTime != null && 
-          DateTime.now().difference(_lastFetchTime!).inSeconds < 10) {
+          DateTime.now().difference(_lastFetchTime!).inSeconds < 30) { // Increased to 30s
         return _cachedReports!;
       }
     }
@@ -54,11 +61,10 @@ class ReportsService {
               .map((e) => Report.fromJson(e as Map<String, dynamic>))
               .toList();
 
-          // Only update cache if it's for the main "Self" profile (profileId is null or matches self)
-          if (profileId == null) {
-            _cachedReports = parsedReports;
-            _lastFetchTime = DateTime.now();
-          }
+          // Update cache for this profile
+          _cachedReports = parsedReports;
+          _cachedProfileId = profileId;
+          _lastFetchTime = DateTime.now();
 
           return parsedReports;
         } else {
@@ -67,6 +73,10 @@ class ReportsService {
       } catch (e) {
         // Don't retry if unauthorized (token expired)
         if (e.toString().contains('Unauthorized') || e is AccessVerificationException) {
+          // If we fail due to verification, we should CLEAR the cache if it was for this profile
+          // But actually, we might want to keep old data? No, for security, let's reset if we can't access.
+          // However, we don't want to wipe cache on transient network error.
+          // For now, rethrow.
           rethrow;
         }
 
@@ -80,6 +90,7 @@ class ReportsService {
     }
     return []; // Should not be reached
   }
+
 
   Future<Report> getReport(int reportId, {int? profileId}) => getReportDetail(reportId, profileId: profileId);
 
