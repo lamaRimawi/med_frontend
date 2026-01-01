@@ -20,6 +20,9 @@ import 'screens/web_forgot_password_screen.dart';
 import 'screens/web_verification_screen.dart';
 import 'screens/web_reset_password_screen.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'services/notification_service.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,6 +61,12 @@ class _MyAppState extends State<MyApp> {
   Future<void> _loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
     final isDark = prefs.getBool('isDarkMode') ?? false;
+    
+    // Initialize Notification Service
+    if (mounted) {
+      NotificationService().initialize(context);
+    }
+
     setState(() {
       _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
     });
@@ -90,6 +99,7 @@ class _MyAppState extends State<MyApp> {
           builder: (context) {
             return MaterialApp(
               title: 'MediScan',
+              navigatorKey: navigatorKey,
               debugShowCheckedModeBanner: false,
               theme: ThemeData(
                 colorScheme: ColorScheme.fromSeed(

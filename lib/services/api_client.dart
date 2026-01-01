@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -85,6 +86,23 @@ class ApiClient {
     }
 
     return response;
+  }
+
+  Future<bool> registerFcmToken(String token, String deviceType) async {
+    try {
+      final response = await post(
+        '/users/register-token',
+        body: {
+          'fcm_token': token,
+          'device_type': deviceType,
+        },
+        auth: true,
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      debugPrint('Error registering FCM token: $e');
+      return false;
+    }
   }
 
   Future<http.Response> get(

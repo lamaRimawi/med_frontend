@@ -10,6 +10,7 @@ import '../utils/validators.dart';
 import '../services/auth_service.dart';
 import '../services/auth_api.dart';
 import '../services/profile_state_service.dart';
+import '../services/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -130,6 +131,13 @@ class _LoginScreenState extends State<LoginScreen> {
             debugPrint('Error initializing default profile: $e');
           }
 
+          // Initialize Notifications (Register FCM Token)
+          try {
+            NotificationService().initialize(context);
+          } catch (e) {
+            debugPrint('Error initializing notifications after login: $e');
+          }
+
           Future.delayed(const Duration(milliseconds: 800), () {
             if (mounted) Navigator.pushReplacementNamed(context, '/home');
           });
@@ -192,6 +200,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   await profileStateService.initializeDefaultProfile();
                 } catch (e) {
                   debugPrint('Error initializing default profile: $e');
+                }
+
+                // Initialize Notifications (Register FCM Token)
+                try {
+                  NotificationService().initialize(context);
+                } catch (e) {
+                  debugPrint('Error initializing notifications after login: $e');
                 }
 
                 setState(() {

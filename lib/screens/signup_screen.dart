@@ -8,6 +8,7 @@ import '../widgets/alert_banner.dart';
 import '../utils/validators.dart';
 import '../services/auth_service.dart';
 import '../services/auth_api.dart';
+import '../services/notification_service.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -189,6 +190,12 @@ class _SignupScreenState extends State<SignupScreen> {
               if (!mounted) return;
               
               if (profileSuccess) {
+                // Initialize Notifications (Register FCM Token)
+                try {
+                  NotificationService().initialize(context);
+                } catch (e) {
+                  debugPrint('Error initializing notifications after social signup: $e');
+                }
                 setState(() {
                   _alertMessage = 'Account created and logged in with Google as ${userData['email']}';
                   _isAlertError = false;
@@ -259,6 +266,12 @@ class _SignupScreenState extends State<SignupScreen> {
               if (!mounted) return;
               
               if (profileSuccess) {
+                // Initialize Notifications (Register FCM Token)
+                try {
+                  NotificationService().initialize(context);
+                } catch (e) {
+                  debugPrint('Error initializing notifications after social signup: $e');
+                }
                 setState(() {
                   _alertMessage =
                       'Account created and logged in with Facebook: ${userData['email'] ?? userData['name']}';
