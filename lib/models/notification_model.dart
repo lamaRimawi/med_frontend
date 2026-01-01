@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class InAppNotification {
   final int id;
   final String title;
@@ -30,10 +32,24 @@ class InAppNotification {
   }
 
   String get timeAgo {
-    final difference = DateTime.now().difference(createdAt);
-    if (difference.inDays > 0) return '${difference.inDays}d ago';
-    if (difference.inHours > 0) return '${difference.inHours}h ago';
-    if (difference.inMinutes > 0) return '${difference.inMinutes}m ago';
-    return 'Just now';
+    final now = DateTime.now();
+    final difference = now.difference(createdAt);
+
+    // Handle clock skew if server time is slightly ahead of local time
+    if (difference.inSeconds < 0) return 'Now';
+    
+    if (difference.inSeconds < 5) return 'Now';
+    if (difference.inSeconds < 60) return '${difference.inSeconds}s ago';
+    if (difference.inMinutes < 60) return '${difference.inMinutes}m ago';
+    if (difference.inHours < 24) return '${difference.inHours}h ago';
+
+    final nowDay = DateTime(now.year, now.month, now.day);
+    final createdDay = DateTime(createdAt.year, createdAt.month, createdAt.day);
+    final dayDiff = nowDay.difference(createdDay).inDays;
+
+    if (dayDiff == 1) return 'Yesterday';
+    if (dayDiff < 7) return '$dayDiff days ago';
+    
+    return DateFormat('MMM d, y').format(createdAt);
   }
 }

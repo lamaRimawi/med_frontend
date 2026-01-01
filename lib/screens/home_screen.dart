@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'dart:async';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
@@ -66,6 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<InAppNotification> _notifications = [];
   int _unreadCount = 0;
   bool _isLoadingNotifications = false;
+  Timer? _notificationRefreshTimer;
   int _selectedDate = 11;
   User? _currentUser;
   int? _selectedProfileId;
@@ -88,6 +90,12 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadNotifications();
     // Listen for real-time foreground notifications
     NotificationService().onMessage.listen((_) => _loadNotifications());
+    // Periodic refresh for timestamps
+    _notificationRefreshTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted && _showNotifications) {
+        setState(() {}); // Re-render to update relative time labels (e.g. "Now" -> "1s ago")
+      }
+    });
     // Listen to profile changes
     ProfileStateService().profileNotifier.addListener(_onProfileChanged);
   }
@@ -95,6 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     ProfileStateService().profileNotifier.removeListener(_onProfileChanged);
+    _notificationRefreshTimer?.cancel();
     super.dispose();
   }
 
