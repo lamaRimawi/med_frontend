@@ -8,6 +8,7 @@ class Report {
   final List<ReportField> fields;
   final List<AdditionalField> additionalFields;
   final String? patientName;
+  final int? profileId; // Added for filtering
   final int? patientAge;
   final String? patientGender;
 
@@ -21,6 +22,7 @@ class Report {
     required this.fields,
     required this.additionalFields,
     this.patientName,
+    this.profileId,
     this.patientAge,
     this.patientGender,
   });
@@ -49,6 +51,7 @@ class Report {
               .toList() ??
           [],
       patientName: json['patient_name'] as String?,
+      profileId: json['profile_id'] as int?,
       patientAge: json.containsKey('patient_age')
           ? () {
               final ageStr = json['patient_age'].toString();

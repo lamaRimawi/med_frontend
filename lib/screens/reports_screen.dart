@@ -138,7 +138,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
         });
       }
 
-      final reports = await ReportsService().getReports(profileId: _selectedProfileId);
+      // If 'Self', pass null to avoid backend verification checks reserved for other profiles
+      final isSelf = _selectedProfile == null || _selectedProfile?.relationship == 'Self';
+      final apiProfileId = isSelf ? null : _selectedProfile?.id;
+
+      final reports = await ReportsService().getReports(
+        forceRefresh: true,
+        profileId: apiProfileId,
+      );
 
       // Fetch timeline to get report types
       try {
@@ -323,7 +330,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Future<void> _handleDeleteReport(String id) async {
 
     try {
-      await ReportsService().deleteReport(int.parse(id), profileId: _selectedProfileId);
+      final isSelf = _selectedProfile == null || _selectedProfile?.relationship == 'Self';
+      await ReportsService().deleteReport(int.parse(id), profileId: isSelf ? null : _selectedProfileId);
       setState(() {
         _reports.removeWhere((report) => report.reportId.toString() == id);
       });
@@ -476,7 +484,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
         builder: (ctx) => const Center(child: CircularProgressIndicator()),
       );
 
-      final images = await ReportsService().getReportImages(report.reportId, profileId: _selectedProfileId);
+      final isSelf = _selectedProfile == null || _selectedProfile?.relationship == 'Self';
+      final images = await ReportsService().getReportImages(report.reportId, profileId: isSelf ? null : _selectedProfileId);
 
       if (mounted) {
         Navigator.pop(context); // Hide loading
@@ -528,7 +537,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
       // Fetch fresh, full report details to ensure we have all extracted data
       Report fullReport = report;
       try {
-        final fetched = await ReportsService().getReport(report.reportId, profileId: _selectedProfileId);
+        final isSelf = _selectedProfile == null || _selectedProfile?.relationship == 'Self';
+        final fetched = await ReportsService().getReport(report.reportId, profileId: isSelf ? null : _selectedProfileId);
         if (fetched != null) {
           fullReport = fetched;
         }
@@ -629,13 +639,34 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   List<Report> get _filteredReports {
     return _reports.where((report) {
-      final matchesSearch = report.reportDate.toLowerCase().contains(
-        _searchQuery.toLowerCase(),
-      );
+      final title = _getReportTitle(report).toLowerCase();
+      final matchesSearch = title.contains(_searchQuery.toLowerCase()) || 
+                          (report.patientName?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false) ||
+                          report.reportDate.toLowerCase().contains(_searchQuery.toLowerCase());
 
-      final matchesFilter = _filterType == "all"; // Simplified for now
+      final matchesFilter = _filterType == "all" || report.reportType == _filterType;
 
-      return matchesSearch && matchesFilter;
+      // Strict Profile Filtering
+      // If we are on a specific profile, only show reports that belong to it
+      // IF the report has a profileId.
+      bool matchesProfile = true;
+      if (_selectedProfileId != null) {
+          if (report.profileId != null) {
+             matchesProfile = report.profileId == _selectedProfileId;
+          } else {
+             // If report has no profile ID, assume it belongs to 'Self' (Owner)
+             // So if we are strictly viewing a dependent (who should have IDs), hide it?
+             // Or if we are viewing Self, show it.
+             // Let's assume 'Self' has _selectedProfileId matching the owner.
+             // If we are viewing a Dependent (who has a distinct ID), we don't want to see null-ID reports (Self's).
+             // So: if _selectedProfileRelation != 'Self' AND report.profileId == null -> Hide
+             if (_selectedProfileRelation != 'Self') {
+                matchesProfile = false;
+             }
+          }
+      }
+
+      return matchesSearch && matchesFilter && matchesProfile;
     }).toList();
   }
 
