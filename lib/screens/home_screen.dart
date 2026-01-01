@@ -26,6 +26,9 @@ import 'package:flutter/foundation.dart';
 import '../models/profile_model.dart';
 import '../widgets/profile_selector.dart';
 import '../services/profile_state_service.dart';
+import '../models/notification_model.dart';
+import '../services/api_client.dart';
+import '../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -59,6 +62,9 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showAnalytics = false;
   bool _showShareModal = false;
   bool _showAllReportTypes = false;
+  List<InAppNotification> _notifications = [];
+  int _unreadCount = 0;
+  bool _isLoadingNotifications = false;
   int _selectedDate = 11;
   User? _currentUser;
   int? _selectedProfileId;
@@ -77,6 +83,9 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadUserData();
     _initializeDates();
     _loadReports();
+    _loadNotifications();
+    // Listen for real-time foreground notifications
+    NotificationService().onMessage.listen((_) => _loadNotifications());
     // Listen to profile changes
     ProfileStateService().profileNotifier.addListener(_onProfileChanged);
   }
@@ -96,7 +105,35 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoadingReports = true;
       });
       _loadReports();
+      _loadNotifications();
     }
+  }
+
+  Future<void> _loadNotifications() async {
+    if (_isLoadingNotifications) return;
+    setState(() => _isLoadingNotifications = true);
+    try {
+      final notificationsData = await ApiClient.instance.getNotifications();
+      if (mounted) {
+        setState(() {
+          _notifications = notificationsData
+              .map((n) => InAppNotification.fromJson(n))
+              .toList();
+          _unreadCount = _notifications.where((n) => !n.isRead).length;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading notifications: $e');
+    } finally {
+      if (mounted) setState(() => _isLoadingNotifications = false);
+    }
+  }
+
+  Future<void> _markAllAsRead() async {
+    for (var n in _notifications.where((n) => !n.isRead)) {
+      await ApiClient.instance.markNotificationAsRead(n.id);
+    }
+    _loadNotifications();
   }
 
   Future<void> _initializeProfile() async {
@@ -560,6 +597,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     user: _currentUser,
                     isDarkMode: _isDarkMode,
+                    unreadCount: _unreadCount,
+                    onToggleNotifications: () => setState(
+                      () => _showNotifications = !_showNotifications,
+                    ),
                     onLogout: () {
                       Navigator.pushNamedAndRemoveUntil(
                         context,
@@ -613,6 +654,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               onSearchChanged: (val) =>
                                   setState(() => _searchQuery = val),
                               reports: _reports,
+                              unreadCount: _unreadCount,
                               onUploadTap: () =>
                                   setState(() => _showCameraUpload = true),
                               onToggleNotifications: () => setState(
@@ -755,36 +797,37 @@ class _HomeScreenState extends State<HomeScreen> {
                           size: 20,
                         ),
                       ),
-                      Positioned(
-                        top: 5,
-                        right: 5,
-                        child: Container(
-                          width: 16,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFF4B4B),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 1.5),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 2,
-                                offset: const Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Text(
-                              '3',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
+                      if (_unreadCount > 0)
+                        Positioned(
+                          top: 5,
+                          right: 5,
+                          child: Container(
+                            width: 16,
+                            height: 16,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF4B4B),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 1.5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 2,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Text(
+                                '$_unreadCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -1722,8 +1765,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              Text(
-                                'You have 3 new notifications',
+                               Text(
+                                _unreadCount > 0
+                                    ? 'You have $_unreadCount new notifications'
+                                    : 'No new notifications',
                                 style: TextStyle(
                                   color: _isDarkMode
                                       ? Colors.grey[400]
@@ -1733,52 +1778,71 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ],
                           ),
-                          GestureDetector(
-                            onTap: () =>
-                                setState(() => _showNotifications = false),
-                            child: Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: _isDarkMode
-                                    ? const Color(0xFF374151)
-                                    : const Color(0xFFE5E7EB),
-                                borderRadius: BorderRadius.circular(12),
+                          Row(
+                            children: [
+                              if (_unreadCount > 0)
+                                GestureDetector(
+                                  onTap: _markAllAsRead,
+                                  child: const Text(
+                                    'Mark all as read',
+                                    style: TextStyle(
+                                      color: Color(0xFF39A4E6),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              const SizedBox(width: 12),
+                              GestureDetector(
+                                onTap: () =>
+                                    setState(() => _showNotifications = false),
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: _isDarkMode
+                                        ? const Color(0xFF374151)
+                                        : const Color(0xFFE5E7EB),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(
+                                    LucideIcons.x,
+                                    size: 20,
+                                    color: _isDarkMode
+                                        ? Colors.grey[300]
+                                        : Colors.grey[600],
+                                  ),
+                                ),
                               ),
-                              child: Icon(
-                                LucideIcons.x,
-                                size: 20,
-                                color: _isDarkMode
-                                    ? Colors.grey[300]
-                                    : Colors.grey[600],
-                              ),
-                            ),
+                            ],
                           ),
                         ],
                       ),
                     ),
                     Container(
                       constraints: const BoxConstraints(maxHeight: 400),
-                      child: ListView(
-                        shrinkWrap: true,
-                        children: [
-                          _buildNotificationItem(
-                            'Report Ready',
-                            'Your blood test results are available',
-                            '2h ago',
-                          ),
-                          _buildNotificationItem(
-                            'Appointment Reminder',
-                            'Dr. Turner tomorrow at 10:00 AM',
-                            '5h ago',
-                          ),
-                          _buildNotificationItem(
-                            'Shared Report',
-                            'Dr. Bennett viewed your X-Ray',
-                            '1d ago',
-                          ),
-                        ],
-                      ),
+                      child: _isLoadingNotifications
+                          ? const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(32.0),
+                                child: CircularProgressIndicator(),
+                              ),
+                            )
+                          : _notifications.isEmpty
+                              ? const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(32.0),
+                                    child: Text('No notifications yet'),
+                                  ),
+                                )
+                              : ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: _notifications.length,
+                                  itemBuilder: (context, index) {
+                                    final n = _notifications[index];
+                                    return _buildNotificationItem(n);
+                                  },
+                                ),
                     ),
                   ],
                 ),
@@ -1790,69 +1854,95 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildNotificationItem(String title, String message, String time) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: _isDarkMode
-                ? const Color(0xFF374151)
-                : const Color(0xFFE5E7EB),
+  Widget _buildNotificationItem(InAppNotification notification) {
+    return GestureDetector(
+      onTap: () async {
+        if (!notification.isRead) {
+          await ApiClient.instance.markNotificationAsRead(notification.id);
+          _loadNotifications();
+        }
+        // Handle deep link navigation based on notification.type/data
+        if (notification.type == 'report_upload' || notification.type == 'profile_share') {
+          setState(() => _showNotifications = false);
+          // For now just close the panel, but we could trigger navigation if needed
+          // similar to how we do in notification_service.dart
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: notification.isRead ? Colors.transparent : (const Color(0xFF39A4E6).withOpacity(0.05)),
+          border: Border(
+            bottom: BorderSide(
+              color: _isDarkMode
+                  ? const Color(0xFF374151)
+                  : const Color(0xFFE5E7EB),
+            ),
           ),
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: notification.isRead 
+                      ? [Colors.grey[400]!, Colors.grey[500]!]
+                      : [const Color(0xFF39A4E6), const Color(0xFF2B8FD9)],
+                ),
+                borderRadius: BorderRadius.circular(16),
               ),
-              borderRadius: BorderRadius.circular(16),
+              child: Icon(
+                notification.type == 'profile_share' ? LucideIcons.users : LucideIcons.fileText,
+                color: Colors.white,
+                size: 24,
+              ),
             ),
-            child: const Icon(
-              LucideIcons.fileText,
-              color: Colors.white,
-              size: 24,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    notification.title,
+                    style: TextStyle(
+                      color: _isDarkMode ? Colors.white : const Color(0xFF111827),
+                      fontSize: 14,
+                      fontWeight: notification.isRead ? FontWeight.w500 : FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    notification.message,
+                    style: TextStyle(
+                      color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    notification.timeAgo,
+                    style: const TextStyle(
+                      color: Color(0xFF39A4E6),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: _isDarkMode ? Colors.white : const Color(0xFF111827),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
+            if (!notification.isRead)
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFF4B4B),
+                  shape: BoxShape.circle,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  message,
-                  style: TextStyle(
-                    color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  time,
-                  style: const TextStyle(
-                    color: Color(0xFF39A4E6),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+              ),
+          ],
+        ),
       ),
     );
   }

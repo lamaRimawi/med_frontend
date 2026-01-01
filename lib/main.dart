@@ -21,6 +21,7 @@ import 'screens/web_verification_screen.dart';
 import 'screens/web_reset_password_screen.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'services/notification_service.dart';
+import 'screens/family_management_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -133,6 +134,7 @@ class _MyAppState extends State<MyApp> {
                 '/verification': (context) => kIsWeb ? const WebVerificationScreen() : const VerificationScreen(),
                 '/reset-password': (context) => kIsWeb ? const WebResetPasswordScreen() : const ResetPasswordScreen(),
                 '/reports': (context) => const ReportsScreen(),
+                '/family': (context) => const FamilyManagementScreen(),
                 '/notification-settings': (context) => const NotificationSettingsScreen(),
                 '/dark-mode-settings': (context) => const DarkModeScreen(),
               },

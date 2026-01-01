@@ -18,6 +18,7 @@ class WebDashboardView extends StatefulWidget {
   final String searchQuery;
   final Function(String) onSearchChanged;
   final List<Map<String, String>> reports;
+  final int unreadCount;
   final VoidCallback onUploadTap;
   final VoidCallback onToggleNotifications;
   final bool showNotifications;
@@ -29,6 +30,7 @@ class WebDashboardView extends StatefulWidget {
     required this.searchQuery,
     required this.onSearchChanged,
     required this.reports,
+    required this.unreadCount,
     required this.onUploadTap,
     required this.onToggleNotifications,
     required this.showNotifications,

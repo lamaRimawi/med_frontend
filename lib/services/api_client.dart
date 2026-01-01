@@ -105,6 +105,33 @@ class ApiClient {
     }
   }
 
+  Future<List<Map<String, dynamic>>> getNotifications() async {
+    try {
+      final response = await get('/users/notifications', auth: true);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching notifications: $e');
+      return [];
+    }
+  }
+
+  Future<bool> markNotificationAsRead(int notificationId) async {
+    try {
+      final response = await post(
+        '/users/notifications/$notificationId/read',
+        auth: true,
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Error marking notification as read: $e');
+      return false;
+    }
+  }
+
   Future<http.Response> get(
     String path, {
     Map<String, String>? headers,

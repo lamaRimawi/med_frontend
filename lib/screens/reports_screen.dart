@@ -29,6 +29,7 @@ import '../models/profile_model.dart';
 import '../widgets/profile_selector.dart';
 import '../models/user_model.dart';
 import '../services/user_service.dart';
+import '../services/profile_service.dart';
 import '../services/profile_state_service.dart';
 
 class ReportsScreen extends StatefulWidget {
@@ -58,6 +59,29 @@ class _ReportsScreenState extends State<ReportsScreen> {
     _loadUserProfile(); 
     // Listen to profile changes
     ProfileStateService().profileNotifier.addListener(_onProfileChanged);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (args != null && args.containsKey('profile_id')) {
+      final profileId = int.tryParse(args['profile_id'].toString());
+      if (profileId != null && profileId != _selectedProfileId) {
+        // Use Future.delayed to avoid calling setState during build
+        Future.microtask(() => _switchToProfileById(profileId));
+      }
+    }
+  }
+
+  Future<void> _switchToProfileById(int profileId) async {
+    try {
+      final profiles = await ProfileService.getProfiles();
+      final profile = profiles.firstWhere((p) => p.id == profileId);
+      await ProfileStateService().setSelectedProfile(profile);
+    } catch (e) {
+      debugPrint('Error switching profile from notification: $e');
+    }
   }
 
 

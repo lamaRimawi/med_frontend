@@ -10,6 +10,8 @@ class WebNavbar extends StatelessWidget {
   final Function(int) onTabSelected;
   final User? user;
   final bool isDarkMode;
+  final int unreadCount;
+  final VoidCallback onToggleNotifications;
   final VoidCallback onLogout;
   final VoidCallback onToggleTheme;
 
@@ -19,6 +21,8 @@ class WebNavbar extends StatelessWidget {
     required this.onTabSelected,
     this.user,
     required this.isDarkMode,
+    required this.unreadCount,
+    required this.onToggleNotifications,
     required this.onLogout,
     required this.onToggleTheme,
   });
@@ -160,6 +164,61 @@ class WebNavbar extends StatelessWidget {
     return Row(
       children: [
         _navItem(4, LucideIcons.user, 'Profile'),
+        const SizedBox(width: 16),
+        // Notification Bell
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onToggleNotifications,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF39A4E6).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF39A4E6).withOpacity(0.2),
+                ),
+              ),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                   Icon(
+                    LucideIcons.bell,
+                    color: const Color(0xFF39A4E6),
+                    size: 18,
+                  ),
+                  if (unreadCount > 0)
+                    Positioned(
+                      top: -5,
+                      right: -5,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFF4B4B),
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Center(
+                          child: Text(
+                            '$unreadCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
         const SizedBox(width: 16),
         Container(
           height: 32,

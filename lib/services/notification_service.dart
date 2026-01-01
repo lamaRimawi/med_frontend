@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../main.dart'; // Import to use navigatorKey
 import 'api_client.dart';
 
@@ -12,6 +13,10 @@ class NotificationService {
 
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+
+  // Stream for real-time notification updates
+  final StreamController<RemoteMessage> _messageStreamController = StreamController<RemoteMessage>.broadcast();
+  Stream<RemoteMessage> get onMessage => _messageStreamController.stream;
 
   Future<void> initialize(BuildContext context) async {
     // 1. Request permissions (especially for iOS)
@@ -73,6 +78,7 @@ class NotificationService {
     // A. Foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint('Foreground Message: ${message.notification?.title}');
+      _messageStreamController.add(message);
       _showLocalNotification(message);
     });
 
@@ -116,12 +122,15 @@ class NotificationService {
 
     if (type == 'profile_share') {
       debugPrint('Navigating to profile share: $profileIdArg');
-      // Navigate to Home or specific screen
-      navigatorKey.currentState?.pushNamed('/home');
+      // Navigate to Family Management screen
+      navigatorKey.currentState?.pushNamed('/family'); 
     } else if (type == 'report_upload') {
-      debugPrint('Navigating to report upload: $reportIdArg');
-      // Navigate to Reports screen
-      navigatorKey.currentState?.pushNamed('/reports');
+      debugPrint('Navigating to reports: $reportIdArg');
+      // Navigate to Reports screen and potentially filter by profile or open specific report
+      navigatorKey.currentState?.pushNamed('/reports', arguments: {
+        'profile_id': profileIdArg,
+        'report_id': reportIdArg,
+      });
     }
   }
 }
