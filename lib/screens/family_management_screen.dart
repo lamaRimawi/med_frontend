@@ -109,83 +109,147 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
   @override
   Widget build(BuildContext context) {
     final isDark = _isDarkMode;
+    final bgColor = isDark ? const Color(0xFF0A1929) : const Color(0xFFF9FAFB);
+
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0A1929) : const Color(0xFFF9FAFB),
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: isDark ? const Color(0xFF0A1929) : Colors.white,
-        leading: IconButton(
-          icon: Icon(
-            LucideIcons.arrowLeft,
-            color: isDark ? Colors.white : Colors.black,
+      backgroundColor: bgColor,
+      body: Column(
+        children: [
+          _buildHeader(isDark),
+          _buildTabSwitcher(isDark),
+          Expanded(
+            child: _isLoading
+                ? Center(
+                    child: CircularProgressIndicator(
+                      color: const Color(0xFF39A4E6),
+                    ),
+                  )
+                : TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildProfilesTab(),
+                      _buildConnectionsTab(),
+                    ],
+                  ),
           ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Family & Shared Access',
-          style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF132F4C) : Colors.grey[100],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicator: BoxDecoration(
-                color: const Color(0xFF39A4E6),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              indicatorSize: TabBarIndicatorSize.tab,
-              dividerColor: Colors.transparent,
-              labelColor: Colors.white,
-              unselectedLabelColor: isDark ? Colors.grey[400] : Colors.grey[600],
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 14),
-              tabs: const [
-                Tab(text: 'Profiles'),
-                Tab(text: 'Connections'),
-              ],
-            ),
-          ),
-        ),
+        ],
       ),
-      body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                color: const Color(0xFF39A4E6),
-              ),
-            )
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildProfilesTab(),
-                _buildConnectionsTab(),
-              ],
-            ),
       floatingActionButton: _buildFloatingActionButton(isDark),
     );
   }
 
+  Widget _buildHeader(bool isDark) {
+    return Container(
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 8,
+        bottom: 16,
+        left: 16,
+        right: 16,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isDark
+              ? [const Color(0xFF132F4C), const Color(0xFF0A1929)]
+              : [const Color(0xFF39A4E6), const Color(0xFF2B8FD9)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(LucideIcons.chevronLeft, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+          const Expanded(
+            child: Text(
+              'Family & Shared Access',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(width: 48), // Balance for back button
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabSwitcher(bool isDark) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF132F4C) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: TabBar(
+        controller: _tabController,
+        indicator: BoxDecoration(
+          color: const Color(0xFF39A4E6),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF39A4E6).withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        indicatorSize: TabBarIndicatorSize.tab,
+        dividerColor: Colors.transparent,
+        labelColor: Colors.white,
+        unselectedLabelColor: isDark ? Colors.grey[400] : Colors.grey[500],
+        labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+        tabs: const [
+          Tab(text: 'Profiles'),
+          Tab(text: 'Connections'),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFloatingActionButton(bool isDark) {
-    return FloatingActionButton.extended(
-      onPressed: _tabController.index == 0 ? _showAddProfileDialog : _showAddConnectionDialog,
-      backgroundColor: const Color(0xFF39A4E6),
-      elevation: 4,
-      icon: const Icon(LucideIcons.plus, color: Colors.white, size: 20),
-      label: Text(
-        _tabController.index == 0 ? 'Add Member' : 'Share Access',
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 14,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF39A4E6).withOpacity(0.4),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: FloatingActionButton.extended(
+        onPressed: _tabController.index == 0 ? _showAddProfileDialog : _showAddConnectionDialog,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        enableFeedback: true,
+        icon: const Icon(LucideIcons.plus, color: Colors.white, size: 20),
+        label: Text(
+          _tabController.index == 0 ? 'Add Member' : 'Share Access',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+            fontSize: 14,
+          ),
         ),
       ),
     ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.2, end: 0);
@@ -199,26 +263,38 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              LucideIcons.users,
-              size: 80,
-              color: isDark ? Colors.grey[700] : Colors.grey[300],
-            ),
+            Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white.withOpacity(0.03) : Colors.black.withOpacity(0.02),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                LucideIcons.users,
+                size: 80,
+                color: isDark ? Colors.grey[800] : Colors.grey[200],
+              ),
+            ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack),
             const SizedBox(height: 24),
             Text(
               'No profiles yet',
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black,
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : const Color(0xFF111827),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Add family members to get started',
-              style: TextStyle(
-                fontSize: 14,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Text(
+                'Add family members to manage their health records and appointments',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.5,
+                  color: isDark ? Colors.grey[400] : Colors.grey[500],
+                ),
               ),
             ),
           ],
@@ -226,8 +302,6 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
       );
     }
 
-    // Separate profiles into owned and shared
-    // Self profile is always owned, others check creator_id or isShared flag
     final ownedProfiles = _profiles.where((p) {
       if (p.relationship == 'Self') return true;
       if (!p.isShared) return true;
@@ -238,33 +312,50 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
       return p.isShared && p.creatorId != _currentUserId;
     }).toList();
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        if (ownedProfiles.isNotEmpty) ...[
-          _buildSectionHeader('My Profiles', isDark),
-          const SizedBox(height: 12),
-          ...ownedProfiles.map((profile) => _buildProfileCard(profile, isDark, isOwned: true)),
-          if (sharedProfiles.isNotEmpty) const SizedBox(height: 24),
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      color: const Color(0xFF39A4E6),
+      child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          if (ownedProfiles.isNotEmpty) ...[
+            _buildSectionHeader('MY PROFILES', isDark),
+            const SizedBox(height: 12),
+            ...ownedProfiles.asMap().entries.map((entry) {
+              return _buildProfileCard(entry.value, isDark, isOwned: true)
+                  .animate()
+                  .fadeIn(delay: (entry.key * 100).ms, duration: 400.ms)
+                  .slideX(begin: 0.1, end: 0, curve: Curves.easeOut);
+            }),
+            if (sharedProfiles.isNotEmpty) const SizedBox(height: 32),
+          ],
+          if (sharedProfiles.isNotEmpty) ...[
+            _buildSectionHeader('SHARED WITH ME', isDark),
+            const SizedBox(height: 12),
+            ...sharedProfiles.asMap().entries.map((entry) {
+              return _buildProfileCard(entry.value, isDark, isOwned: false)
+                  .animate()
+                  .fadeIn(delay: ((ownedProfiles.length + entry.key) * 100).ms, duration: 400.ms)
+                  .slideX(begin: 0.1, end: 0, curve: Curves.easeOut);
+            }),
+          ],
+          const SizedBox(height: 100), // Space for FAB
         ],
-        if (sharedProfiles.isNotEmpty) ...[
-          _buildSectionHeader('Shared With Me', isDark),
-          const SizedBox(height: 12),
-          ...sharedProfiles.map((profile) => _buildProfileCard(profile, isDark, isOwned: false)),
-        ],
-      ],
+      ),
     );
   }
 
   Widget _buildSectionHeader(String title, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Text(
         title,
         style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: isDark ? Colors.grey[300] : Colors.grey[700],
+          fontSize: 12,
+          letterSpacing: 1.2,
+          fontWeight: FontWeight.w800,
+          color: isDark ? const Color(0xFF39A4E6).withOpacity(0.8) : const Color(0xFF39A4E6),
         ),
       ),
     );
@@ -283,28 +374,27 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
     final canTransfer = isOwner && !isSelf;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF132F4C) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: isDark ? const Color(0xFF132F4C).withOpacity(0.5) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark ? const Color(0xFF1E4976) : Colors.grey.withOpacity(0.1),
-          width: 1,
+          color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+          width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
           onTap: () {
-            // Switch to this profile
             ProfileStateService().setSelectedProfile(profile);
             Navigator.pop(context);
           },
@@ -312,26 +402,35 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                // Avatar
+                // Avatar with premium styling
                 Container(
-                  width: 56,
-                  height: 56,
+                  width: 60,
+                  height: 60,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(20),
                     gradient: LinearGradient(
-                      colors: [
-                        const Color(0xFF39A4E6).withOpacity(0.2),
-                        const Color(0xFF39A4E6).withOpacity(0.1),
-                      ],
+                      colors: isSelf
+                          ? [const Color(0xFF39A4E6), const Color(0xFF2B8FD9)]
+                          : [const Color(0xFF8B5CF6), const Color(0xFF7C3AED)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (isSelf ? const Color(0xFF39A4E6) : const Color(0xFF8B5CF6))
+                            .withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Center(
                     child: Text(
                       profile.firstName[0].toUpperCase(),
                       style: const TextStyle(
                         fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF39A4E6),
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -344,12 +443,15 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                     children: [
                       Row(
                         children: [
-                          Text(
-                            profile.fullName,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: isDark ? Colors.white : Colors.black,
+                          Flexible(
+                            child: Text(
+                              profile.fullName,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 16,
+                                color: isDark ? Colors.white : const Color(0xFF111827),
+                              ),
                             ),
                           ),
                           if (profile.isShared) ...[
@@ -358,23 +460,32 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                           ],
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            LucideIcons.user,
-                            size: 12,
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            profile.relationship,
-                            style: TextStyle(
-                              fontSize: 13,
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey[100],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              LucideIcons.user,
+                              size: 10,
                               color: isDark ? Colors.grey[400] : Colors.grey[600],
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 6),
+                            Text(
+                              profile.relationship,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -382,109 +493,101 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                 // Actions
                 if (isSelf)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey[100],
-                      borderRadius: BorderRadius.circular(20),
+                      color: const Color(0xFF39A4E6).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFF39A4E6).withOpacity(0.2)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          LucideIcons.checkCircle,
+                        const Icon(
+                          LucideIcons.checkCircle2,
                           size: 14,
-                          color: isDark ? Colors.grey[300] : Colors.grey[600],
+                          color: Color(0xFF39A4E6),
                         ),
-                        const SizedBox(width: 4),
-                        Text(
+                        const SizedBox(width: 6),
+                        const Text(
                           'Current',
                           style: TextStyle(
                             fontSize: 12,
-                            color: isDark ? Colors.grey[300] : Colors.grey[600],
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF39A4E6),
                           ),
                         ),
                       ],
                     ),
                   )
                 else
-                  PopupMenuButton<String>(
-                    icon: Icon(
-                      LucideIcons.moreVertical,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    color: isDark ? const Color(0xFF132F4C) : Colors.white,
-                    itemBuilder: (context) => [
-                      if (canShare)
-                        PopupMenuItem(
-                          value: 'share',
-                          child: Row(
-                            children: [
-                              Icon(LucideIcons.share2, size: 18, color: isDark ? Colors.white : Colors.black),
-                              const SizedBox(width: 12),
-                              const Text('Share Access'),
-                            ],
-                          ),
-                        ),
-                      if (canEdit)
-                        PopupMenuItem(
-                          value: 'edit',
-                          child: Row(
-                            children: [
-                              Icon(LucideIcons.edit, size: 18, color: isDark ? Colors.white : Colors.black),
-                              const SizedBox(width: 12),
-                              const Text('Edit'),
-                            ],
-                          ),
-                        ),
-                      if (canTransfer)
-                        PopupMenuItem(
-                          value: 'transfer',
-                          child: Row(
-                            children: [
-                              Icon(LucideIcons.refreshCw, size: 18, color: Colors.orange),
-                              const SizedBox(width: 12),
-                              const Text('Transfer Ownership'),
-                            ],
-                          ),
-                        ),
-                      if (canDelete)
-                        PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              Icon(LucideIcons.trash2, size: 18, color: Colors.red),
-                              const SizedBox(width: 12),
-                              const Text('Delete', style: TextStyle(color: Colors.red)),
-                            ],
-                          ),
-                        ),
-                    ],
-                    onSelected: (value) {
-                      switch (value) {
-                        case 'share':
-                          _showShareProfileDialog(profile);
-                          break;
-                        case 'edit':
-                          _showEditProfileDialog(profile);
-                          break;
-                        case 'transfer':
-                          _showTransferOwnershipDialog(profile);
-                          break;
-                        case 'delete':
-                          _confirmDeleteProfile(profile);
-                          break;
-                      }
-                    },
-                  ),
+                  _buildActionsMenu(isDark, profile, canShare, canEdit, canTransfer, canDelete),
               ],
             ),
           ),
         ),
       ),
-    ).animate().fadeIn(duration: 300.ms).slideX(begin: 0.1, end: 0);
+    );
+  }
+
+  Widget _buildActionsMenu(bool isDark, UserProfile profile, bool canShare, bool canEdit, bool canTransfer, bool canDelete) {
+    return PopupMenuButton<String>(
+      icon: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey[500]!.withOpacity(0.05),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          LucideIcons.moreVertical,
+          size: 20,
+          color: isDark ? Colors.grey[400] : Colors.grey[600],
+        ),
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      elevation: 12,
+      offset: const Offset(0, 40),
+      color: isDark ? const Color(0xFF132F4C) : Colors.white,
+      itemBuilder: (context) => [
+        if (canShare)
+          _buildPopupItem(LucideIcons.share2, 'Share Access', 'share', isDark),
+        if (canEdit)
+          _buildPopupItem(LucideIcons.edit3, 'Edit Details', 'edit', isDark),
+        if (canTransfer)
+          _buildPopupItem(LucideIcons.arrowRightLeft, 'Transfer Ownership', 'transfer', isDark, color: Colors.orange),
+        if (canDelete)
+          _buildPopupItem(LucideIcons.trash2, 'Delete Profile', 'delete', isDark, color: Colors.red),
+      ],
+      onSelected: (value) {
+        switch (value) {
+          case 'share': _showShareProfileDialog(profile); break;
+          case 'edit': _showEditProfileDialog(profile); break;
+          case 'transfer': _showTransferOwnershipDialog(profile); break;
+          case 'delete': _confirmDeleteProfile(profile); break;
+        }
+      },
+    );
+  }
+
+  PopupMenuItem<String> _buildPopupItem(IconData icon, String title, String value, bool isDark, {Color? color}) {
+    return PopupMenuItem(
+      value: value,
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: color ?? (isDark ? Colors.white70 : Colors.black87)),
+          const SizedBox(width: 14),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: color ?? (isDark ? Colors.white : Colors.black87),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildAccessBadge(String? accessLevel) {
@@ -527,26 +630,38 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              LucideIcons.userPlus,
-              size: 80,
-              color: isDark ? Colors.grey[700] : Colors.grey[300],
-            ),
+            Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white.withOpacity(0.03) : Colors.black.withOpacity(0.02),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                LucideIcons.userPlus,
+                size: 80,
+                color: isDark ? Colors.grey[800] : Colors.grey[200],
+              ),
+            ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack),
             const SizedBox(height: 24),
             Text(
               'No connections yet',
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black,
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : const Color(0xFF111827),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Share access with family members or doctors',
-              style: TextStyle(
-                fontSize: 14,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Text(
+                'Connect with family members or healthcare providers to securely share medical records',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.5,
+                  color: isDark ? Colors.grey[400] : Colors.grey[500],
+                ),
               ),
             ),
           ],
@@ -554,21 +669,37 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
       );
     }
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        if (_receivedConnections.isNotEmpty) ...[
-          _buildSectionHeader('Received Requests', isDark),
-          const SizedBox(height: 12),
-          ..._receivedConnections.map((conn) => _buildConnectionCard(conn, isReceived: true)),
-          if (_sentConnections.isNotEmpty) const SizedBox(height: 24),
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      color: const Color(0xFF39A4E6),
+      child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          if (_receivedConnections.isNotEmpty) ...[
+            _buildSectionHeader('RECEIVED REQUESTS', isDark),
+            const SizedBox(height: 12),
+            ..._receivedConnections.asMap().entries.map((entry) {
+              return _buildConnectionCard(entry.value, isReceived: true)
+                  .animate()
+                  .fadeIn(delay: (entry.key * 100).ms, duration: 400.ms)
+                  .slideX(begin: 0.1, end: 0, curve: Curves.easeOut);
+            }),
+            if (_sentConnections.isNotEmpty) const SizedBox(height: 32),
+          ],
+          if (_sentConnections.isNotEmpty) ...[
+            _buildSectionHeader('SENT REQUESTS', isDark),
+            const SizedBox(height: 12),
+            ..._sentConnections.asMap().entries.map((entry) {
+              return _buildConnectionCard(entry.value, isReceived: false)
+                  .animate()
+                  .fadeIn(delay: ((_receivedConnections.length + entry.key) * 100).ms, duration: 400.ms)
+                  .slideX(begin: 0.1, end: 0, curve: Curves.easeOut);
+            }),
+          ],
+          const SizedBox(height: 100),
         ],
-        if (_sentConnections.isNotEmpty) ...[
-          _buildSectionHeader('Sent Requests', isDark),
-          const SizedBox(height: 12),
-          ..._sentConnections.map((conn) => _buildConnectionCard(conn, isReceived: false)),
-        ],
-      ],
+      ),
     );
   }
 
@@ -578,19 +709,19 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
     final status = conn.status;
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF132F4C) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: isDark ? const Color(0xFF132F4C).withOpacity(0.5) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark ? const Color(0xFF1E4976) : Colors.grey.withOpacity(0.1),
-          width: 1,
+          color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+          width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -601,20 +732,26 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
             Row(
               children: [
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: 54,
+                  height: 54,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(18),
                     gradient: LinearGradient(
-                      colors: [
-                        Colors.orange.withOpacity(0.2),
-                        Colors.orange.withOpacity(0.1),
-                      ],
+                      colors: [Colors.orange.shade400, Colors.orange.shade700],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.orange.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: Icon(
+                  child: const Icon(
                     LucideIcons.userPlus,
-                    color: Colors.orange,
+                    color: Colors.white,
                     size: 24,
                   ),
                 ),
@@ -626,41 +763,17 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                       Text(
                         email,
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: isDark ? Colors.white : Colors.black,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                          color: isDark ? Colors.white : const Color(0xFF111827),
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Row(
                         children: [
-                          Icon(
-                            LucideIcons.user,
-                            size: 12,
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            conn.relationship,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.grey[400] : Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Icon(
-                            LucideIcons.shield,
-                            size: 12,
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            conn.accessLevel ?? 'view',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.grey[400] : Colors.grey[600],
-                            ),
-                          ),
+                          _buildSmallBadge(LucideIcons.user, conn.relationship, isDark),
+                          const SizedBox(width: 8),
+                          _buildSmallBadge(LucideIcons.shield, conn.accessLevel ?? 'view', isDark),
                         ],
                       ),
                     ],
@@ -676,13 +789,14 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () => _respondToConnection(conn.id, 'reject'),
-                      icon: Icon(LucideIcons.x, size: 16),
+                      icon: const Icon(LucideIcons.x, size: 14),
                       label: const Text('Reject'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        side: BorderSide(color: Colors.red.withOpacity(0.5)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         padding: const EdgeInsets.symmetric(vertical: 12),
+                        textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                     ),
                   ),
@@ -690,13 +804,15 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () => _respondToConnection(conn.id, 'accept'),
-                      icon: Icon(LucideIcons.check, size: 16),
+                      icon: const Icon(LucideIcons.check, size: 14),
                       label: const Text('Accept'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF39A4E6),
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         padding: const EdgeInsets.symmetric(vertical: 12),
+                        textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                     ),
                   ),
@@ -709,13 +825,38 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
     ).animate().fadeIn(duration: 300.ms).slideX(begin: 0.1, end: 0);
   }
 
+  Widget _buildSmallBadge(IconData icon, String text, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildStatusBadge(String status) {
     Color color;
     IconData icon;
     switch (status) {
       case 'accepted':
         color = Colors.green;
-        icon = LucideIcons.checkCircle;
+        icon = LucideIcons.checkCircle2;
         break;
       case 'rejected':
         color = Colors.red;
@@ -731,19 +872,20 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withOpacity(0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
+          const SizedBox(width: 6),
           Text(
             status.toUpperCase(),
             style: TextStyle(
               color: color,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.5,
             ),
           ),
         ],
