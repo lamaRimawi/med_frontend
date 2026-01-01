@@ -286,16 +286,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
       ThemeProvider.of(context)?.themeMode == ThemeMode.dark;
 
   final List<String> _reportTypes = [
-    "Laboratory",
-    "Radiology",
+    "Lab Results",
+    "Prescriptions",
+    "Imaging",
     "Cardiology",
-    "Pathology",
-    "Blood Test",
-    "Urine Test",
-    "CT Scan",
-    "MRI",
-    "Ultrasound",
-    "Other",
+    "Neurology",
+    "Orthopedic",
   ];
 
   @override
@@ -668,7 +664,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           (report.patientName?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false) ||
                           report.reportDate.toLowerCase().contains(_searchQuery.toLowerCase());
 
-      final matchesFilter = _filterType == "all" || report.reportType == _filterType;
+      final matchesFilter = _filterType == "all" || report.reportCategory == _filterType;
 
       // Strict Profile Filtering
       // If we are on a specific profile, only show reports that belong to it
@@ -1061,9 +1057,50 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
+  Color _getCategoryColor(String? category) {
+    switch (category) {
+      case 'Lab Results':
+        return const Color(0xFF39A4E6); // Blue
+      case 'Prescriptions':
+        return const Color(0xFF10B981); // Emerald
+      case 'Imaging':
+        return const Color(0xFF8B5CF6); // Purple
+      case 'Cardiology':
+        return const Color(0xFFEF4444); // Red
+      case 'Neurology':
+        return const Color(0xFF6366F1); // Indigo
+      case 'Orthopedic':
+        return const Color(0xFFF59E0B); // Amber
+      default:
+        return const Color(0xFF39A4E6);
+    }
+  }
+
+  IconData _getCategoryIcon(String? category) {
+    switch (category) {
+      case 'Lab Results':
+        return LucideIcons.flaskConical;
+      case 'Prescriptions':
+        return LucideIcons.pill;
+      case 'Imaging':
+        return LucideIcons.camera;
+      case 'Cardiology':
+        return LucideIcons.heart;
+      case 'Neurology':
+        return LucideIcons.brain;
+      case 'Orthopedic':
+        return LucideIcons.activity;
+      default:
+        return LucideIcons.fileText;
+    }
+  }
+
   Widget _buildReportCard(Report report, int index) {
     final isDark = _isDarkMode;
     final title = _getReportTitle(report);
+
+    final categoryColor = _getCategoryColor(report.reportCategory);
+    final categoryIcon = _getCategoryIcon(report.reportCategory);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -1092,15 +1129,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
+                    gradient: LinearGradient(
+                      colors: [categoryColor, categoryColor.withOpacity(0.8)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(
-                    LucideIcons.fileText,
+                  child: Icon(
+                    categoryIcon,
                     color: Colors.white,
                     size: 28,
                   ),
@@ -1110,31 +1147,53 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (_selectedProfileRelation != null && _selectedProfileRelation != 'Self') ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          margin: const EdgeInsets.only(bottom: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF39A4E6).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(LucideIcons.user, size: 10, color: Color(0xFF39A4E6)),
-                              const SizedBox(width: 4),
-                              Text(
-                                _selectedProfileRelation!,
-                                style: const TextStyle(
+                      Row(
+                        children: [
+                          if (_selectedProfileRelation != null && _selectedProfileRelation != 'Self') ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              margin: const EdgeInsets.only(right: 8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF39A4E6).withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(LucideIcons.user, size: 10, color: Color(0xFF39A4E6)),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    _selectedProfileRelation!,
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF39A4E6),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          if (report.reportCategory != null) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: categoryColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                report.reportCategory!,
+                                style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF39A4E6),
+                                  color: categoryColor,
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ],
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 6),
                       Text(
                         title,
                         style: TextStyle(

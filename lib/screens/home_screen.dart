@@ -1406,6 +1406,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _determineReportType(Report r) {
+    if (r.reportCategory != null && r.reportCategory!.isNotEmpty) {
+      return r.reportCategory!;
+    }
     String type = 'General';
 
     // Try to find a matching field in additionalFields
@@ -1454,9 +1457,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return [
       {
-        'icon': LucideIcons.droplet,
+        'icon': LucideIcons.flaskConical,
         'label': 'Lab Results',
-        'color': const Color(0xFFFF6B9D),
+        'color': const Color(0xFF39A4E6),
         'count': counts['Lab Results'] ?? 0,
         'quickView': 'lab',
         'description': 'Blood tests & diagnostics',
@@ -1464,21 +1467,21 @@ class _HomeScreenState extends State<HomeScreen> {
       {
         'icon': LucideIcons.pill,
         'label': 'Prescriptions',
-        'color': const Color(0xFF6C63FF),
+        'color': const Color(0xFF10B981),
         'count': counts['Prescriptions'] ?? 0,
         'quickView': 'prescription',
         'description': 'Medication history',
       },
       {
-        'icon': LucideIcons.scan,
+        'icon': LucideIcons.camera,
         'label': 'Imaging',
-        'color': const Color(0xFFA78BFA),
+        'color': const Color(0xFF8B5CF6),
         'count': counts['Imaging'] ?? 0,
         'quickView': 'imaging',
         'description': 'X-rays, MRI, CT scans',
       },
       {
-        'icon': LucideIcons.heartPulse,
+        'icon': LucideIcons.heart,
         'label': 'Cardiology',
         'color': const Color(0xFFEF4444),
         'count': counts['Cardiology'] ?? 0,
@@ -1486,15 +1489,15 @@ class _HomeScreenState extends State<HomeScreen> {
         'description': 'Heart health',
       },
       {
-        'icon': LucideIcons.brainCircuit,
+        'icon': LucideIcons.brain,
         'label': 'Neurology',
-        'color': const Color(0xFF8B5CF6),
+        'color': const Color(0xFF6366F1),
         'count': counts['Neurology'] ?? 0,
         'quickView': 'neurology',
         'description': 'Brain & nerves',
       },
       {
-        'icon': LucideIcons.bone,
+        'icon': LucideIcons.activity,
         'label': 'Orthopedic',
         'color': const Color(0xFFF59E0B),
         'count': counts['Orthopedic'] ?? 0,

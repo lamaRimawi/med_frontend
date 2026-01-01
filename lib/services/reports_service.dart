@@ -69,6 +69,7 @@ class ReportsService {
 
           return parsedReports;
         } else {
+          debugPrint('ReportsService Error [${response.statusCode}]: ${response.body}');
           throw Exception('Failed to load reports: ${response.statusCode}');
         }
       } catch (e) {
@@ -115,6 +116,7 @@ class ReportsService {
         final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
         return Report.fromJson(data['report'] as Map<String, dynamic>);
       } else {
+        debugPrint('ReportsService Detail Error [${response.statusCode}]: ${response.body}');
         throw Exception('Failed to load report detail: ${response.statusCode}');
       }
     } catch (e) {

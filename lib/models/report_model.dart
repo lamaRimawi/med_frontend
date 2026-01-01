@@ -5,6 +5,7 @@ class Report {
   final int totalFields;
   final String? reportType;
   final String? reportName;
+  final String? reportCategory; // New field
   final List<ReportField> fields;
   final List<AdditionalField> additionalFields;
   final String? patientName;
@@ -19,6 +20,7 @@ class Report {
     required this.totalFields,
     this.reportType,
     this.reportName,
+    this.reportCategory,
     required this.fields,
     required this.additionalFields,
     this.patientName,
@@ -40,6 +42,7 @@ class Report {
       totalFields: json['total_fields'] as int? ?? fieldsList?.length ?? 0,
       reportType: json['report_type'] as String?,
       reportName: json['report_name'] as String?,
+      reportCategory: json['report_category'] as String?,
       fields:
           fieldsList
               ?.map((e) => ReportField.fromJson(e as Map<String, dynamic>))
