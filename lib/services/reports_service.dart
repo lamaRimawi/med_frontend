@@ -36,7 +36,16 @@ class ReportsService {
           path = '$path?profile_id=$profileId';
         }
         
-        final response = await _client.get(path, auth: true);
+        // Check for session token
+        Map<String, String>? headers;
+        if (profileId != null) {
+           final sessionToken = await _client.getSessionToken('profile', profileId.toString());
+           if (sessionToken != null) {
+             headers = {'X-Access-Session-Token': sessionToken};
+           }
+        }
+
+        final response = await _client.get(path, auth: true, headers: headers);
 
         if (response.statusCode == 200) {
           final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
@@ -57,14 +66,12 @@ class ReportsService {
         }
       } catch (e) {
         // Don't retry if unauthorized (token expired)
-        if (e.toString().contains('Unauthorized')) {
+        if (e.toString().contains('Unauthorized') || e is AccessVerificationException) {
           rethrow;
         }
 
         retries--;
         if (retries == 0) {
-          // If we have cache even after failure, maybe return it?
-          // For now, let's just rethrow if all retries fail.
           throw Exception('Error fetching reports after retries: $e');
         }
         // Wait briefly before retrying
@@ -74,13 +81,22 @@ class ReportsService {
     return []; // Should not be reached
   }
 
-  Future<Report> getReport(int reportId) => getReportDetail(reportId);
+  Future<Report> getReport(int reportId, {int? profileId}) => getReportDetail(reportId, profileId: profileId);
 
-  Future<Report> getReportDetail(int reportId) async {
+  Future<Report> getReportDetail(int reportId, {int? profileId}) async {
     try {
+      Map<String, String>? headers;
+      if (profileId != null) {
+         final sessionToken = await _client.getSessionToken('profile', profileId.toString());
+         if (sessionToken != null) {
+           headers = {'X-Access-Session-Token': sessionToken};
+         }
+      }
+    
       final response = await _client.get(
         '${ApiConfig.reports}/$reportId',
         auth: true,
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -90,30 +106,50 @@ class ReportsService {
         throw Exception('Failed to load report detail: ${response.statusCode}');
       }
     } catch (e) {
+      if (e is AccessVerificationException) rethrow;
       throw Exception('Error fetching report detail: $e');
     }
   }
 
-  Future<void> deleteReport(int reportId) async {
+  Future<void> deleteReport(int reportId, {int? profileId}) async {
     try {
+       Map<String, String>? headers;
+       if (profileId != null) {
+          final sessionToken = await _client.getSessionToken('profile', profileId.toString());
+          if (sessionToken != null) {
+            headers = {'X-Access-Session-Token': sessionToken};
+          }
+       }
+
       final response = await _client.delete(
         '${ApiConfig.reports}/$reportId',
         auth: true,
+        headers: headers,
       );
 
       if (response.statusCode != 200) {
         throw Exception('Failed to delete report: ${response.statusCode}');
       }
     } catch (e) {
+      if (e is AccessVerificationException) rethrow;
       throw Exception('Error deleting report: $e');
     }
   }
 
-  Future<List<Map<String, dynamic>>> getReportImages(int reportId) async {
+  Future<List<Map<String, dynamic>>> getReportImages(int reportId, {int? profileId}) async {
     try {
+      Map<String, String>? headers;
+      if (profileId != null) {
+         final sessionToken = await _client.getSessionToken('profile', profileId.toString());
+         if (sessionToken != null) {
+           headers = {'X-Access-Session-Token': sessionToken};
+         }
+      }
+
       final response = await _client.get(
         '${ApiConfig.reports}/$reportId/images',
         auth: true,
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -141,6 +177,7 @@ class ReportsService {
         throw Exception('Failed to load report images: ${response.statusCode}');
       }
     } catch (e) {
+      if (e is AccessVerificationException) rethrow;
       throw Exception('Error fetching report images: $e');
     }
   }

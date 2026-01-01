@@ -5,6 +5,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/api_config.dart';
 
+class AccessVerificationException implements Exception {
+  final String message;
+  final bool requiresVerification;
+  final int? verificationId;
+  final String? instructions;
+
+  AccessVerificationException({
+    required this.message,
+    this.requiresVerification = true,
+    this.verificationId,
+    this.instructions,
+  });
+
+  @override
+  String toString() => message;
+}
+
 class ApiClient {
   ApiClient._();
   static final ApiClient instance = ApiClient._();
@@ -43,6 +60,23 @@ class ApiClient {
         .post(_uri(path, query), headers: mergedHeaders, body: jsonEncode(body))
         .timeout(const Duration(seconds: 60));
 
+    // Handle Access Verification (403)
+    if (response.statusCode == 403) {
+      try {
+        final body = jsonDecode(response.body);
+        if (body is Map<String, dynamic> && body['requires_verification'] == true) {
+          throw AccessVerificationException(
+            message: body['message'] ?? 'Access verification required',
+            verificationId: body['verification_id'],
+            instructions: body['instructions'],
+          );
+        }
+      } catch (e) {
+        if (e is AccessVerificationException) rethrow;
+        // If parsing fails or it's a different 403, standard error handling applies
+      }
+    }
+
     // Only throw exception for 401 if this was an authenticated request AND we don't want to skip global logout
     if (response.statusCode == 401 && auth && !skipGlobalLogoutOn401) {
       final prefs = await SharedPreferences.getInstance();
@@ -72,6 +106,22 @@ class ApiClient {
     final response = await http
         .get(_uri(path, query), headers: mergedHeaders)
         .timeout(const Duration(seconds: 60));
+
+    // Handle Access Verification (403)
+    if (response.statusCode == 403) {
+      try {
+        final body = jsonDecode(response.body);
+        if (body is Map<String, dynamic> && body['requires_verification'] == true) {
+          throw AccessVerificationException(
+            message: body['message'] ?? 'Access verification required',
+            verificationId: body['verification_id'],
+            instructions: body['instructions'],
+          );
+        }
+      } catch (e) {
+        if (e is AccessVerificationException) rethrow;
+      }
+    }
     if (response.statusCode == 401) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('jwt_token');
@@ -100,6 +150,22 @@ class ApiClient {
     final response = await http
         .put(_uri(path, query), headers: mergedHeaders, body: jsonEncode(body))
         .timeout(const Duration(seconds: 60));
+
+     // Handle Access Verification (403)
+    if (response.statusCode == 403) {
+      try {
+        final body = jsonDecode(response.body);
+        if (body is Map<String, dynamic> && body['requires_verification'] == true) {
+          throw AccessVerificationException(
+            message: body['message'] ?? 'Access verification required',
+            verificationId: body['verification_id'],
+            instructions: body['instructions'],
+          );
+        }
+      } catch (e) {
+        if (e is AccessVerificationException) rethrow;
+      }
+    }
     if (response.statusCode == 401) {
       // Token expired or invalid
       final prefs = await SharedPreferences.getInstance();
@@ -130,6 +196,22 @@ class ApiClient {
     final response = await http
         .delete(_uri(path, query), headers: mergedHeaders, body: jsonEncode(body))
         .timeout(const Duration(seconds: 60));
+
+    // Handle Access Verification (403)
+    if (response.statusCode == 403) {
+      try {
+        final body = jsonDecode(response.body);
+        if (body is Map<String, dynamic> && body['requires_verification'] == true) {
+          throw AccessVerificationException(
+            message: body['message'] ?? 'Access verification required',
+            verificationId: body['verification_id'],
+            instructions: body['instructions'],
+          );
+        }
+      } catch (e) {
+        if (e is AccessVerificationException) rethrow;
+      }
+    }
     if (response.statusCode == 401) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('jwt_token');
@@ -242,5 +324,103 @@ class ApiClient {
 
   static T decodeJson<T>(http.Response res) {
     return json.decode(utf8.decode(res.bodyBytes)) as T;
+  }
+
+  // Session Token Management
+  Future<void> saveSessionToken(String resourceType, String resourceId, String token, int expiresInMinutes) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'session_token_${resourceType}_$resourceId';
+    final expiry = DateTime.now().add(Duration(minutes: expiresInMinutes)).toIso8601String();
+    await prefs.setString(key, jsonEncode({'token': token, 'expiry': expiry}));
+  }
+
+  Future<String?> getSessionToken(String resourceType, String resourceId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'session_token_${resourceType}_$resourceId';
+      final dataStr = prefs.getString(key);
+      if (dataStr == null) return null;
+      
+      final data = jsonDecode(dataStr);
+      final expiry = DateTime.parse(data['expiry']);
+      if (DateTime.now().isAfter(expiry)) {
+        await prefs.remove(key);
+        return null;
+      }
+      return data['token'];
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Verification API Calls
+  Future<Map<String, dynamic>> requestAccessVerification({
+    required String resourceType, 
+    required String resourceId,
+    String method = 'otp'
+  }) async {
+    final response = await post(
+       '/auth/request-access-verification', // Adjust if ApiConfig has a prefix or specific path constant
+       auth: true,
+       body: {
+         'resource_type': resourceType,
+         'resource_id': int.tryParse(resourceId) ?? resourceId, // Backend likely expects int for ID if it's numeric
+         'method': method,
+       },
+    );
+
+    if (response.statusCode == 200) {
+      return decodeJson(response);
+    } else {
+       throw Exception('Failed to request verification: ${response.statusCode}');
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyAccessCode({
+    required String resourceType,
+    required String resourceId,
+    required String code,
+  }) async {
+     try {
+       // Debugging: Ensure we send exactly what is expected. 
+       // Reverting to int for resource_id to match request endpoint.
+       final body = {
+         'resource_type': resourceType,
+         'resource_id': int.tryParse(resourceId) ?? resourceId, 
+         'code': code,
+       };
+       
+       print('Verifying with body: $body');
+
+       final response = await post(
+         '/auth/verify-access-code',
+         auth: true,
+         body: body,
+       );
+
+       print('Verify response [${response.statusCode}]: ${response.body}');
+
+       if (response.statusCode == 200) {
+         return decodeJson(response);
+       } else {
+         // Try to parse specific error message
+         try {
+           // Using direct jsonDecode to avoid generic type issues
+           final respBody = jsonDecode(response.body);
+           throw Exception(respBody['message'] ?? 'Verification failed (Status ${response.statusCode})');
+         } catch (e) {
+           if (e is Exception && !e.toString().contains('Verification failed (Status')) {
+              rethrow; // It was the exception we just threw
+           }
+           throw Exception('Verification failed (Status ${response.statusCode})');
+         }
+       }
+     } catch (e) {
+       // Catch specific 500s or network errors
+       if (e.toString().contains('500')) {
+         throw Exception('Server error (500). Please try again later.');
+       }
+       rethrow;
+     }
   }
 }

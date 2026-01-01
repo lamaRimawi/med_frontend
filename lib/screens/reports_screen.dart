@@ -20,6 +20,7 @@ import 'package:intl/intl.dart';
 import '../models/report_model.dart';
 import '../services/reports_service.dart';
 import '../services/api_client.dart';
+import '../widgets/access_verification_modal.dart';
 import '../config/api_config.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
@@ -168,6 +169,36 @@ class _ReportsScreenState extends State<ReportsScreen> {
           );
           return;
         }
+        
+        // Handle Access Verification
+        if (e is AccessVerificationException) {
+          // Hide loading to show modal cleanly
+          setState(() {
+             _isLoading = false;
+          });
+          
+          final verified = await showDialog<bool>(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => AccessVerificationModal(
+              resourceType: 'profile',
+              resourceId: _selectedProfileId ?? 0, // Fallback, though we normally have one if we got here
+            ),
+          );
+
+          if (verified == true) {
+            // Retry fetching
+            _fetchReports();
+          } else {
+             // User cancelled, maybe show error or go back?
+             if (_reports.isEmpty) {
+                setState(() {
+                  _error = "Access verification required to view reports";
+                });
+             }
+          }
+          return;
+        }
 
         // If we have data, show snackbar instead of full error
         if (_reports.isNotEmpty) {
@@ -277,8 +308,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Future<void> _handleDeleteReport(String id) async {
+
     try {
-      await ReportsService().deleteReport(int.parse(id));
+      await ReportsService().deleteReport(int.parse(id), profileId: _selectedProfileId);
       setState(() {
         _reports.removeWhere((report) => report.reportId.toString() == id);
       });
@@ -431,7 +463,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         builder: (ctx) => const Center(child: CircularProgressIndicator()),
       );
 
-      final images = await ReportsService().getReportImages(report.reportId);
+      final images = await ReportsService().getReportImages(report.reportId, profileId: _selectedProfileId);
 
       if (mounted) {
         Navigator.pop(context); // Hide loading
@@ -447,6 +479,22 @@ class _ReportsScreenState extends State<ReportsScreen> {
     } catch (e) {
       if (mounted) {
         Navigator.pop(context); // Hide loading
+        
+        if (e is AccessVerificationException) {
+            final verified = await showDialog<bool>(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => AccessVerificationModal(
+                resourceType: 'profile',
+                resourceId: _selectedProfileId ?? 0,
+              ),
+            );
+             if (verified == true) {
+                _handleViewReport(report); // Retry
+             }
+             return;
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to load report details: $e')),
         );
@@ -467,11 +515,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
       // Fetch fresh, full report details to ensure we have all extracted data
       Report fullReport = report;
       try {
-        final fetched = await ReportsService().getReport(report.reportId);
+        final fetched = await ReportsService().getReport(report.reportId, profileId: _selectedProfileId);
         if (fetched != null) {
           fullReport = fetched;
         }
       } catch (e) {
+         if (e is AccessVerificationException) {
+             debugPrint('Verification needed for full report details during share');
+         }
         debugPrint('Could not fetch full report details, using list item: $e');
       }
 

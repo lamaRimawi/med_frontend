@@ -9,6 +9,7 @@ class UserProfile {
   final int? linkedUserId;
   final bool isShared; // Whether this profile is shared with the current user
   final int? creatorId; // ID of the user who created/owns this profile
+  final String? accessLevel; // 'owner', 'manage', 'upload', 'view'
 
   UserProfile({
     required this.id,
@@ -21,19 +22,25 @@ class UserProfile {
     this.linkedUserId,
     this.isShared = false,
     this.creatorId,
+    this.accessLevel,
   });
 
   String get fullName => '$firstName $lastName';
 
   /// Check if current user is the owner of this profile
-  /// Note: This requires the current user ID to be passed in
   bool isOwner(int? currentUserId) {
+    // Explicit access level check is most reliable
+    if (accessLevel == 'owner') return true;
+    
+    // Fallback logic
     if (currentUserId == null || creatorId == null) {
-      // If no creator_id, assume it's owned by current user (Self profile)
       return relationship == 'Self' || !isShared;
     }
     return creatorId == currentUserId;
   }
+  
+  bool get canManage => accessLevel == 'owner' || accessLevel == 'manage';
+  bool get canUpload => canManage || accessLevel == 'upload';
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
@@ -47,6 +54,7 @@ class UserProfile {
       linkedUserId: json['linked_user_id'] as int?,
       isShared: json['is_shared'] as bool? ?? false,
       creatorId: json['creator_id'] as int?,
+      accessLevel: json['access_level']?.toString(),
     );
   }
 
@@ -57,6 +65,7 @@ class UserProfile {
       'relationship': relationship,
       'date_of_birth': dateOfBirth,
       'gender': gender,
+      // access_level is usually read-only from backend
     };
   }
 }

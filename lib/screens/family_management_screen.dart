@@ -267,12 +267,14 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
 
   Widget _buildProfileCard(UserProfile profile, bool isDark, {required bool isOwned}) {
     final isSelf = profile.relationship == 'Self';
-    // For Self profile, user is always the owner
-    // For other profiles, check if creator_id matches or if not shared
-    final isOwner = isSelf || (!profile.isShared) || (profile.creatorId == _currentUserId);
-    final canEdit = isOwner && !isSelf;
+    
+    // Explicit Permission Checks
+    final bool isOwner = isSelf || profile.isOwner(_currentUserId); 
+    final bool canManage = isSelf || profile.canManage;
+
+    final canEdit = canManage;
+    final canShare = canManage;
     final canDelete = isOwner && !isSelf;
-    final canShare = isOwner && !isSelf;
     final canTransfer = isOwner && !isSelf;
 
     return Container(
@@ -346,22 +348,8 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                             ),
                           ),
                           if (profile.isShared) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.orange.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Text(
-                                'Shared',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.orange,
-                                ),
-                              ),
-                            ),
+                             const SizedBox(width: 8),
+                             _buildAccessBadge(profile.accessLevel),
                           ],
                         ],
                       ),
@@ -492,6 +480,38 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
         ),
       ),
     ).animate().fadeIn(duration: 300.ms).slideX(begin: 0.1, end: 0);
+  }
+
+  Widget _buildAccessBadge(String? accessLevel) {
+    String label = 'Shared';
+    Color color = Colors.orange;
+
+    if (accessLevel == 'manage') {
+      label = 'Manager';
+      color = Colors.blue;
+    } else if (accessLevel == 'upload') {
+      label = 'Contributor';
+      color = Colors.green;
+    } else if (accessLevel == 'view') {
+      label = 'Viewer';
+      color = Colors.grey;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: color,
+        ),
+      ),
+    );
   }
 
   Widget _buildConnectionsTab() {
