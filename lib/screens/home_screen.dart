@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
@@ -1721,231 +1722,332 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildNotificationsPanel() {
+    final isDark = _isDarkMode;
     return Positioned.fill(
       child: GestureDetector(
         onTap: () => setState(() => _showNotifications = false),
         child: Container(
-          color: Colors.black.withOpacity(0.5),
+          color: Colors.black.withOpacity(isDark ? 0.7 : 0.4),
           child: Align(
             alignment: Alignment.topRight,
             child: GestureDetector(
               onTap: () {}, // Prevent closing when tapping panel
-              child: Container(
-                margin: const EdgeInsets.only(top: 80, right: 24),
-                width: 384,
-                decoration: BoxDecoration(
-                  color: _isDarkMode ? const Color(0xFF1F2937) : Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Notifications',
-                                style: TextStyle(
-                                  color: _isDarkMode
-                                      ? Colors.white
-                                      : const Color(0xFF111827),
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                               Text(
-                                _unreadCount > 0
-                                    ? 'You have $_unreadCount new notifications'
-                                    : 'No new notifications',
-                                style: TextStyle(
-                                  color: _isDarkMode
-                                      ? Colors.grey[400]
-                                      : Colors.grey[500],
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+              child: Padding(
+                padding: const EdgeInsets.only(top: 80, right: 24),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: Container(
+                      width: 384,
+                      decoration: BoxDecoration(
+                        color: isDark 
+                            ? const Color(0xFF111827).withOpacity(0.8) 
+                            : Colors.white.withOpacity(0.85),
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(
+                          color: isDark 
+                              ? Colors.white.withOpacity(0.1) 
+                              : Colors.white.withOpacity(0.2),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 32,
+                            offset: const Offset(0, 12),
                           ),
-                          Row(
-                            children: [
-                              if (_unreadCount > 0)
-                                GestureDetector(
-                                  onTap: _markAllAsRead,
-                                  child: const Text(
-                                    'Mark all as read',
-                                    style: TextStyle(
-                                      color: Color(0xFF39A4E6),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Header
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Notifications',
+                                      style: TextStyle(
+                                        color: isDark ? Colors.white : const Color(0xFF111827),
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: -0.5,
+                                      ),
                                     ),
-                                  ),
+                                    const SizedBox(height: 4),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF39A4E6).withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        _unreadCount > 0
+                                            ? '$_unreadCount New'
+                                            : 'No new alerts',
+                                        style: const TextStyle(
+                                          color: Color(0xFF39A4E6),
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              const SizedBox(width: 12),
-                              GestureDetector(
-                                onTap: () =>
-                                    setState(() => _showNotifications = false),
-                                child: Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: BoxDecoration(
-                                    color: _isDarkMode
-                                        ? const Color(0xFF374151)
-                                        : const Color(0xFFE5E7EB),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    LucideIcons.x,
-                                    size: 20,
-                                    color: _isDarkMode
-                                        ? Colors.grey[300]
-                                        : Colors.grey[600],
-                                  ),
+                                Row(
+                                  children: [
+                                    if (_unreadCount > 0)
+                                      TextButton(
+                                        onPressed: _markAllAsRead,
+                                        style: TextButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                                          minimumSize: Size.zero,
+                                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                        ),
+                                        child: const Text(
+                                          'Mark all',
+                                          style: TextStyle(
+                                            color: Color(0xFF39A4E6),
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    const SizedBox(width: 8),
+                                    IconButton(
+                                      onPressed: () => setState(() => _showNotifications = false),
+                                      icon: const Icon(LucideIcons.x),
+                                      iconSize: 20,
+                                      visualDensity: VisualDensity.compact,
+                                      style: IconButton.styleFrom(
+                                        backgroundColor: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
+                          ),
+                          
+                          // Divider
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Divider(
+                              height: 1,
+                              color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+                            ),
+                          ),
+
+                          // Content
+                          Flexible(
+                            child: Container(
+                              constraints: const BoxConstraints(maxHeight: 480),
+                              child: _isLoadingNotifications
+                                  ? const Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(48.0),
+                                        child: CircularProgressIndicator(strokeWidth: 3),
+                                      ),
+                                    )
+                                  : _notifications.isEmpty
+                                      ? Center(
+                                          child: Padding(
+                                            padding: const EdgeInsets.fromLTRB(48, 64, 48, 80),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.all(20),
+                                                  decoration: BoxDecoration(
+                                                    color: isDark ? Colors.white.withOpacity(0.03) : Colors.black.withOpacity(0.03),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: Icon(
+                                                    LucideIcons.bellOff,
+                                                    size: 40,
+                                                    color: isDark ? Colors.grey[600] : Colors.grey[400],
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 20),
+                                                Text(
+                                                  'All Caught Up!',
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: isDark ? Colors.white : const Color(0xFF111827),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 8),
+                                                Text(
+                                                  'No new notifications at the moment.',
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                    color: isDark ? Colors.grey[500] : Colors.grey[600],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        )
+                                      : ListView.builder(
+                                          padding: const EdgeInsets.only(bottom: 12),
+                                          shrinkWrap: true,
+                                          itemCount: _notifications.length,
+                                          itemBuilder: (context, index) {
+                                            final n = _notifications[index];
+                                            return _buildNotificationItem(n, index);
+                                          },
+                                        ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    Container(
-                      constraints: const BoxConstraints(maxHeight: 400),
-                      child: _isLoadingNotifications
-                          ? const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(32.0),
-                                child: CircularProgressIndicator(),
-                              ),
-                            )
-                          : _notifications.isEmpty
-                              ? const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(32.0),
-                                    child: Text('No notifications yet'),
-                                  ),
-                                )
-                              : ListView.builder(
-                                  shrinkWrap: true,
-                                  itemCount: _notifications.length,
-                                  itemBuilder: (context, index) {
-                                    final n = _notifications[index];
-                                    return _buildNotificationItem(n);
-                                  },
-                                ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
       ),
-    );
+    ).animate().fadeIn(duration: 300.ms).scale(begin: const Offset(0.95, 0.95), curve: Curves.easeOutBack);
   }
 
-  Widget _buildNotificationItem(InAppNotification notification) {
+  Widget _buildNotificationItem(InAppNotification notification, int index) {
+    final isDark = _isDarkMode;
+    final isShare = notification.type == 'profile_share';
+    final iconColor = isShare ? const Color(0xFF8B5CF6) : const Color(0xFF39A4E6);
+
     return GestureDetector(
       onTap: () async {
         if (!notification.isRead) {
           await ApiClient.instance.markNotificationAsRead(notification.id);
           _loadNotifications();
         }
-        // Handle deep link navigation based on notification.type/data
         if (notification.type == 'report_upload' || notification.type == 'profile_share') {
           setState(() => _showNotifications = false);
-          // For now just close the panel, but we could trigger navigation if needed
-          // similar to how we do in notification_service.dart
         }
       },
       child: Container(
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: notification.isRead ? Colors.transparent : (const Color(0xFF39A4E6).withOpacity(0.05)),
-          border: Border(
-            bottom: BorderSide(
-              color: _isDarkMode
-                  ? const Color(0xFF374151)
-                  : const Color(0xFFE5E7EB),
-            ),
-          ),
+          color: notification.isRead 
+              ? Colors.transparent 
+              : (isDark ? Colors.white.withOpacity(0.03) : Colors.black.withOpacity(0.02)),
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: notification.isRead 
-                      ? [Colors.grey[400]!, Colors.grey[500]!]
-                      : [const Color(0xFF39A4E6), const Color(0xFF2B8FD9)],
+            // Icon Container
+            Stack(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: iconColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      isShare ? LucideIcons.userPlus : LucideIcons.filePlus,
+                      color: iconColor,
+                      size: 24,
+                    ),
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(
-                notification.type == 'profile_share' ? LucideIcons.users : LucideIcons.fileText,
-                color: Colors.white,
-                size: 24,
-              ),
+                if (!notification.isRead)
+                  Positioned(
+                    right: 4,
+                    top: 4,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF4B4B),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF1F2937) : Colors.white,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    notification.title,
-                    style: TextStyle(
-                      color: _isDarkMode ? Colors.white : const Color(0xFF111827),
-                      fontSize: 14,
-                      fontWeight: notification.isRead ? FontWeight.w500 : FontWeight.w700,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        notification.title,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : const Color(0xFF111827),
+                          fontSize: 14,
+                          fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.w800,
+                        ),
+                      ),
+                      Text(
+                        notification.timeAgo,
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[500] : Colors.grey[600],
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     notification.message,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                      fontSize: 12,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      fontSize: 13,
+                      height: 1.4,
+                      fontWeight: notification.isRead ? FontWeight.normal : FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    notification.timeAgo,
-                    style: const TextStyle(
-                      color: Color(0xFF39A4E6),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                  if (!notification.isRead) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: iconColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Tap to view',
+                        style: TextStyle(
+                          color: iconColor,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
-            if (!notification.isRead)
-              Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFF4B4B),
-                  shape: BoxShape.circle,
-                ),
-              ),
           ],
         ),
       ),
-    );
+    ).animate().fadeIn(delay: (index * 50).ms, duration: 400.ms).slideX(begin: 0.1, end: 0, curve: Curves.easeOut);
   }
 
   Widget _buildQuickViewModal() {
