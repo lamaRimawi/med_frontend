@@ -327,23 +327,6 @@ class _TimelineScreenState extends State<TimelineScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: widget.onBack,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white.withOpacity(0.1) : Colors.white.withOpacity(0.6),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: isDark ? null : [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                  )
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -468,27 +451,32 @@ class _TimelineScreenState extends State<TimelineScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                             Text(
-                              _selectedMetric,
-                              style: TextStyle(
-                                color: textColor,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            if (_trendData.isNotEmpty)
-                              Text(
-                                '${_trendData.last.value} ${_trendData.last.unit ?? ''}',
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                               Text(
+                                _selectedMetric,
                                 style: TextStyle(
-                                  color: textColor.withOpacity(0.8),
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w300,
+                                  color: textColor,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.end,
                               ),
-                          ],
+                              if (_trendData.isNotEmpty)
+                                Text(
+                                  '${_trendData.last.value} ${_trendData.last.unit ?? ''}',
+                                  style: TextStyle(
+                                    color: textColor.withOpacity(0.8),
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w300,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -706,12 +694,17 @@ class _TimelineScreenState extends State<TimelineScreen> {
     
     final gridColor = isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05);
 
+    // Calculate a better display interval to avoid crowded labels
+    final double displayRange = maxY - minY;
+    // Aim for ~4-5 horizontal grid lines/labels
+    final double labelInterval = displayRange == 0 ? 5 : (displayRange / 4).clamp(1.0, double.infinity);
+
     return LineChart(
       LineChartData(
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,
-          horizontalInterval: range == 0 ? 1 : range / 4,
+          horizontalInterval: labelInterval,
           getDrawingHorizontalLine: (value) {
             return FlLine(
               color: gridColor,
@@ -762,7 +755,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              interval: range == 0 ? 1 : range / 4,
+              interval: labelInterval,
               reservedSize: 40,
               getTitlesWidget: (value, meta) {
                 return Text(

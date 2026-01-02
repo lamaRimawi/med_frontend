@@ -676,7 +676,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     final backgroundColor = isDark
         ? const Color(0xFF0A1929)
         : const Color(0xFFF2F4F7); // Navy blue instead of dark gray
-    final textColor = isDark ? Colors.white : const Color(0xFF101828);
+    final textColor = Colors.white;
     final subTextColor = isDark
         ? const Color(0xFFA1A1AA)
         : const Color(0xFF667085);
@@ -695,14 +695,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ClipPath(
                   clipper: ProfileHeaderClipper(), // Reverted to simple clipper
                   child: Container(
-                    height: 300,
+                    height: 320, // Increased to avoid button overflow
                     width: double.infinity,
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          Color(0xFF2196F3),
-                          Color(0xFF1565C0),
-                        ], // Softer, modern blue
+                          Color(0xFF39A4E6), 
+                          Color(0xFF2B8FD9),
+                        ], // Matched with Recent Reports card
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -711,7 +711,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 24,
-                          vertical: 12,
+                          vertical: 12, // Restored to safe value
                         ),
                         child: Align(
                           alignment: Alignment.topCenter,
@@ -719,16 +719,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                             'My Profile',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 1.2,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.black26,
-                                  offset: Offset(0, 2),
-                                  blurRadius: 4,
-                                ),
-                              ],
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                              // Shadow removed as requested
                             ),
                           ),
                         ),
@@ -739,7 +733,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
                 // Profile Image & Info
                 Positioned(
-                  top: topPadding + 40,
+                  top: topPadding + 50, // Moved up to stay in the blue area
                   child: Column(
                     children: [
                       GestureDetector(
@@ -835,7 +829,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                       const SizedBox(height: 12),
                       // Profile Switcher (Instagram-style)
                       ProfileSwitcher(
-                        key: ValueKey(_profileUpdateCounter),
                         onProfileSwitched: (profile) async {
                           // Reload user data for the new profile
                           await _loadUserData();
@@ -853,7 +846,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               ],
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 25),
 
             // Menu Items - Clean separate tiles
             Padding(

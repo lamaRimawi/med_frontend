@@ -204,167 +204,173 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0A1929) : const Color(0xFFF5F5F5),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
-        child: Column(
-          children: [
-            // Blue Header
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // Premium Header
+            SliverAppBar(
+              expandedHeight: 120,
+              pinned: true,
+              stretch: false,
+              backgroundColor: const Color(0xFF2B8FD9),
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: true,
+                title: const Text(
+                  'Password Manager',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
                 ),
-              ),
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const Expanded(
-                        child: Text(
-                          'Password Manager',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 48), // Balance the back button
-                    ],
+                background: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
+                    ),
                   ),
                 ),
               ),
+              leading: IconButton(
+                icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
             ),
-            
+
             // Form Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
                 child: Form(
                   key: _formKey,
-                  // Use autovalidateMode disabled initially, we trigger validation manually on blur
                   autovalidateMode: AutovalidateMode.disabled,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 8),
-                      
-                      // Current Password Field
-                      _buildModernPasswordField(
-                        label: 'Current Password',
-                        controller: _currentPasswordController,
-                        focusNode: _currentPasswordFocus,
-                        touched: _currentPasswordTouched,
-                        isVisible: _isCurrentPasswordVisible,
-                        textInputAction: TextInputAction.next,
-                        onVisibilityToggle: () {
-                          setState(() {
-                            _isCurrentPasswordVisible = !_isCurrentPasswordVisible;
-                          });
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your current password';
-                          }
-                          return null;
-                        },
-                        showForgotPassword: true,
-                        isDark: isDark,
-                      ),
-                      
-                      const SizedBox(height: 20),
-                      
-                      // New Password Field
-                      _buildModernPasswordField(
-                        label: 'New Password',
-                        controller: _newPasswordController,
-                        focusNode: _newPasswordFocus,
-                        touched: _newPasswordTouched,
-                        isVisible: _isNewPasswordVisible,
-                        textInputAction: TextInputAction.next,
-                        onVisibilityToggle: () {
-                          setState(() {
-                            _isNewPasswordVisible = !_isNewPasswordVisible;
-                          });
-                        },
-                        validator: (value) {
-                          // Use strict validation for new password
-                          return Validators.validatePassword(value);
-                        },
-                        isDark: isDark,
-                      ),
-                      
-                      const SizedBox(height: 20),
-                      
-                      // Confirm New Password Field
-                      _buildModernPasswordField(
-                        label: 'Confirm New Password',
-                        controller: _confirmPasswordController,
-                        focusNode: _confirmPasswordFocus,
-                        touched: _confirmPasswordTouched,
-                        isVisible: _isConfirmPasswordVisible,
-                        textInputAction: TextInputAction.done,
-                        onVisibilityToggle: () {
-                          setState(() {
-                            _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                          });
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please confirm your new password';
-                          }
-                          if (value != _newPasswordController.text) {
-                            return 'Passwords do not match';
-                          }
-                          return null;
-                        },
-                        isDark: isDark,
-                      ),
-                      
+                      _buildHeaderInfo(isDark),
                       const SizedBox(height: 32),
                       
-                      // Change Password Button
-                      SizedBox(
-                        height: 54,
+                      // Input Card
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            _buildPremiumField(
+                              label: 'Current Password',
+                              icon: LucideIcons.lock,
+                              controller: _currentPasswordController,
+                              focusNode: _currentPasswordFocus,
+                              touched: _currentPasswordTouched,
+                              isVisible: _isCurrentPasswordVisible,
+                              onVisibilityToggle: () => setState(() => _isCurrentPasswordVisible = !_isCurrentPasswordVisible),
+                              validator: (value) => value == null || value.isEmpty ? 'Please enter current password' : null,
+                              isDark: isDark,
+                              showForgot: true,
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: Divider(height: 1),
+                            ),
+                            _buildPremiumField(
+                              label: 'New Password',
+                              icon: LucideIcons.key,
+                              controller: _newPasswordController,
+                              focusNode: _newPasswordFocus,
+                              touched: _newPasswordTouched,
+                              isVisible: _isNewPasswordVisible,
+                              onVisibilityToggle: () => setState(() => _isNewPasswordVisible = !_isNewPasswordVisible),
+                              validator: (value) => Validators.validatePassword(value),
+                              isDark: isDark,
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: Divider(height: 1),
+                            ),
+                            _buildPremiumField(
+                              label: 'Confirm Password',
+                              icon: LucideIcons.checkCircle2,
+                              controller: _confirmPasswordController,
+                              focusNode: _confirmPasswordFocus,
+                              touched: _confirmPasswordTouched,
+                              isVisible: _isConfirmPasswordVisible,
+                              onVisibilityToggle: () => setState(() => _isConfirmPasswordVisible = !_isConfirmPasswordVisible),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) return 'Confirm your password';
+                                if (value != _newPasswordController.text) return 'Passwords do not match';
+                                return null;
+                              },
+                              isDark: isDark,
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 48),
+
+                      // Action Button
+                      Container(
+                        height: 56,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(28),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9)],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF39A4E6).withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _changePassword,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF39A4E6),
-                            foregroundColor: Colors.white,
-                            elevation: 0,
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(27),
+                              borderRadius: BorderRadius.circular(28),
                             ),
-                            disabledBackgroundColor: const Color(0xFF39A4E6).withOpacity(0.6),
                           ),
                           child: _isLoading
                               ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
+                                  height: 24,
+                                  width: 24,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
                                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                   ),
                                 )
                               : const Text(
-                                  'Change Password',
+                                  'Update Password',
                                   style: TextStyle(
+                                    color: Colors.white,
                                     fontSize: 16,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
                                   ),
                                 ),
                         ),
                       ),
+                      
+                      const SizedBox(height: 32),
+                      _buildSecurityNote(isDark),
                     ],
                   ),
                 ),
@@ -376,132 +382,155 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
     );
   }
 
-  Widget _buildModernPasswordField({
+  Widget _buildHeaderInfo(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Security Update',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Change your password regularly to keep your account safe and secure.',
+          style: TextStyle(
+            fontSize: 14,
+            color: isDark ? Colors.grey[400] : Colors.grey[600],
+            height: 1.5,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPremiumField({
     required String label,
+    required IconData icon,
     required TextEditingController controller,
     required FocusNode focusNode,
     required bool touched,
     required bool isVisible,
     required VoidCallback onVisibilityToggle,
     required String? Function(String?) validator,
-    required TextInputAction textInputAction,
-    bool showForgotPassword = false,
     required bool isDark,
+    bool showForgot = false,
   }) {
-    // Only show error if touched and field has error (validator returns string)
-    // We achieve this by letting TextFormField handle it but manually triggering logic
-    // Actually, simply using AutovalidateMode.onUserInteraction on the FIELD (if touched)
-    // is the standard way.
-    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: isDark ? Colors.grey[300] : const Color(0xFF111827),
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  icon,
+                  size: 16,
+                  color: const Color(0xFF39A4E6),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.grey[400] : Colors.grey[500],
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+            if (showForgot)
+              TextButton(
+                onPressed: () => Navigator.pushNamed(context, '/forgot-password'),
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: const Text(
+                  'Forgot?',
+                  style: TextStyle(
+                    color: Color(0xFF39A4E6),
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+          ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         TextFormField(
           controller: controller,
           focusNode: focusNode,
           obscureText: !isVisible,
           validator: validator,
-          textInputAction: textInputAction,
-          // Only auto-validate if already touched (blurred once)
           autovalidateMode: touched ? AutovalidateMode.onUserInteraction : AutovalidateMode.disabled,
           style: TextStyle(
-            fontSize: 15,
-            color: isDark ? Colors.white : const Color(0xFF111827),
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: isDark ? Colors.white : const Color(0xFF1E293B),
           ),
           decoration: InputDecoration(
-            hintText: '••••••••••',
+            hintText: '••••••••••••',
             hintStyle: TextStyle(
-              color: isDark ? Colors.grey[600] : Colors.grey[400],
-              fontSize: 15,
+              color: isDark ? Colors.grey[700] : Colors.grey[300],
+              fontSize: 16,
             ),
-            filled: true,
-            fillColor: isDark ? const Color(0xFF0F2137) : Colors.white,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
-            ),
-            // Border definitions for modern look
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: isDark ? const Color(0xFF0F2137) : const Color(0xFFE5E7EB),
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: isDark ? const Color(0xFF0F2137) : const Color(0xFFE5E7EB),
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFF39A4E6), // Brand color on focus
-                width: 2,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFEF4444), // Red on error
-              ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFEF4444), // Red on focused error
-                width: 2,
-              ),
-            ),
-            // Error style - below input
-            errorStyle: const TextStyle(
-              color: Color(0xFFEF4444),
-              fontSize: 13,
-            ),
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            errorBorder: InputBorder.none,
+            focusedErrorBorder: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(vertical: 12),
             suffixIcon: IconButton(
               icon: Icon(
                 isVisible ? LucideIcons.eye : LucideIcons.eyeOff,
                 size: 20,
-                color: const Color(0xFF39A4E6),
+                color: isDark ? Colors.grey[600] : Colors.grey[400],
               ),
               onPressed: onVisibilityToggle,
             ),
           ),
         ),
-        if (showForgotPassword) ...[
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/forgot-password');
-              },
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size(0, 0),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: const Text(
-                'Forgot Password?',
-                style: TextStyle(
-                  color: Color(0xFF39A4E6),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  ),
+      ],
+    );
+  }
+
+  Widget _buildSecurityNote(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF39A4E6).withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF39A4E6).withOpacity(0.1),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            LucideIcons.shieldAlert,
+            size: 20,
+            color: Color(0xFF39A4E6),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Make sure your new password is at least 8 characters long and includes a mix of characters.',
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? Colors.grey[400] : Colors.grey[700],
+                height: 1.4,
               ),
             ),
           ),
         ],
-      ],
+      ),
     );
   }
 }
