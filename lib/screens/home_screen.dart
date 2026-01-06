@@ -1465,8 +1465,21 @@ class _HomeScreenState extends State<HomeScreen> {
     final allReports = ReportsService().cachedReports ?? [];
 
     for (var r in allReports) {
-      final type = _determineReportType(r);
-      counts[type] = (counts[type] ?? 0) + 1;
+      // Apply Strict Profile Filtering (Same as _mapReportsToUi)
+      bool matchesProfile = true;
+      if (_selectedProfileId != null) {
+        if (r.profileId != null) {
+          matchesProfile = r.profileId == _selectedProfileId;
+        } else {
+          // If report has no profile ID, assume it belongs to 'Self' (Owner)
+          matchesProfile = _selectedProfileRelation == 'Self';
+        }
+      }
+      
+      if (matchesProfile) {
+        final type = _determineReportType(r);
+        counts[type] = (counts[type] ?? 0) + 1;
+      }
     }
 
     return [
