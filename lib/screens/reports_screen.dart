@@ -1095,51 +1095,54 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          if (_selectedProfileRelation != null && _selectedProfileRelation != 'Self') ...[
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              margin: const EdgeInsets.only(right: 8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF39A4E6).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(LucideIcons.user, size: 10, color: Color(0xFF39A4E6)),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    _selectedProfileRelation!,
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF39A4E6),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            if (_selectedProfileRelation != null && _selectedProfileRelation != 'Self') ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF39A4E6).withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(LucideIcons.user, size: 10, color: Color(0xFF39A4E6)),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      _selectedProfileRelation!,
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF39A4E6),
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                          if (report.reportCategory != null) ...[
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: categoryColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                report.reportCategory!,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: categoryColor,
+                                  ],
                                 ),
                               ),
-                            ),
+                            ],
+                            if (report.reportCategory != null) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: categoryColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  report.reportCategory!,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: categoryColor,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                       const SizedBox(height: 6),
                       Text(
@@ -1179,17 +1182,21 @@ class _ReportsScreenState extends State<ReportsScreen> {
                                 : Colors.grey[500],
                           ),
                           const SizedBox(width: 6),
-                          Text(
-                            // Ensure valid date format or fallback
-                            report.reportDate.contains('T') 
-                                ? report.reportDate.split('T')[0] 
-                                : report.reportDate.split(' ')[0], 
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: isDark
-                                  ? Colors.grey[300]
-                                  : Colors.grey[600],
+                          Expanded(
+                            child: Text(
+                              // Ensure valid date format or fallback
+                              report.reportDate.contains('T') 
+                                  ? report.reportDate.split('T')[0] 
+                                  : report.reportDate.split(' ')[0], 
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: isDark
+                                    ? Colors.grey[300]
+                                    : Colors.grey[600],
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                           ),
                         ],
@@ -1615,7 +1622,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
             elevation: 8,
-            duration: const Duration(seconds: 4),
+            duration: const Duration(seconds: 2),
             action: SnackBarAction(
               label: 'OPEN',
               textColor: Colors.white,
