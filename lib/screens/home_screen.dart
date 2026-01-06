@@ -13,6 +13,7 @@ import 'camera_upload_screen.dart';
 import '../models/report_model.dart';
 import '../services/reports_service.dart';
 import 'profile_screen.dart';
+import 'family_management_screen.dart'; // Added
 import 'timeline_screen.dart';
 import 'reports_screen.dart';
 import '../widgets/report_type_badge.dart';
@@ -1940,7 +1941,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildNotificationItem(InAppNotification notification, int index) {
     final isDark = _isDarkMode;
     final isShare = notification.type == 'profile_share';
-    final iconColor = isShare ? const Color(0xFF8B5CF6) : const Color(0xFF39A4E6);
+    final isConnectionRequest = notification.type == 'connection_request' || 
+                               notification.title.toLowerCase().contains('connection request');
+    
+    final iconColor = (isShare || isConnectionRequest) ? const Color(0xFF8B5CF6) : const Color(0xFF39A4E6);
 
     return GestureDetector(
       onTap: () async {
@@ -1948,7 +1952,21 @@ class _HomeScreenState extends State<HomeScreen> {
           await ApiClient.instance.markNotificationAsRead(notification.id);
           _loadNotifications();
         }
-        if (notification.type == 'report_upload' || notification.type == 'profile_share') {
+        
+        // Handle navigation based on type or title
+        if (notification.type == 'connection_request' || 
+            notification.title.toLowerCase().contains('connection request') ||
+            notification.message.toLowerCase().contains('connection request')) {
+          
+          setState(() => _showNotifications = false);
+          
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const FamilyManagementScreen(initialTab: 1), // Open Connections tab
+            ),
+          );
+        } else if (notification.type == 'report_upload' || notification.type == 'profile_share') {
           setState(() => _showNotifications = false);
         }
       },
@@ -1976,7 +1994,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   child: Center(
                     child: Icon(
-                      isShare ? LucideIcons.userPlus : LucideIcons.filePlus,
+                      (isShare || isConnectionRequest) ? LucideIcons.userPlus : LucideIcons.filePlus,
                       color: iconColor,
                       size: 24,
                     ),

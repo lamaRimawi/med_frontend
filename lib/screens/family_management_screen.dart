@@ -13,7 +13,8 @@ import '../widgets/access_verification_modal.dart';
 import '../services/profile_state_service.dart';
 
 class FamilyManagementScreen extends StatefulWidget {
-  const FamilyManagementScreen({super.key});
+  final int initialTab;
+  const FamilyManagementScreen({super.key, this.initialTab = 0});
 
   @override
   State<FamilyManagementScreen> createState() => _FamilyManagementScreenState();
@@ -37,7 +38,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 2, vsync: this, initialIndex: widget.initialTab);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         setState(() {}); // specificially to update FAB
