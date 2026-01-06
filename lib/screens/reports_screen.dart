@@ -219,8 +219,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
         
         // Handle Access Verification Exception from actual API call
         if (e is AccessVerificationException) {
-          setState(() => _isLoading = false);
-          await _showVerificationModal();
+          setState(() {
+            _reports = []; // Just show empty list, no error
+            _isLoading = false;
+          });
           return;
         }
 
@@ -529,19 +531,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
       if (mounted) {
         Navigator.pop(context); // Hide loading
         
+        // Fail silently or show generic error if verification is actually blocked by backend
         if (e is AccessVerificationException) {
-            final verified = await showDialog<bool>(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) => AccessVerificationModal(
-                resourceType: 'profile',
-                resourceId: _selectedProfileId ?? 0,
-              ),
-            );
-             if (verified == true) {
-                _handleViewReport(report); // Retry
-             }
-             return;
+          return;
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -954,57 +946,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
 
     if (_error != null) {
-      final isVerificationError = _error.toString().contains('Unauthorized') || 
-                                  _error.toString().contains('Verification') ||
-                                  _error.toString().contains('403') ||
-                                  _error.toString().contains('401');
-
-      if (isVerificationError) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-               Container(
-                 padding: const EdgeInsets.all(20),
-                 decoration: BoxDecoration(
-                   color: const Color(0xFF39A4E6).withOpacity(0.1),
-                   shape: BoxShape.circle,
-                 ),
-                 child: const Icon(LucideIcons.lock, size: 48, color: Color(0xFF39A4E6)),
-               ),
-               const SizedBox(height: 24),
-               Text(
-                 'Access Locked',
-                 style: TextStyle(
-                   fontSize: 20, 
-                   fontWeight: FontWeight.bold,
-                   color: _isDarkMode ? Colors.white : Colors.black
-                 ),
-               ),
-               const SizedBox(height: 8),
-               Padding(
-                 padding: const EdgeInsets.symmetric(horizontal: 40),
-                 child: Text(
-                   'Security verification is required to view these records.',
-                   textAlign: TextAlign.center,
-                   style: TextStyle(color: Colors.grey[600]),
-                 ),
-               ),
-               const SizedBox(height: 24),
-               ElevatedButton(
-                  onPressed: _showVerificationModal,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF39A4E6),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  ),
-                  child: const Text('Unlock Access', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-               ),
-            ],
-          ),
-        );
-      }
-
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

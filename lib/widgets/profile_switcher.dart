@@ -59,12 +59,22 @@ class _ProfileSwitcherState extends State<ProfileSwitcher> {
         print('Error fetching user details for switcher: $e');
       }
 
+      // Identify the primary self profile ID for strict labeling
+      int? primarySelfId;
+      try {
+        primarySelfId = profiles.firstWhere((p) => !p.isShared && p.relationship == 'Self').id;
+      } catch (_) {
+        if (profiles.any((p) => !p.isShared)) {
+           primarySelfId = profiles.firstWhere((p) => !p.isShared).id;
+        }
+      }
+
       setState(() {
         _profiles = profiles;
 
         // Find the updated "Self" profile to use as current if it was selected
         final updatedSelfProfile = profiles.firstWhere(
-          (p) => p.relationship == 'Self',
+          (p) => p.id == primarySelfId,
           orElse: () => profiles.first,
         );
 
@@ -262,7 +272,11 @@ class _ProfileSwitcherState extends State<ProfileSwitcher> {
                   Row(
                     children: [
                       Text(
-                        profile.relationship,
+                        (profile.relationship == 'Self' && profile.id != _currentProfile?.id && profile.isShared)
+                            ? 'Sender'
+                            : (profile.relationship == 'Self' && profile.id != _currentProfile?.id)
+                                ? 'Family Member'
+                                : profile.relationship,
                         style: TextStyle(
                           fontSize: 13,
                           color: isDark ? Colors.grey[400] : Colors.grey[600],

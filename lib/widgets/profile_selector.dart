@@ -103,7 +103,7 @@ class _ProfileSelectorState extends State<ProfileSelector> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '${profile.firstName} (${profile.relationship})',
+                      '${profile.firstName} (${(profile.relationship == 'Self' && profile.id != _profiles.firstWhere((p) => !p.isShared && p.relationship == 'Self', orElse: () => _profiles.first).id) ? (profile.isShared ? 'Sender' : 'Family Member') : profile.relationship})',
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
