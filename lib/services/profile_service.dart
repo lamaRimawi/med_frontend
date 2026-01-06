@@ -50,7 +50,18 @@ class ProfileService {
     );
 
     if (response.statusCode != 200 && response.statusCode != 204) {
-      throw Exception('Failed to delete profile');
+      // Try to get detailed error message from backend
+      try {
+        final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
+        final message = data['message']?.toString() ?? 
+                       data['detail']?.toString() ?? 
+                       data['error']?.toString() ??
+                       'Failed to delete profile';
+        throw Exception(message);
+      } catch (e) {
+        // If JSON parsing fails, show status code and body
+        throw Exception('Failed to delete profile (${response.statusCode}): ${response.body}');
+      }
     }
   }
 

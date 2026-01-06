@@ -1441,13 +1441,12 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                       onPressed: () {
                          if (formKey.currentState!.validate()) {
                            Navigator.pop(context);
-                           if (selectedProfileId != null) {
-                             // Use profile sharing logic
-                             _shareProfile(selectedProfileId!, emailController.text);
-                           } else {
-                             // Fallback to generic connection
-                             _sendConnectionRequest(emailController.text, selectedRelationship!);
-                           }
+                           // Always use connection request (with or without profile)
+                           _sendConnectionRequest(
+                             emailController.text, 
+                             selectedRelationship!,
+                             profileId: selectedProfileId,
+                           );
                          }
                       },
                       style: ElevatedButton.styleFrom(
@@ -1465,13 +1464,14 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
     );
   }
 
-  Future<void> _sendConnectionRequest(String email, String relationship) async {
+  Future<void> _sendConnectionRequest(String email, String relationship, {int? profileId}) async {
      setState(() => _isLoading = true);
      try {
        await ConnectionService.sendRequest(
           receiverEmail: email, 
           relationship: relationship,
-          accessLevel: 'view', 
+          accessLevel: 'manage',  // Changed to 'manage' for profile sharing
+          profileId: profileId,  // Pass profile ID if provided
        );
        if (mounted) {
          _showToast('Request sent to $email');
@@ -1523,7 +1523,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
              child: const Text('Share'),
              onPressed: () {
                Navigator.pop(context);
-               _shareProfile(profile.id, emailController.text);
+               _sendConnectionRequest(emailController.text, 'Family Member', profileId: profile.id);
              },
            ),
          ],
@@ -1531,23 +1531,6 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
      );
   }
 
-  Future<void> _shareProfile(int profileId, String email) async {
-     setState(() => _isLoading = true);
-     try {
-       await ProfileService.shareProfile(
-         profileId: profileId,
-         email: email,
-         accessLevel: 'manage', 
-       );
-       if (mounted) {
-          _showToast('Shared profile with $email');
-       }
-       _loadData();
-     } catch (e) {
-        setState(() => _isLoading = false);
-        if (mounted) _showToast('Error: $e', isError: true);
-     }
-  } 
 
   void _showTransferOwnershipDialog(UserProfile profile) {
      final emailController = TextEditingController();

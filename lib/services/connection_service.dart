@@ -32,14 +32,22 @@ class ConnectionService {
     required String receiverEmail,
     required String relationship,
     required String accessLevel,
+    int? profileId,  // Add optional profile ID
   }) async {
+    final Map<String, dynamic> body = {
+      'receiver_email': receiverEmail,
+      'relationship': relationship,
+      'access_level': accessLevel,
+    };
+    
+    // Add profile_id if provided (as integer)
+    if (profileId != null) {
+      body['profile_id'] = profileId;
+    }
+    
     final response = await _client.post(
       ApiConfig.connectionRequest,
-      body: {
-        'receiver_email': receiverEmail,
-        'relationship': relationship,
-        'access_level': accessLevel,
-      },
+      body: body,
       auth: true,
     );
 
