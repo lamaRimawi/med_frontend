@@ -55,7 +55,18 @@ class ConnectionService {
       final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
       return data['id'] as int;
     } else {
-      throw Exception('Failed to send connection request');
+      String errorMessage = 'Failed to send connection request';
+      try {
+        final errorData = ApiClient.decodeJson<Map<String, dynamic>>(response);
+        if (errorData.containsKey('error')) {
+          errorMessage = errorData['error'];
+        } else if (errorData.containsKey('message')) {
+          errorMessage = errorData['message'];
+        }
+      } catch (_) {
+        // Fallback to generic error if parsing fails
+      }
+      throw Exception(errorMessage);
     }
   }
 

@@ -1481,7 +1481,8 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
      } catch (e) {
        setState(() => _isLoading = false);
        if (mounted) {
-         _showToast('Error: $e', isError: true);
+         final message = e.toString().replaceAll('Exception: ', '');
+         _showToast(message, isError: true);
        }
      }
   }

@@ -45,6 +45,8 @@ class NotificationService {
         // Handle notification tap when app is in foreground
         if (details.payload != null) {
           // You could parse the payload here, but for now we follow the data structure
+          // Convert payload string back to Map or handle simpler ID
+          _handlePayloadNavigation(details.payload!);
         }
       },
     );
@@ -77,7 +79,7 @@ class NotificationService {
   void _setupListeners() {
     // A. Foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('Foreground Message: ${message.notification?.title}');
+      debugPrint('Foreground Message: ${message.notification?.title} | Data: ${message.data}');
       _messageStreamController.add(message);
       _showLocalNotification(message);
     });
@@ -98,21 +100,52 @@ class NotificationService {
   }
 
   Future<void> _showLocalNotification(RemoteMessage message) async {
+    // Robust title/body extraction: check notification payload first, then data payload
+    String? title = message.notification?.title;
+    String? body = message.notification?.body;
+
+    if (title == null && message.data.isNotEmpty) {
+      title = message.data['title'];
+      body = message.data['body'] ?? message.data['message'];
+    }
+
+    // If still empty, don't show specific notification or show defaults?
+    // Usually best to skip if no content, but for "Connection Request" let's check type
+    final type = message.data['type'];
+    if (title == null && type == 'connection_request') {
+      title = 'New Connection Request';
+      body = 'Someone wants to connect with you.';
+    }
+
+    if (title == null) return;
+
     final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'high_importance_channel',
       'High Importance Notifications',
       importance: Importance.max,
       priority: Priority.high,
+      styleInformation: BigTextStyleInformation(body ?? ''), // Expandable text
     );
-    final NotificationDetails details = NotificationDetails(android: androidDetails, iOS: const DarwinNotificationDetails());
+    final NotificationDetails details = NotificationDetails(
+      android: androidDetails, 
+      iOS: const DarwinNotificationDetails(),
+    );
 
     await _localNotifications.show(
       message.hashCode,
-      message.notification?.title,
-      message.notification?.body,
+      title,
+      body,
       details,
-      payload: message.data['profile_id']?.toString() ?? '',
+      payload: message.data['type'], // Storing type as payload for simple handling
     );
+  }
+
+  void _handlePayloadNavigation(String type) {
+    if (type == 'connection_request') {
+       navigatorKey.currentState?.pushNamed('/family', arguments: {'initialTab': 1});
+    } else if (type == 'profile_share') {
+       navigatorKey.currentState?.pushNamed('/family');
+    }
   }
 
   void _handleNotificationData(Map<String, dynamic> data) {
@@ -120,13 +153,15 @@ class NotificationService {
     final String? profileIdArg = data['profile_id']?.toString();
     final String? reportIdArg = data['report_id']?.toString();
 
-    if (type == 'profile_share') {
+    debugPrint('Handling Navigation Data: Type=$type');
+
+    if (type == 'connection_request') {
+      navigatorKey.currentState?.pushNamed('/family', arguments: {'initialTab': 1}); // Pass argument
+    } else if (type == 'profile_share') {
       debugPrint('Navigating to profile share: $profileIdArg');
-      // Navigate to Family Management screen
       navigatorKey.currentState?.pushNamed('/family'); 
     } else if (type == 'report_upload') {
       debugPrint('Navigating to reports: $reportIdArg');
-      // Navigate to Reports screen and potentially filter by profile or open specific report
       navigatorKey.currentState?.pushNamed('/reports', arguments: {
         'profile_id': profileIdArg,
         'report_id': reportIdArg,

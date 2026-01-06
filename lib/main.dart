@@ -134,7 +134,12 @@ class _MyAppState extends State<MyApp> {
                 '/verification': (context) => kIsWeb ? const WebVerificationScreen() : const VerificationScreen(),
                 '/reset-password': (context) => kIsWeb ? const WebResetPasswordScreen() : const ResetPasswordScreen(),
                 '/reports': (context) => const ReportsScreen(),
-                '/family': (context) => const FamilyManagementScreen(),
+                '/reports': (context) => const ReportsScreen(),
+                '/family': (context) {
+                  final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+                  final initialTab = args?['initialTab'] ?? 0;
+                  return FamilyManagementScreen(initialTab: initialTab);
+                },
                 '/notification-settings': (context) => const NotificationSettingsScreen(),
                 '/dark-mode-settings': (context) => const DarkModeScreen(),
               },
