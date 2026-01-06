@@ -329,12 +329,24 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       return true;
     }).map((r) {
-      // Parse date
-      DateTime dt;
+      // Parse created_at (Upload Date) - Used for "Recent" bucketing
+      DateTime createdDt;
       try {
-        dt = DateTime.parse(r.createdAt);
+        createdDt = DateTime.parse(r.createdAt);
       } catch (_) {
-        dt = DateTime.now();
+        createdDt = DateTime.now();
+      }
+
+      // Parse report_date (Medical Date) - Used for Display
+      DateTime displayDt;
+      bool hasMedicalDate = false;
+      try {
+        // Try parsing reportDate first
+        displayDt = DateTime.parse(r.reportDate);
+        hasMedicalDate = true;
+      } catch (_) {
+        // Fallback to createdAt if reportDate is invalid
+        displayDt = createdDt;
       }
 
       // Attempt to find doctor
@@ -364,16 +376,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
       return {
         'id': '${r.reportId}',
-        'day': '${dt.day}',
+        // BUCKETING: Use createdDt for the day filter (so freshly added reports show up today)
+        'day': '${createdDt.day}', 
+        // DISPLAY: Use displayDt (medical date) for the text shown on card
         'date':
-            '${dt.day} ${_getMonthName(dt.month)} - ${_getDayName(dt.weekday)}',
-        'time': (dt.hour == 0 && dt.minute == 0)
+            '${displayDt.day} ${_getMonthName(displayDt.month)} - ${_getDayName(displayDt.weekday)}',
+        'time': (displayDt.hour == 0 && displayDt.minute == 0)
             ? ''
-            : '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}',
+            : '${displayDt.hour.toString().padLeft(2, '0')}:${displayDt.minute.toString().padLeft(2, '0')}',
         'title': title,
         'doctor': doctor,
         'status': status,
         'type': _determineReportType(r),
+        // Add raw dates for debugging if needed
+        'raw_created': createdDt,
+        'raw_display': displayDt,
       };
     }).toList();
   }
