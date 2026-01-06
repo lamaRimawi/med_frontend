@@ -59,39 +59,21 @@ class _ProfileSwitcherState extends State<ProfileSwitcher> {
         print('Error fetching user details for switcher: $e');
       }
 
-      // Identify the primary self profile ID for strict labeling
-      int? primarySelfId;
-      try {
-        primarySelfId = profiles.firstWhere((p) => !p.isShared && p.relationship == 'Self').id;
-      } catch (_) {
-        if (profiles.any((p) => !p.isShared)) {
-           primarySelfId = profiles.firstWhere((p) => !p.isShared).id;
-        }
-      }
-
       setState(() {
         _profiles = profiles;
-
-        // Find the updated "Self" profile to use as current if it was selected
-        final updatedSelfProfile = profiles.firstWhere(
-          (p) => p.id == primarySelfId,
-          orElse: () => profiles.first,
-        );
 
         // If we have a persisted profile, try to find it in the new list
         if (currentProfile != null) {
           _currentProfile = profiles.firstWhere(
             (p) => p.id == currentProfile.id,
-            orElse: () => updatedSelfProfile,
+            orElse: () => profiles.first,
           );
         } else {
-          // Fallback to Self if no persisted profile
-          _currentProfile = updatedSelfProfile;
+          _currentProfile = profiles.first;
         }
 
-        // Additional check: if _currentProfile is still null or not in list (edge case), default to Self
-        if (_currentProfile == null) {
-           _currentProfile = updatedSelfProfile;
+        if (_currentProfile == null && profiles.isNotEmpty) {
+           _currentProfile = profiles.first;
         }
         
         _isLoading = false;
@@ -272,11 +254,7 @@ class _ProfileSwitcherState extends State<ProfileSwitcher> {
                   Row(
                     children: [
                       Text(
-                        (profile.relationship == 'Self' && profile.id != _currentProfile?.id && profile.isShared)
-                            ? 'Sender'
-                            : (profile.relationship == 'Self' && profile.id != _currentProfile?.id)
-                                ? 'Family Member'
-                                : profile.relationship,
+                        profile.relationship,
                         style: TextStyle(
                           fontSize: 13,
                           color: isDark ? Colors.grey[400] : Colors.grey[600],

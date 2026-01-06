@@ -28,7 +28,6 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
   User? _currentUser;
   int? _currentUserId; // Store current user ID for ownership checks
   int? _selectedProfileId; // Track which profile is actually selected
-  int? _primarySelfProfileId; // Track the absolute primary "Self" profile
   
   bool get _isDarkMode {
     final themeProvider = ThemeProvider.of(context);
@@ -96,25 +95,11 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
       final connections = await ConnectionService.getConnections();
       final selectedId = await ProfileStateService().getSelectedProfileId();
       
-      // Identify the TRUE primary self profile (first one we own that is marked Self)
-      int? primaryId;
-      try {
-        // Find the absolute first profile created for the user (usually the one with relationship 'Self' and not shared)
-        primaryId = profiles.firstWhere((p) => !p.isShared && p.relationship == 'Self').id;
-      } catch (_) {
-        // Fallback to the first non-shared profile if no Self found
-        final nonShared = profiles.where((p) => !p.isShared).toList();
-        if (nonShared.isNotEmpty) {
-          primaryId = nonShared.first.id;
-        }
-      }
-
       setState(() {
         _profiles = profiles;
         _sentConnections = connections['sent']!;
         _receivedConnections = connections['received']!;
         _selectedProfileId = selectedId;
-        _primarySelfProfileId = primaryId;
         _isLoading = false;
       });
     } catch (e) {
@@ -374,26 +359,14 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
   }
 
   Widget _buildProfileCard(UserProfile profile, bool isDark, {required bool isOwned}) {
-    // A profile is truly "Self" ONLY if it matches our primarySelfProfileId
-    final isSelf = _primarySelfProfileId == profile.id;
+    // Use the backend label
+    String displayRelationship = profile.relationship;
     
-    // A profile is "Current" if it's the one currently selected in the app
+    // Check if this is the currently selected profile
     final isCurrent = _selectedProfileId == profile.id;
-
-    // Relationship Label logic:
-    // 1. If it matches primarySelfProfileId -> "Self"
-    // 2. If it is NOT primary but says "Self" -> Force to "Profile" or "Family"
-    // 3. Otherwise use the backend label
-    String displayRelationship;
-    if (profile.id == _primarySelfProfileId) {
-      displayRelationship = 'Self';
-    } else if (profile.relationship == 'Self') {
-      displayRelationship = 'Family Member'; // Demote duplicates
-    } else {
-      displayRelationship = profile.relationship;
-    }
     
     // Explicit Permission Checks
+    final bool isSelf = profile.relationship == 'Self';
     final bool isOwner = isSelf || profile.isOwner(_currentUserId); 
     final bool canManage = isSelf || profile.canManage;
 
