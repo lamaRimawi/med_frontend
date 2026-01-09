@@ -32,6 +32,7 @@ import '../services/profile_state_service.dart';
 import '../models/notification_model.dart';
 import '../services/api_client.dart';
 import '../services/notification_service.dart';
+import '../widgets/access_verification_modal.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -211,7 +212,38 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         return;
       }
+      
+      // Handle Access Verification Exception
+      if (e is AccessVerificationException) {
+         if (mounted) {
+            setState(() => _isLoadingReports = false);
+            _showVerificationModal();
+         }
+         return;
+      }
+
       if (mounted) setState(() => _isLoadingReports = false);
+    }
+  }
+
+  Future<void> _showVerificationModal() async {
+    // Check if we already have a profile selected to verify
+    if (_selectedProfileId == null) return;
+
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AccessVerificationModal(
+        resourceType: 'profile',
+        resourceId: _selectedProfileId!,
+      ),
+    );
+
+    if (result == true) {
+      // Verified successfully, retry fetching
+      setState(() => _isLoadingReports = true);
+      _loadReports();
     }
   }
 

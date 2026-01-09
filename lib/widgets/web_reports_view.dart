@@ -14,6 +14,7 @@ import 'package:http/http.dart' as http;
 import 'package:file_saver/file_saver.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
+import '../widgets/access_verification_modal.dart';
 
 class WebReportsView extends StatefulWidget {
   final bool isDarkMode;
@@ -111,12 +112,42 @@ class _WebReportsViewState extends State<WebReportsView> {
       }
     } catch (e) {
       if (mounted) {
+        if (e is AccessVerificationException) {
+           setState(() => _isLoading = false);
+           _showVerificationDialog();
+           return;
+        }
+
         setState(() {
           _error = e.toString();
           _isLoading = false;
         });
       }
     }
+  }
+
+  Future<void> _showVerificationDialog() async {
+     if (_selectedProfileId == null) return;
+     
+     await showDialog(
+       context: context,
+       builder: (context) => Dialog(
+         backgroundColor: Colors.transparent,
+         child: ConstrainedBox(
+           constraints: const BoxConstraints(maxWidth: 400),
+           child: AccessVerificationModal(
+              resourceType: 'profile',
+              resourceId: _selectedProfileId!,
+              onSuccess: () {
+                 if (mounted) {
+                    setState(() => _isLoading = true);
+                    _loadReports();
+                 }
+              }
+           ),
+         ),
+       ),
+     );
   }
 
   String _getReportTitle(Report report) {

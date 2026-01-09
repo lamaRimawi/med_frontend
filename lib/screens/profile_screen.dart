@@ -27,6 +27,7 @@ import '../config/api_config.dart';
 import '../widgets/profile_switcher.dart';
 import '../services/profile_state_service.dart';
 import '../models/profile_model.dart';
+import '../widgets/access_verification_modal.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Function(String) onNavigate;
@@ -281,7 +282,32 @@ class _ProfileScreenState extends State<ProfileScreen>
         });
       }
     } catch (e) {
+      if (mounted && e is AccessVerificationException) {
+         // Optionally show verification here, but since this is just a preview on profile screen,
+         // we might want to be subtle or show a 'Verified Access Required' placeholder.
+         // For now, let's trigger the modal if it's the main profile screen.
+         _showVerificationModal();
+      }
       print('Failed to load recent reports for profile: $e');
+    }
+  }
+
+  Future<void> _showVerificationModal() async {
+    final profile = await ProfileStateService().getSelectedProfile();
+    if (profile == null) return;
+
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AccessVerificationModal(
+        resourceType: 'profile',
+        resourceId: profile.id,
+      ),
+    );
+
+    if (result == true) {
+      _loadRecentReports();
     }
   }
 

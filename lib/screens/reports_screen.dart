@@ -55,11 +55,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeProfile();
-    _loadInitialData();
     _loadUserProfile(); 
     // Listen to profile changes
     ProfileStateService().profileNotifier.addListener(_onProfileChanged);
+    
+    // Chain initialization to prevent race condition
+    _initializeProfile().then((_) {
+      if (mounted) _loadInitialData();
+    });
   }
 
   @override
@@ -219,10 +222,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
         
         // Handle Access Verification Exception from actual API call
         if (e is AccessVerificationException) {
-          setState(() {
-            _reports = []; // Just show empty list, no error
-            _isLoading = false;
-          });
+          if (mounted) {
+             _showVerificationModal();
+          }
           return;
         }
 

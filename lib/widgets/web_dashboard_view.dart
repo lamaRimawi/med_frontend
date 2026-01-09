@@ -11,6 +11,8 @@ import '../services/reports_service.dart';
 import 'next_gen_background.dart';
 import '../models/profile_model.dart';
 import '../services/profile_state_service.dart';
+import '../widgets/access_verification_modal.dart';
+import '../services/api_client.dart';
 
 class WebDashboardView extends StatefulWidget {
   final User? user;
@@ -124,6 +126,12 @@ class _WebDashboardViewState extends State<WebDashboardView> {
     } catch (e) {
       debugPrint('Error loading stats: $e');
       if (mounted) {
+         if (e is AccessVerificationException) {
+            setState(() => _isLoadingStats = false);
+            _showVerificationDialog();
+            return;
+         }
+
         setState(() {
           _totalReports = widget.reports.length;
           _healthScore = 'N/A';
@@ -131,6 +139,30 @@ class _WebDashboardViewState extends State<WebDashboardView> {
         });
       }
     }
+  }
+
+  Future<void> _showVerificationDialog() async {
+     if (_selectedProfileId == null) return;
+     
+     await showDialog(
+       context: context,
+       builder: (context) => Dialog(
+         backgroundColor: Colors.transparent,
+         child: ConstrainedBox(
+           constraints: const BoxConstraints(maxWidth: 400),
+           child: AccessVerificationModal(
+              resourceType: 'profile',
+              resourceId: _selectedProfileId!,
+              onSuccess: () {
+                 if (mounted) {
+                    setState(() => _isLoadingStats = true);
+                    _loadStats();
+                 }
+              }
+           ),
+         ),
+       ),
+     );
   }
 
   @override
