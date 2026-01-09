@@ -103,5 +103,29 @@ class ProfileStateService {
     await prefs.remove(_selectedProfileIdKey);
     await prefs.remove(_selectedProfileRelationKey);
   }
+
+  // -------------------
+  // Temporary verification suppression
+  // Used to suppress the verification modal once for a specific profile
+  int? _suppressedProfileId;
+  bool _suppressNextVerification = false;
+
+  /// Suppress the verification prompt the next time a profile is selected.
+  /// If [profileId] is null, suppression will apply to the next profile switch regardless of id.
+  void suppressNextVerificationForProfileId(int? profileId) {
+    _suppressNextVerification = true;
+    _suppressedProfileId = profileId;
+  }
+
+  /// Consume suppression for the given profile. Returns true if suppression applied.
+  bool consumeSuppressionForProfile(int? profileId) {
+    if (!_suppressNextVerification) return false;
+    // If a specific profile was set for suppression, ensure it matches
+    if (_suppressedProfileId != null && _suppressedProfileId != profileId) return false;
+    _suppressNextVerification = false;
+    _suppressedProfileId = null;
+    return true;
+  }
 }
+
 

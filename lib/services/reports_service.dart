@@ -20,6 +20,9 @@ class ReportsService {
   List<Report>? get cachedReports => _cachedReports;
 
   Future<List<Report>> getReports({bool forceRefresh = false, int? profileId}) async {
+    // Debug logging
+    debugPrint('ReportsService.getReports called for profile $profileId with forceRefresh=$forceRefresh');
+
     // Return cache only if:
     // 1. Not forcing refresh
     // 2. Cache exists
@@ -31,6 +34,7 @@ class ReportsService {
       // Small optimization: if cache is very fresh, return it immediately
       if (_lastFetchTime != null && 
           DateTime.now().difference(_lastFetchTime!).inSeconds < 30) { // Increased to 30s
+        debugPrint('ReportsService: returning cached reports for profile $profileId (count=${_cachedReports?.length ?? 0})');
         return _cachedReports!;
       }
     }
@@ -95,6 +99,16 @@ class ReportsService {
 
 
   Future<Report> getReport(int reportId, {int? profileId}) => getReportDetail(reportId, profileId: profileId);
+
+  /// Invalidate cache for a specific profile (useful when switching profiles or after permissions change)
+  void invalidateCacheForProfile(int? profileId) {
+    if (_cachedProfileId == profileId) {
+      debugPrint('ReportsService: invalidating cache for profile $profileId');
+      _cachedReports = null;
+      _cachedProfileId = null;
+      _lastFetchTime = null;
+    }
+  }
 
   Future<Report> getReportDetail(int reportId, {int? profileId}) async {
     try {

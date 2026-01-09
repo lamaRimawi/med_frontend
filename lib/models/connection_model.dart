@@ -5,6 +5,7 @@ class FamilyConnection {
   final String status; // pending, accepted, rejected
   final String relationship;
   final String? accessLevel; // view, manage
+  final int? profileId; // optional profile id associated with this connection
 
   FamilyConnection({
     required this.id,
@@ -13,6 +14,7 @@ class FamilyConnection {
     required this.status,
     required this.relationship,
     this.accessLevel,
+    this.profileId,
   });
 
   factory FamilyConnection.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class FamilyConnection {
       status: json['status']?.toString() ?? 'pending',
       relationship: json['relationship']?.toString() ?? '',
       accessLevel: json['access_level']?.toString(),
+      profileId: json['profile_id'] != null ? (json['profile_id'] as num).toInt() : null,
     );
   }
 }

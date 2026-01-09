@@ -52,6 +52,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
   String? _selectedProfileRelation;
   UserProfile? _selectedProfile; // Added for name display
 
+  // Track whether we've retried fetching for a given profile to avoid loops
+  int? _retryAttemptProfileId;
+
   @override
   void initState() {
     super.initState();
@@ -89,6 +92,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
   void _onProfileChanged() {
     final profile = ProfileStateService().profileNotifier.value;
     if (mounted) {
+      // Consume any suppression produced by an accept action
+      final suppress = ProfileStateService().consumeSuppressionForProfile(profile?.id);
+      debugPrint('ReportsScreen: profile changed to ${profile?.id} suppress=$suppress');
+
       setState(() {
         _selectedProfile = profile;
         _selectedProfileId = profile?.id;
@@ -97,7 +104,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
         _reports = []; // Clear previous data immediately
         _error = null; // Clear previous errors
       });
-      _fetchReports();
+
+      // Ensure cache invalidation before fetch
+      ReportsService().invalidateCacheForProfile(_selectedProfileId);
+
+      _fetchReports(silent: false, suppressVerification: suppress);
     }
   }
 
@@ -153,7 +164,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     await _fetchReports(silent: cached != null && cached.isNotEmpty);
   }
 
-  Future<void> _fetchReports({bool silent = false}) async {
+  Future<void> _fetchReports({bool silent = false, bool suppressVerification = false}) async {
     if (!mounted) return;
     try {
       if (!silent) {
@@ -197,6 +208,67 @@ class _ReportsScreenState extends State<ReportsScreen> {
           _error = null;
         });
 
+        debugPrint('ReportsScreen: fetched ${reports.length} reports for profile $_selectedProfileId');
+
+        // Log details for each report to help debug filtering issues
+        for (var r in reports) {
+          debugPrint('ReportsScreen: report ${r.reportId} profileId=${r.profileId} patientName=${r.patientName} date=${r.reportDate}');
+        }
+
+        // If we're viewing a non-Self profile and none of the returned reports match that profile,
+        // it's likely the backend returned unrelated reports (or the session token is missing).
+        final isViewForProfile = _selectedProfileId != null && _selectedProfileRelation != 'Self';
+        final anyMatch = reports.any((r) => r.profileId == _selectedProfileId);
+
+        if (isViewForProfile && !anyMatch) {
+          debugPrint('ReportsScreen: fetched reports do NOT match requested profile $_selectedProfileId; triggering verification');
+          // If suppression is active, don't show the modal; otherwise prompt verification
+          if (!suppressVerification) {
+            final result = await showModalBottomSheet<bool>(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) => AccessVerificationModal(
+                resourceType: 'profile',
+                resourceId: _selectedProfileId ?? 0,
+              ),
+            );
+
+            if (result == true) {
+              // After verification, force refresh
+              ReportsService().invalidateCacheForProfile(_selectedProfileId);
+              await _fetchReports(silent: false, suppressVerification: false);
+              return;
+            } else {
+              // If user cancels, fall through and show empty state
+              setState(() {
+                _reports = [];
+                _isLoading = false;
+              });
+              return;
+            }
+          } else {
+            // suppression active -> do nothing and show empty
+            setState(() {
+              _reports = [];
+              _isLoading = false;
+            });
+            return;
+          }
+        }
+
+        // If we got an empty list but haven't retried for this profile yet, schedule a one-time retry
+        if (reports.isEmpty && !_isLoading && _retryAttemptProfileId != _selectedProfileId) {
+          debugPrint('ReportsScreen: empty result for profile $_selectedProfileId — scheduling one retry');
+          _retryAttemptProfileId = _selectedProfileId;
+          Future.delayed(const Duration(milliseconds: 700), () {
+            if (mounted && _selectedProfileId == _retryAttemptProfileId) {
+              debugPrint('ReportsScreen: performing scheduled retry for profile $_selectedProfileId');
+              _fetchReports(silent: false, suppressVerification: false);
+            }
+          });
+        }
+
         // Handle initial report navigation
         if (widget.initialReportId != null && !_hasHandledInitialReport) {
           final initialReport = _reports.where((r) => r.reportId == widget.initialReportId).firstOrNull;
@@ -219,11 +291,38 @@ class _ReportsScreenState extends State<ReportsScreen> {
         
         // Handle Access Verification Exception from actual API call
         if (e is AccessVerificationException) {
-          setState(() {
-            _reports = []; // Just show empty list, no error
-            _isLoading = false;
-          });
-          return;
+          // If suppression is active, don't show modal — just stop loading
+          if (suppressVerification) {
+            setState(() {
+              _reports = [];
+              _isLoading = false;
+            });
+            return;
+          }
+
+          // Prompt verification and retry fetch if user verifies
+          final result = await showModalBottomSheet<bool>(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => AccessVerificationModal(
+              resourceType: 'profile',
+              resourceId: _selectedProfileId ?? 0,
+            ),
+          );
+
+          if (result == true) {
+            // Retry fetching after successful verification
+            await _fetchReports(silent: false, suppressVerification: false);
+            return;
+          } else {
+            // Leave empty list and stop loading
+            setState(() {
+              _reports = [];
+              _isLoading = false;
+            });
+            return;
+          }
         }
 
         // If we have data, show snackbar instead of full error
@@ -670,18 +769,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
       // IF the report has a profileId.
       bool matchesProfile = true;
       if (_selectedProfileId != null) {
+          // Now backend guarantees profile_id for reports. Match strictly by profile_id.
+          // If a report has null profile_id, only show it when viewing 'Self'.
           if (report.profileId != null) {
              matchesProfile = report.profileId == _selectedProfileId;
           } else {
-             // If report has no profile ID, assume it belongs to 'Self' (Owner)
-             // So if we are strictly viewing a dependent (who should have IDs), hide it?
-             // Or if we are viewing Self, show it.
-             // Let's assume 'Self' has _selectedProfileId matching the owner.
-             // If we are viewing a Dependent (who has a distinct ID), we don't want to see null-ID reports (Self's).
-             // So: if _selectedProfileRelation != 'Self' AND report.profileId == null -> Hide
-             if (_selectedProfileRelation != 'Self') {
-                matchesProfile = false;
-             }
+             matchesProfile = (_selectedProfileRelation == 'Self');
           }
       }
 

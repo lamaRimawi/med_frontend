@@ -1491,6 +1491,49 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
     setState(() => _isLoading = true);
     try {
       await ConnectionService.respondToRequest(connectionId, action);
+
+      // If we accepted a connection, prompt verification immediately so the manager can access reports
+      if (action == 'accept') {
+        FamilyConnection? conn;
+        try {
+          conn = _receivedConnections.firstWhere((c) => c.id == connectionId);
+        } catch (_) {
+          try {
+            conn = _sentConnections.firstWhere((c) => c.id == connectionId);
+          } catch (_) {
+            conn = null;
+          }
+        }
+
+        // If the connection references a profile id, prompt access verification for that profile
+        if (conn?.profileId != null) {
+          try {
+            final result = await showModalBottomSheet<bool>(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) => AccessVerificationModal(
+                resourceType: 'profile',
+                resourceId: conn!.profileId!,
+                isFirstTimeSetup: false,
+              ),
+            );
+
+            if (result == true) {
+              // After successful verification, refresh reports/dashboard by notifying profile state
+              // If the user wants to immediately view that profile, also set it as selected
+              try {
+                final profiles = await ProfileService.getProfiles();
+                final matched = profiles.firstWhere((p) => p.id == conn!.profileId);
+                await ProfileStateService().setSelectedProfile(matched);
+              } catch (_) {}
+            }
+          } catch (e) {
+            debugPrint('Error prompting verification after accept: $e');
+          }
+        }
+      }
+
       if (mounted) {
         _showToast('Request ${action}ed');
       }

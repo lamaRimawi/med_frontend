@@ -14,6 +14,7 @@ import 'package:http/http.dart' as http;
 import 'package:file_saver/file_saver.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
+import '../widgets/access_verification_modal.dart';
 
 class WebReportsView extends StatefulWidget {
   final bool isDarkMode;
@@ -43,6 +44,9 @@ class _WebReportsViewState extends State<WebReportsView> {
   String? _authToken;
   int? _selectedProfileId;
 
+  // Track one-time retry attempt per profile to avoid loops
+  int? _retryAttemptProfileId;
+
   @override
   void initState() {
     super.initState();
@@ -61,11 +65,20 @@ class _WebReportsViewState extends State<WebReportsView> {
   void _onProfileChanged() {
     final profile = ProfileStateService().profileNotifier.value;
     if (mounted) {
+      // Check if we should suppress verification for this profile
+      final suppress = ProfileStateService().consumeSuppressionForProfile(profile?.id);
+      debugPrint('WebReportsView: profile changed to ${profile?.id} suppress=$suppress');
+
       setState(() {
         _selectedProfileId = profile?.id;
         _isLoading = true;
       });
-      _loadReports();
+
+      // Ensure any stale cache for this profile is cleared so we force a network fetch
+      ReportsService().invalidateCacheForProfile(_selectedProfileId);
+
+      // Force refresh when switching profiles to avoid stale or empty cached data
+      _loadReports(forceRefresh: true, suppressVerification: suppress);
     }
   }
 
@@ -78,14 +91,14 @@ class _WebReportsViewState extends State<WebReportsView> {
     }
   }
 
-  Future<void> _loadReports() async {
+  Future<void> _loadReports({bool forceRefresh = false, bool suppressVerification = false}) async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
     try {
-      final reports = await ReportsService().getReports(profileId: _selectedProfileId);
+      final reports = await ReportsService().getReports(forceRefresh: forceRefresh, profileId: _selectedProfileId);
       
       // Fetch timeline to get report types
       try {
@@ -108,6 +121,94 @@ class _WebReportsViewState extends State<WebReportsView> {
           _reports = reports;
           _isLoading = false;
         });
+
+        debugPrint('WebReportsView: fetched ${reports.length} reports for profile $_selectedProfileId');
+
+        // Log each report detail to help debugging
+        for (var r in reports) {
+          debugPrint('WebReportsView: report ${r.reportId} profileId=${r.profileId} patientName=${r.patientName} date=${r.reportDate}');
+        }
+
+        // If viewing a non-Self profile and none of the returned reports match, prompt verification
+        final profile = ProfileStateService().profileNotifier.value;
+        final isViewForProfile = _selectedProfileId != null && (profile?.relationship ?? 'Self') != 'Self';
+        final anyMatch = reports.any((r) => r.profileId == _selectedProfileId);
+
+        if (isViewForProfile && !anyMatch) {
+          debugPrint('WebReportsView: fetched reports do NOT match requested profile $_selectedProfileId; triggering verification');
+          if (!suppressVerification) {
+            final result = await showModalBottomSheet<bool>(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) => AccessVerificationModal(resourceType: 'profile', resourceId: _selectedProfileId ?? 0),
+            );
+
+            if (result == true) {
+              ReportsService().invalidateCacheForProfile(_selectedProfileId);
+              await _loadReports(forceRefresh: true);
+              return;
+            } else {
+              setState(() {
+                _reports = [];
+                _isLoading = false;
+              });
+              return;
+            }
+          } else {
+            setState(() {
+              _reports = [];
+              _isLoading = false;
+            });
+            return;
+          }
+        }
+
+        if (reports.isEmpty && _retryAttemptProfileId != _selectedProfileId) {
+          debugPrint('WebReportsView: empty reports; scheduling one retry for profile $_selectedProfileId');
+          _retryAttemptProfileId = _selectedProfileId;
+          Future.delayed(const Duration(milliseconds: 700), () async {
+            if (mounted && _selectedProfileId == _retryAttemptProfileId) {
+              debugPrint('WebReportsView: performing scheduled retry for profile $_selectedProfileId');
+              await _loadReports(forceRefresh: true);
+            }
+          });
+        }
+      }
+    } on AccessVerificationException catch (e) {
+      // If suppression is active, skip showing the verification modal
+      if (suppressVerification) {
+        if (mounted) {
+          setState(() {
+            _error = e.message;
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+
+      // Otherwise show verification modal and retry if user completes verification
+      final result = await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => AccessVerificationModal(
+          resourceType: 'profile',
+          resourceId: _selectedProfileId ?? 0,
+        ),
+      );
+
+      if (result == true) {
+        await _loadReports(forceRefresh: true);
+        return;
+      } else {
+        if (mounted) {
+          setState(() {
+            _error = e.message;
+            _isLoading = false;
+          });
+        }
+        return;
       }
     } catch (e) {
       if (mounted) {

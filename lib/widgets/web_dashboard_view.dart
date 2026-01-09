@@ -11,6 +11,8 @@ import '../services/reports_service.dart';
 import 'next_gen_background.dart';
 import '../models/profile_model.dart';
 import '../services/profile_state_service.dart';
+import '../services/api_client.dart';
+import '../widgets/access_verification_modal.dart';
 
 class WebDashboardView extends StatefulWidget {
   final User? user;
@@ -66,11 +68,14 @@ class _WebDashboardViewState extends State<WebDashboardView> {
   void _onProfileChanged() {
     final profile = ProfileStateService().profileNotifier.value;
     if (mounted) {
+      final suppress = ProfileStateService().consumeSuppressionForProfile(profile?.id);
+
       setState(() {
         _selectedProfileId = profile?.id;
         _isLoadingStats = true;
       });
-      _loadStats();
+      // Force refresh to get fresh stats for new profile
+      _loadStats(forceRefresh: true, suppressVerification: suppress);
     }
   }
 
@@ -94,10 +99,10 @@ class _WebDashboardViewState extends State<WebDashboardView> {
     }
   }
 
-  Future<void> _loadStats() async {
+  Future<void> _loadStats({bool forceRefresh = false, bool suppressVerification = false}) async {
     setState(() => _isLoadingStats = true);
     try {
-      final reports = await ReportsService().getReports(profileId: _selectedProfileId);
+      final reports = await ReportsService().getReports(forceRefresh: forceRefresh, profileId: _selectedProfileId);
       final totalReports = reports.length;
       
       int totalTests = 0;
@@ -120,6 +125,40 @@ class _WebDashboardViewState extends State<WebDashboardView> {
           _healthScore = '$healthScore%';
           _isLoadingStats = false;
         });
+      }
+    } on AccessVerificationException catch (e) {
+      // If suppression is active, skip modal and fallback
+      if (suppressVerification) {
+        if (mounted) {
+          setState(() {
+            _totalReports = widget.reports.length;
+            _healthScore = 'N/A';
+            _isLoadingStats = false;
+          });
+        }
+        return;
+      }
+
+      // Prompt verification and retry
+      final result = await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => AccessVerificationModal(resourceType: 'profile', resourceId: _selectedProfileId ?? 0),
+      );
+
+      if (result == true) {
+        await _loadStats(forceRefresh: true);
+        return;
+      } else {
+        if (mounted) {
+          setState(() {
+            _totalReports = widget.reports.length;
+            _healthScore = 'N/A';
+            _isLoadingStats = false;
+          });
+        }
+        return;
       }
     } catch (e) {
       debugPrint('Error loading stats: $e');
