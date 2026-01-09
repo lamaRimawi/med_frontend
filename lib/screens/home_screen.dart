@@ -1303,14 +1303,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     for (int i = 0; i < filtered.length; i++)
                       GestureDetector(
                         onTap: () {
-                          final typeKey = (filtered[i]['type'] ?? '')
-                              .toLowerCase()
-                              .replaceAll(' ', '');
                           setState(() {
-                            _showQuickView = {
-                              'type': typeKey,
-                              'title': filtered[i]['type'] ?? '',
-                            };
+                            _initialReportId = int.tryParse(filtered[i]['id'] ?? '');
+                            _showReports = true;
+                            _selectedIndex = 1;
                           });
                         },
                         child: Container(
