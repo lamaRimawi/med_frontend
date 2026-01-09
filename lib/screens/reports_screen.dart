@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:ui';
@@ -174,6 +174,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
         forceRefresh: true,
         profileId: apiProfileId,
       );
+      
+      // Filter reports if viewing 'Self' to exclude other profiles
+      // This is necessary because fetching with profileId=null (for Self) returns ALL reports
+      List<Report> processedReports = reports;
+      if (isSelf && _selectedProfileId != null) {
+          processedReports = reports.where((r) => r.profileId == null || r.profileId == _selectedProfileId).toList();
+      }
 
       // Fetch timeline to get report types
       try {
@@ -195,7 +202,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
       if (mounted) {
         setState(() {
-          _reports = reports;
+          _reports = processedReports;
           _isLoading = false;
           _error = null;
         });

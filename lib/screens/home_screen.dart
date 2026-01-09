@@ -366,11 +366,30 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _mapReportsToUi(List<Report> reports) {
-    // Since we now validate the cache/fetch source against the selected profile ID 
-    // in _loadReports, we can trust the list passed here belongs to the profile.
-    // We don't need to filter by r.profileId again, which might be null in some API responses.
+    // Filter reports if viewing 'Self' to exclude other profiles
+    // This is necessary because fetching with profileId=null (for Self) returns ALL reports
+    final isSelf = _selectedProfileRelation == 'Self' || _selectedProfileId == null;
     
-    _reports = reports.map((r) {
+    List<Report> filteredReports = reports;
+    
+    if (isSelf) {
+      filteredReports = reports.where((r) {
+        // Keep report if it has no profile ID (assumed Self/Legacy) 
+        // OR if it matches the current Self profile ID (if we have one)
+        // We explicitly exclude reports that have a profileId that DOES NOT match our current ID
+        if (r.profileId != null && _selectedProfileId != null) {
+           return r.profileId == _selectedProfileId;
+        }
+        // If report has profileId but we don't have one selected (shouldn't happen often if initialized),
+        // or if report has no profileId, we include it.
+        // Actually, if report has profileId (e.g. dependent) and we are null (Self), we should probably EXCLUDE it 
+        // if we assume Self reports have null ID.
+        // But let's stick to: if we have an ID, match it. If report has null, keep it.
+        return r.profileId == null || r.profileId == _selectedProfileId;
+      }).toList();
+    }
+
+    _reports = filteredReports.map((r) {
       // Parse created_at (Upload Date) - Used for "Recent" bucketing
       DateTime createdDt;
       try {
