@@ -1312,6 +1312,8 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
     final emailController = TextEditingController();
     final formKey = GlobalKey<FormState>();
     String? selectedRelationship;
+    String selectedAccessLevel = 'view'; // Default access level
+
     // Filter profiles to show ones this user owns (creator) OR has manage access to
     final availableProfiles = _profiles.where((p) {
       return p.relationship == 'Self' || p.isOwner(_currentUserId) || p.canManage;
@@ -1406,6 +1408,31 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                     }
                   ),
                   const SizedBox(height: 16),
+
+                  // Access Level Dropdown
+                  DropdownButtonFormField<String>(
+                    value: selectedAccessLevel,
+                    decoration: InputDecoration(
+                      labelText: 'Access Level',
+                      labelStyle: TextStyle(color: _isDarkMode ? Colors.grey[400] : Colors.grey[600]),
+                      prefixIcon: Icon(LucideIcons.shield, color: _isDarkMode ? Colors.grey[400] : Colors.grey[600], size: 20),
+                      filled: true,
+                      fillColor: _isDarkMode ? Colors.white.withOpacity(0.05) : Colors.grey[50],
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF39A4E6))),
+                    ),
+                    dropdownColor: _isDarkMode ? const Color(0xFF132F4C) : Colors.white,
+                    style: TextStyle(color: _isDarkMode ? Colors.white : Colors.black, fontSize: 16),
+                    icon: Icon(LucideIcons.chevronDown, color: _isDarkMode ? Colors.grey[400] : Colors.grey[600], size: 20),
+                    items: [
+                      DropdownMenuItem(value: 'view', child: Text('Viewer (Read Only)')),
+                      DropdownMenuItem(value: 'upload', child: Text('Contributor (Read & Upload)')),
+                      DropdownMenuItem(value: 'manage', child: Text('Manager (Full Access)')),
+                    ],
+                    onChanged: (val) => setModalState(() => selectedAccessLevel = val!),
+                  ),
+                  const SizedBox(height: 16),
                   
                   // Relationship Dropdown
                   DropdownButtonFormField<String>(
@@ -1447,6 +1474,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                              emailController.text, 
                              selectedRelationship!,
                              profileId: selectedProfileId,
+                             accessLevel: selectedAccessLevel,
                            );
                          }
                       },
@@ -1465,13 +1493,13 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
     );
   }
 
-  Future<void> _sendConnectionRequest(String email, String relationship, {int? profileId}) async {
+  Future<void> _sendConnectionRequest(String email, String relationship, {int? profileId, String accessLevel = 'view'}) async {
      setState(() => _isLoading = true);
      try {
        await ConnectionService.sendRequest(
           receiverEmail: email, 
           relationship: relationship,
-          accessLevel: 'manage',  // Changed to 'manage' for profile sharing
+          accessLevel: accessLevel,
           profileId: profileId,  // Pass profile ID if provided
        );
        if (mounted) {
