@@ -1255,6 +1255,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () => setState(() {
                       _showReports = true;
                       _selectedIndex = 1;
+                      _initialReportId = null;
                     }),
                     child: Text(
                       'See all',
