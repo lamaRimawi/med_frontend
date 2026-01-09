@@ -166,10 +166,24 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadReports() async {
     try {
       // 1. Load from cache first
+      // 1. Load from cache first ONLY if it matches current profile
       final cached = ReportsService().cachedReports;
-      if (cached != null) {
+      final cachedProfileId = ReportsService().cachedProfileId;
+      
+      // Determine if we want 'Self' (null profileId in cache) or specific profile
+      final targetProfileId = (_selectedProfileRelation == 'Self' || _selectedProfileId == null) 
+          ? null 
+          : _selectedProfileId;
+
+      if (cached != null && cachedProfileId == targetProfileId) {
         _mapReportsToUi(cached);
         setState(() => _isLoadingReports = false);
+      } else {
+        // Clear old data while loading new profile
+        setState(() {
+           _reports = [];
+           _isLoadingReports = true;
+        });
       }
 
       // 2. Fetch fresh
@@ -180,7 +194,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // 3. Fetch timeline for better names
       try {
-        final timeline = await ReportsService().getTimeline();
+        final timeline = await ReportsService().getTimeline(
+          profileId: isSelf ? null : _selectedProfileId,
+        );
         final typeMap = <int, String>{};
         for (var item in timeline) {
           if (item['report_id'] != null && item['report_type'] != null) {
@@ -193,6 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         }
       } catch (e) {
+        if (e is AccessVerificationException) rethrow; // Allow main handler to trigger modal
         debugPrint('Failed to fetch timeline for types: $e');
       }
 
@@ -349,18 +366,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _mapReportsToUi(List<Report> reports) {
-    _reports = reports.where((r) {
-      // Strict Profile Filtering
-      if (_selectedProfileId != null) {
-        if (r.profileId != null) {
-          return r.profileId == _selectedProfileId;
-        } else {
-          // If report has no profile ID, assume it belongs to 'Self' (Owner)
-          return _selectedProfileRelation == 'Self';
-        }
-      }
-      return true;
-    }).map((r) {
+    // Since we now validate the cache/fetch source against the selected profile ID 
+    // in _loadReports, we can trust the list passed here belongs to the profile.
+    // We don't need to filter by r.profileId again, which might be null in some API responses.
+    
+    _reports = reports.map((r) {
       // Parse created_at (Upload Date) - Used for "Recent" bucketing
       DateTime createdDt;
       try {
@@ -425,6 +435,70 @@ class _HomeScreenState extends State<HomeScreen> {
         'raw_display': displayDt,
       };
     }).toList();
+  }
+  
+  // ... (keeping _loadUserData as is in original) ...
+
+  List<Map<String, dynamic>> _getReportTypes() {
+    // Calculate counts from the already-mapped UI reports list
+    // This ensures total synchronization with the 'Recent Reports' list.
+    final counts = <String, int>{};
+    
+    for (var r in _reports) {
+       final type = r['type'] as String? ?? 'General';
+       counts[type] = (counts[type] ?? 0) + 1;
+    }
+
+    return [
+      {
+        'icon': LucideIcons.flaskConical,
+        'label': 'Lab Results',
+        'color': const Color(0xFF39A4E6),
+        'count': counts['Lab Results'] ?? 0,
+        'quickView': 'lab',
+        'description': 'Blood tests & diagnostics',
+      },
+      {
+        'icon': LucideIcons.pill,
+        'label': 'Prescriptions',
+        'color': const Color(0xFF10B981),
+        'count': counts['Prescriptions'] ?? 0,
+        'quickView': 'prescription',
+        'description': 'Medication history',
+      },
+      {
+        'icon': LucideIcons.camera,
+        'label': 'Imaging',
+        'color': const Color(0xFF8B5CF6),
+        'count': counts['Imaging'] ?? 0,
+        'quickView': 'imaging',
+        'description': 'X-rays, MRI, CT scans',
+      },
+      {
+        'icon': LucideIcons.heart,
+        'label': 'Cardiology',
+        'color': const Color(0xFFEF4444),
+        'count': counts['Cardiology'] ?? 0,
+        'quickView': 'cardiology',
+        'description': 'Heart health',
+      },
+      {
+        'icon': LucideIcons.brain,
+        'label': 'Neurology',
+        'color': const Color(0xFF6366F1),
+        'count': counts['Neurology'] ?? 0,
+        'quickView': 'neurology',
+        'description': 'Brain & nerves',
+      },
+      {
+        'icon': LucideIcons.activity,
+        'label': 'Orthopedic',
+        'color': const Color(0xFFF59E0B),
+        'count': counts['Orthopedic'] ?? 0,
+        'quickView': 'orthopedic',
+        'description': 'Bones & joints',
+      },
+    ];
   }
 
   Future<void> _loadUserData() async {
@@ -1508,80 +1582,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return 'General';
   }
 
-  List<Map<String, dynamic>> _getReportTypes() {
-    // Calculate counts from cached reports
-    final counts = <String, int>{};
-    final allReports = ReportsService().cachedReports ?? [];
 
-    for (var r in allReports) {
-      // Apply Strict Profile Filtering (Same as _mapReportsToUi)
-      bool matchesProfile = true;
-      if (_selectedProfileId != null) {
-        if (r.profileId != null) {
-          matchesProfile = r.profileId == _selectedProfileId;
-        } else {
-          // If report has no profile ID, assume it belongs to 'Self' (Owner)
-          matchesProfile = _selectedProfileRelation == 'Self';
-        }
-      }
-      
-      if (matchesProfile) {
-        final type = _determineReportType(r);
-        counts[type] = (counts[type] ?? 0) + 1;
-      }
-    }
-
-    return [
-      {
-        'icon': LucideIcons.flaskConical,
-        'label': 'Lab Results',
-        'color': const Color(0xFF39A4E6),
-        'count': counts['Lab Results'] ?? 0,
-        'quickView': 'lab',
-        'description': 'Blood tests & diagnostics',
-      },
-      {
-        'icon': LucideIcons.pill,
-        'label': 'Prescriptions',
-        'color': const Color(0xFF10B981),
-        'count': counts['Prescriptions'] ?? 0,
-        'quickView': 'prescription',
-        'description': 'Medication history',
-      },
-      {
-        'icon': LucideIcons.camera,
-        'label': 'Imaging',
-        'color': const Color(0xFF8B5CF6),
-        'count': counts['Imaging'] ?? 0,
-        'quickView': 'imaging',
-        'description': 'X-rays, MRI, CT scans',
-      },
-      {
-        'icon': LucideIcons.heart,
-        'label': 'Cardiology',
-        'color': const Color(0xFFEF4444),
-        'count': counts['Cardiology'] ?? 0,
-        'quickView': 'cardiology',
-        'description': 'Heart health',
-      },
-      {
-        'icon': LucideIcons.brain,
-        'label': 'Neurology',
-        'color': const Color(0xFF6366F1),
-        'count': counts['Neurology'] ?? 0,
-        'quickView': 'neurology',
-        'description': 'Brain & nerves',
-      },
-      {
-        'icon': LucideIcons.activity,
-        'label': 'Orthopedic',
-        'color': const Color(0xFFF59E0B),
-        'count': counts['Orthopedic'] ?? 0,
-        'quickView': 'orthopedic',
-        'description': 'Bones & joints',
-      },
-    ];
-  }
 
   Widget _buildReportTypes() {
     final reportTypes = _getReportTypes();

@@ -18,6 +18,7 @@ class ReportsService {
   DateTime? _lastFetchTime;
 
   List<Report>? get cachedReports => _cachedReports;
+  int? get cachedProfileId => _cachedProfileId;
 
   Future<List<Report>> getReports({bool forceRefresh = false, int? profileId}) async {
     // Return cache only if:
@@ -196,11 +197,25 @@ class ReportsService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getTimeline() async {
+  Future<List<Map<String, dynamic>>> getTimeline({int? profileId}) async {
     try {
+      String path = '${ApiConfig.reports}/timeline';
+      if (profileId != null) {
+        path = '$path?profile_id=$profileId';
+      }
+
+      Map<String, String>? headers;
+      if (profileId != null) {
+         final sessionToken = await _client.getSessionToken('profile', profileId.toString());
+         if (sessionToken != null) {
+           headers = {'X-Access-Session-Token': sessionToken};
+         }
+      }
+
       final response = await _client.get(
-        '${ApiConfig.reports}/timeline',
+        path,
         auth: true,
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -210,6 +225,7 @@ class ReportsService {
         throw Exception('Failed to load timeline: ${response.statusCode}');
       }
     } catch (e) {
+      if (e is AccessVerificationException) rethrow;
       throw Exception('Error fetching timeline: $e');
     }
   }
