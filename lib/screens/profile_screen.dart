@@ -2844,7 +2844,17 @@ class _ProfileScreenState extends State<ProfileScreen>
                         final verified = await _showOTPDialog();
                         if (verified) {
                           setState(() => _twoFactorEnabled = true);
-                          await _updateSetting('two_factor_enabled', true);
+                          // Manually save to prefs to ensure UI consistency
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setBool('user_two_factor_enabled', true);
+                          
+                          // Backend should already be updated by verify2FA, but we can sync just in case.
+                          // Avoid calling _updateSetting which reloads user data immediately and might revert the switch if backend is slow.
+                          try {
+                            await UserService().updateUserSettings({'two_factor_enabled': true});
+                          } catch (e) {
+                            debugPrint('Error syncing 2FA status: $e');
+                          }
                         }
                       } else {
                         if (!mounted) return;
@@ -2858,8 +2868,24 @@ class _ProfileScreenState extends State<ProfileScreen>
                       }
                     } else {
                       // Disabling 2FA
-                      setState(() => _twoFactorEnabled = false);
-                      await _updateSetting('two_factor_enabled', false);
+                      setState(() => _privacyLoading = true);
+                      final (success, message) = await AuthApi.disable2FA();
+                      setState(() => _privacyLoading = false);
+                      
+                      if (success) {
+                        setState(() => _twoFactorEnabled = false);
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setBool('user_two_factor_enabled', false);
+                      } else {
+                        if (!mounted) return;
+                        setState(() => _twoFactorEnabled = true); // Revert switch
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(message ?? 'Failed to disable 2FA'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     }
                   },
                 ),
