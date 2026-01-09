@@ -74,12 +74,10 @@ class ReportsService {
           throw Exception('Failed to load reports: ${response.statusCode}');
         }
       } catch (e) {
-        // Don't retry if unauthorized (token expired)
-        if (e.toString().contains('Unauthorized') || e is AccessVerificationException) {
-          // If we fail due to verification, we should CLEAR the cache if it was for this profile
-          // But actually, we might want to keep old data? No, for security, let's reset if we can't access.
-          // However, we don't want to wipe cache on transient network error.
-          // For now, rethrow.
+        // Don't retry if unauthorized (token expired) or Not Found (404)
+        if (e.toString().contains('Unauthorized') || 
+            e.toString().contains('404') ||
+            e is AccessVerificationException) {
           rethrow;
         }
 

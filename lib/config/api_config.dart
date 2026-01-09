@@ -36,4 +36,9 @@ class ApiConfig {
   static const String webauthnRegVerify = '/auth/webauthn/register/verify';
   static const String webauthnLoginOptions = '/auth/webauthn/login/options';
   static const String webauthnLoginVerify = '/auth/webauthn/login/verify';
+
+  // Two-Factor Authentication
+  static const String enable2FA = '/auth/2fa/enable';
+  static const String verify2FA = '/auth/2fa/verify';
+  static const String disable2FA = '/auth/2fa/disable';
 }

@@ -18,6 +18,12 @@ class UserService {
         // Save to local storage for offline access/caching
         await User.saveToPrefs(user);
         return user;
+      } else if (response.statusCode == 404) {
+        // User not found (deleted or invalid token association)
+        await User.clearFromPrefs();
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear(); // Force logout
+        throw Exception('User not found. Logging out.');
       } else {
         throw Exception('Failed to load user profile: ${response.statusCode}');
       }

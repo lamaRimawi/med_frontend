@@ -1,4 +1,4 @@
-﻿import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -28,6 +28,7 @@ import '../widgets/profile_switcher.dart';
 import '../services/profile_state_service.dart';
 import '../models/profile_model.dart';
 import '../widgets/access_verification_modal.dart';
+import '../widgets/countdown_timer.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Function(String) onNavigate;
@@ -313,99 +314,70 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
-      _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
-      _twoFactorEnabled = prefs.getBool('two_factor_enabled') ?? false;
-      _biometricEnabled = prefs.getBool('biometric_enabled') ?? false;
-      _shareMedicalData = prefs.getBool('share_medical_data') ?? true;
-      _profileVisible = prefs.getBool('profile_visible') ?? true;
+      _notificationsEnabled = prefs.getBool('user_notifications_enabled') ?? true;
+      _twoFactorEnabled = prefs.getBool('user_two_factor_enabled') ?? false;
+      _biometricEnabled = prefs.getBool('user_biometric_enabled') ?? false;
+      _shareMedicalData = prefs.getBool('user_share_medical_data') ?? true;
+      _profileVisible = prefs.getBool('user_profile_visible') ?? true;
     });
   }
 
   Future<void> _loadUserData() async {
     try {
-      // Fetch token for authenticated image loading
       _token = await ApiClient.instance.getToken();
-
-      // Try to fetch from backend first
       final user = await UserService().getUserProfile();
-      if (mounted) {
-        _updateLocalUserState(user);
-      }
+      if (mounted) _updateLocalUserState(user);
     } catch (e) {
-      // Fallback to local storage if offline or error
       final user = await User.loadFromPrefs();
-      if (user != null && mounted) {
-        _updateLocalUserState(user);
-      }
+      if (user != null && mounted) _updateLocalUserState(user);
     }
 
-    // Load saved profile image
     final prefs = await SharedPreferences.getInstance();
     final savedImagePath = prefs.getString('profile_image_path');
     if (savedImagePath != null && mounted) {
       final file = File(savedImagePath);
       if (await file.exists()) {
-        setState(() {
-          _imageFile = file;
-        });
+        setState(() => _imageFile = file);
       }
     }
   }
 
   Future<void> _handleWebAuthnRegistration(bool enable) async {
     if (!enable) {
-      // Logic to disable/remove biometric could go here if backend supports it
       setState(() => _biometricEnabled = false);
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('biometric_enabled', false);
+      await prefs.setBool('user_biometric_enabled', false);
+      // Optionally call a backend endpoint to deregister
       return;
     }
 
     if (!WebAuthnService.isSupported) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'WebAuthn is not supported on this browser/environment',
-          ),
-        ),
+        const SnackBar(content: Text('WebAuthn is not supported on this device/browser')),
       );
       return;
     }
 
     setState(() => _isLoading = true);
     try {
-      // 1. Get Registration Options
-      final (optionsSuccess, options, optionsMessage) =
-          await AuthApi.getWebAuthnRegistrationOptions();
+      final (optionsSuccess, options, optionsMessage) = await AuthApi.getWebAuthnRegistrationOptions();
+      if (!optionsSuccess || options == null) throw optionsMessage ?? 'Failed to get registration options';
 
-      if (!optionsSuccess || options == null) {
-        throw optionsMessage ?? 'Failed to get registration options';
-      }
-
-      // 2. Invoke Browser API
       final credential = await WebAuthnService.createCredential(options);
+      if (credential == null) throw 'Biometric registration cancelled or failed';
 
-      if (credential == null) {
-        throw 'Biometric registration cancelled or failed';
-      }
-
-      // 3. Verify Registration with backend
-      final (verifySuccess, verifyMessage) =
-          await AuthApi.verifyWebAuthnRegistration(credential);
-
+      final (verifySuccess, verifyMessage) = await AuthApi.verifyWebAuthnRegistration(credential);
       if (!mounted) return;
 
       if (verifySuccess) {
         setState(() => _biometricEnabled = true);
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('biometric_enabled', true);
-
+        await prefs.setBool('user_biometric_enabled', true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              verifyMessage ?? 'Biometric login enabled successfully',
-            ),
+            content: Text(verifyMessage ?? 'Biometric login enabled successfully'),
             backgroundColor: Colors.green,
           ),
         );
@@ -415,16 +387,70 @@ class _ProfileScreenState extends State<ProfileScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.redAccent,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.redAccent),
         );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
+
+  Future<void> _handle2FAToggle(bool enable) async {
+    setState(() => _privacyLoading = true);
+    try {
+      if (enable) {
+        // Step 1: Request to enable 2FA from the backend.
+        final (requestSuccess, message) = await AuthApi.enable2FA();
+        if (!requestSuccess) {
+          throw message ?? 'Failed to start 2FA process.';
+        }
+        if (!mounted) return;
+
+        // Step 2: Show OTP dialog to verify and complete the process.
+        final bool? verificationResult = await _showOTPDialog();
+        if (verificationResult == true) {
+          setState(() => _twoFactorEnabled = true);
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('user_two_factor_enabled', true);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Two-Factor Authentication enabled successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          // If the user cancels or fails verification, we don't change the state.
+          // The switch will remain off.
+        }
+      } else {
+        // Disabling 2FA
+        final (success, message) = await AuthApi.disable2FA();
+        if (success) {
+          setState(() => _twoFactorEnabled = false);
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('user_two_factor_enabled', false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Two-Factor Authentication disabled.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        } else {
+          throw message ?? 'Failed to disable 2FA.';
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.redAccent),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _privacyLoading = false);
+    }
+  }
+
+
 
   Future<void> _updateSetting(String key, bool value) async {
     setState(() => _privacyLoading = true);
@@ -2630,6 +2656,112 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
+  Future<bool> _showOTPDialog() async {
+    final controller = TextEditingController();
+    bool isLoading = false;
+    String? errorText;
+
+    return await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => StatefulBuilder(
+            builder: (context, setDialogState) {
+              return AlertDialog(
+                backgroundColor: _isDarkMode ? const Color(0xFF111827) : Colors.white,
+                title: Text(
+                  'Enter Verification Code',
+                  style: TextStyle(
+                    color: _isDarkMode ? Colors.white : const Color(0xFF111827),
+                  ),
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'A verification code has been sent to your email. Please enter it below to enable 2FA.',
+                      style: TextStyle(
+                        color: _isDarkMode ? Colors.white70 : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: controller,
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      style: TextStyle(
+                        color: _isDarkMode ? Colors.white : Colors.black,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: 'Code',
+                        labelStyle: TextStyle(
+                          color: _isDarkMode ? Colors.white60 : Colors.grey[600],
+                        ),
+                        errorText: errorText,
+                        border: const OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: _isDarkMode ? Colors.white24 : Colors.grey[300]!,
+                          ),
+                        ),
+                        counterStyle: TextStyle(
+                          color: _isDarkMode ? Colors.white54 : Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed:
+                        isLoading ? null : () => Navigator.pop(context, false),
+                    child: const Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    onPressed: isLoading
+                        ? null
+                        : () async {
+                            setDialogState(() {
+                              isLoading = true;
+                              errorText = null;
+                            });
+
+                            final (success, message) =
+                                await AuthApi.verify2FA(controller.text);
+
+                            if (!mounted) return;
+
+                            if (success) {
+                              Navigator.pop(context, true);
+                            } else {
+                              setDialogState(() {
+                                isLoading = false;
+                                errorText = message ?? 'Invalid code';
+                              });
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF39A4E6),
+                      foregroundColor: Colors.white,
+                    ),
+                    child: isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation(Colors.white),
+                            ),
+                          )
+                        : const Text('Verify'),
+                  ),
+                ],
+              );
+            },
+          ),
+        ) ??
+        false;
+  }
+
   // --- Settings & Privacy Screen ---
   Widget _buildSettingsPrivacyScreen() {
     final isDark = _isDarkMode;
@@ -2701,8 +2833,34 @@ class _ProfileScreenState extends State<ProfileScreen>
                   'Add an extra layer of security',
                   _twoFactorEnabled,
                   (val) async {
-                    setState(() => _twoFactorEnabled = val);
-                    await _updateSetting('two_factor_enabled', val);
+                    if (val) {
+                      // Enabling 2FA
+                      setState(() => _privacyLoading = true);
+                      final (success, message) = await AuthApi.enable2FA();
+                      setState(() => _privacyLoading = false);
+
+                      if (success) {
+                        if (!mounted) return;
+                        final verified = await _showOTPDialog();
+                        if (verified) {
+                          setState(() => _twoFactorEnabled = true);
+                          await _updateSetting('two_factor_enabled', true);
+                        }
+                      } else {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content:
+                                Text(message ?? 'Failed to send verification code'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    } else {
+                      // Disabling 2FA
+                      setState(() => _twoFactorEnabled = false);
+                      await _updateSetting('two_factor_enabled', false);
+                    }
                   },
                 ),
                 const SizedBox(height: 32),

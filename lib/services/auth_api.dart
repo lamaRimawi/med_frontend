@@ -148,44 +148,45 @@ class AuthApi {
     }
   }
 
-  static Future<(bool success, String? message)> login({
+  static Future<(bool success, String? message, {bool requires2FA})> login({
     required String email,
     required String password,
+    String? code,
   }) async {
-    // Get SharedPreferences instance
     final prefs = await SharedPreferences.getInstance();
-
-    // Clear any old token before attempting new login
     await prefs.remove('jwt_token');
 
     final client = ApiClient.instance;
+    final Map<String, dynamic> body = {'email': email, 'password': password};
+    if (code != null) {
+      body['code'] = code;
+    }
 
-    final res = await client.post(
-      ApiConfig.login,
-      body: {'email': email, 'password': password},
-    );
+    final res = await client.post(ApiConfig.login, body: body);
 
     if (res.statusCode == 200) {
       final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
       final token = data['access_token'] as String?;
       if (token == null || token.isEmpty) {
-        return (false, 'No access token in response');
+        return (false, 'No access token in response', requires2FA: false);
       }
       await prefs.setString('jwt_token', token);
-
-      // Save the password locally after successful login
       await prefs.setString('user_password', password);
-      // Save the email locally for biometric login
       await prefs.setString('user_email', email);
+      return (true, null, requires2FA: false);
+    }
 
-      return (true, null);
+    if (res.statusCode == 202) {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      final requires2fa = data['requires_2fa'] == true;
+      return (false, data['message']?.toString(), requires2FA: requires2fa);
     }
 
     try {
       final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
-      return (false, data['message']?.toString() ?? 'Login failed');
+      return (false, data['message']?.toString() ?? 'Login failed', requires2FA: false);
     } catch (_) {
-      return (false, 'Login failed (${res.statusCode})');
+      return (false, 'Login failed (${res.statusCode})', requires2FA: false);
     }
   }
 
@@ -569,6 +570,65 @@ class AuthApi {
     }
   }
 
+  // 2FA Methods
+  static Future<(bool success, String? message)> enable2FA() async {
+    final client = ApiClient.instance;
+    final res = await client.post(
+      ApiConfig.enable2FA,
+      auth: true,
+    );
+
+    if (res.statusCode == 200) {
+      return (true, null);
+    }
+
+    try {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      return (false, data['message']?.toString() ?? 'Failed to enable 2FA');
+    } catch (_) {
+      return (false, 'Failed to enable 2FA (${res.statusCode})');
+    }
+  }
+
+  static Future<(bool success, String? message)> disable2FA() async {
+    final client = ApiClient.instance;
+    final res = await client.post(
+      ApiConfig.disable2FA, // Ensure this exists in ApiConfig, or use a specific endpoint
+      auth: true,
+    );
+
+    if (res.statusCode == 200) {
+      return (true, null);
+    }
+
+    try {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      return (false, data['message']?.toString() ?? 'Failed to disable 2FA');
+    } catch (_) {
+      return (false, 'Failed to disable 2FA (${res.statusCode})');
+    }
+  }
+
+  static Future<(bool success, String? message)> verify2FA(String code) async {
+    final client = ApiClient.instance;
+    final res = await client.post(
+      ApiConfig.verify2FA,
+      body: {'code': code},
+      auth: true,
+    );
+
+    if (res.statusCode == 200) {
+      return (true, null);
+    }
+
+    try {
+      final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+      return (false, data['message']?.toString() ?? 'Verification failed');
+    } catch (_) {
+      return (false, 'Verification failed (${res.statusCode})');
+    }
+  }
+
   // WebAuthn (Passkeys) Methods
 
   static Future<(bool success, Map<String, dynamic>? options, String? message)>
@@ -741,4 +801,6 @@ class AuthApi {
       return (false, 'Network error: ${e.toString()}');
     }
   }
+
+
 }

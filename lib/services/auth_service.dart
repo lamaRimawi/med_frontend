@@ -282,10 +282,12 @@ class AuthService {
 
       if (savedEmail != null && savedPassword != null) {
         print('🔵 Re-authenticating with backend using saved credentials...');
-        final (loginSuccess, loginMessage) = await AuthApi.login(
+        final result = await AuthApi.login(
           email: savedEmail,
           password: savedPassword,
         );
+        final loginSuccess = result.$1;
+        final loginMessage = result.$2;
 
         if (loginSuccess) {
           print('✅ Biometric login successful via backend');
