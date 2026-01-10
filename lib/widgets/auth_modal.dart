@@ -6,6 +6,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'custom_text_field.dart';
 import 'custom_button.dart';
 import 'alert_banner.dart';
+import 'animated_bubble_background.dart';
 import '../utils/validators.dart';
 import '../services/auth_service.dart';
 import '../services/auth_api.dart';
@@ -424,9 +425,13 @@ class _AuthModalState extends State<AuthModal> {
     final size = MediaQuery.of(context).size;
     final bool isDesktop = size.width > 900;
     
-    // Theme-aware colors
-    final Color modalBgColor = isDark ? const Color(0xFF0F172A) : Colors.white;
-    final Color borderColor = isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.05);
+    // Glass effect colors
+    final Color modalBgColor = isDark 
+        ? const Color(0xFF111827).withOpacity(0.9) 
+        : Colors.white.withOpacity(0.9);
+    final Color borderColor = isDark 
+        ? Colors.white.withOpacity(0.1) 
+        : Colors.white.withOpacity(0.5);
     final Color textColor = isDark ? Colors.white : const Color(0xFF1E293B);
     final Color subTextColor = isDark ? Colors.white.withOpacity(0.6) : const Color(0xFF64748B);
 
@@ -519,72 +524,73 @@ class _AuthModalState extends State<AuthModal> {
   }
 
   Widget _buildVisualSide(bool isDark) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.black,
-        image: DecorationImage(
-          image: AssetImage('assets/images/web_intro_3.png'),
-          fit: BoxFit.cover,
-          opacity: 0.6,
+    return Stack(
+      children: [
+        // Background
+        AnimatedBubbleBackground(isDark: isDark),
+        
+        // Gradient Overlay
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomRight,
+              end: Alignment.topLeft,
+              colors: [
+                const Color(0xFF39A4E6).withOpacity(0.2),
+                (isDark ? Colors.black : Colors.white).withOpacity(0.1),
+              ],
+            ),
+          ),
         ),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(50),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.bottomRight,
-            end: Alignment.topLeft,
-            colors: [
-              const Color(0xFF39A4E6).withOpacity(0.7),
-              (isDark ? Colors.black : const Color(0xFF0F172A)).withOpacity(0.4),
+
+        // Content
+        Container(
+          padding: const EdgeInsets.all(50),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(100),
+                  border: Border.all(color: (isDark ? Colors.white : Colors.black).withOpacity(0.1)),
+                ),
+                child: Text(
+                  'AI-POWERED MEDICINE',
+                  style: GoogleFonts.outfit(
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ).animate().fadeIn(delay: 600.ms).slideX(begin: -0.2, duration: 400.ms),
+              const SizedBox(height: 24),
+              Text(
+                'Intelligent\nHealthcare.',
+                style: GoogleFonts.outfit(
+                  color: isDark ? Colors.white : const Color(0xFF1E293B),
+                  fontSize: 56,
+                  fontWeight: FontWeight.bold,
+                  height: 0.95,
+                  letterSpacing: -2.0,
+                ),
+              ).animate().fadeIn(delay: 700.ms).slideX(begin: -0.1, duration: 500.ms),
+              const SizedBox(height: 24),
+              Text(
+                'Join thousands of patients and doctors using MediScan to revolutionize their health monitoring.',
+                style: GoogleFonts.outfit(
+                  color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                  fontSize: 18,
+                  height: 1.5,
+                ),
+              ).animate().fadeIn(delay: 800.ms).slideX(begin: -0.1, duration: 600.ms),
             ],
           ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(100),
-                border: Border.all(color: Colors.white24),
-              ),
-              child: Text(
-                'AI-POWERED MEDICINE',
-                style: GoogleFonts.outfit(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.5,
-                ),
-              ),
-            ).animate().fadeIn(delay: 600.ms).slideX(begin: -0.2, duration: 400.ms),
-            const SizedBox(height: 24),
-            Text(
-              'Intelligent\nHealthcare.',
-              style: GoogleFonts.outfit(
-                color: Colors.white,
-                fontSize: 56,
-                fontWeight: FontWeight.bold,
-                height: 0.95,
-                letterSpacing: -2.0,
-              ),
-            ).animate().fadeIn(delay: 800.ms).slideY(begin: 0.2, duration: 500.ms),
-            const SizedBox(height: 24),
-            Text(
-              'Experience the future of personal medicine with AI-driven insights and total record security.',
-              style: GoogleFonts.outfit(
-                color: Colors.white.withOpacity(0.95),
-                fontSize: 19,
-                height: 1.6,
-                fontWeight: FontWeight.w400,
-              ),
-            ).animate().fadeIn(delay: 1000.ms).slideY(begin: 0.2, duration: 500.ms),
-          ],
-        ),
-      ),
+      ],
     );
   }
 
@@ -912,14 +918,26 @@ class _AuthModalState extends State<AuthModal> {
               _socialBtn(LucideIcons.chrome, '$actionText with Google', isDark, _isLoading ? null : () => _handleSocialLogin('Google')),
               const SizedBox(height: 16),
               _socialBtn(LucideIcons.facebook, '$actionText with Facebook', isDark, _isLoading ? null : () => _handleSocialLogin('Facebook')),
+              if (_isLogin) ...[
+                const SizedBox(height: 16),
+                _socialBtn(LucideIcons.fingerprint, 'Sign in with Passkey', isDark, _isLoading ? null : _handleWebAuthnLogin),
+              ],
             ],
           )
         else
-          Row(
+          Column(
             children: [
-              Expanded(child: _socialBtn(LucideIcons.chrome, 'Google', isDark, _isLoading ? null : () => _handleSocialLogin('Google'))),
-              const SizedBox(width: 20),
-              Expanded(child: _socialBtn(LucideIcons.facebook, 'Facebook', isDark, _isLoading ? null : () => _handleSocialLogin('Facebook'))),
+              Row(
+                children: [
+                  Expanded(child: _socialBtn(LucideIcons.chrome, 'Google', isDark, _isLoading ? null : () => _handleSocialLogin('Google'))),
+                  const SizedBox(width: 20),
+                  Expanded(child: _socialBtn(LucideIcons.facebook, 'Facebook', isDark, _isLoading ? null : () => _handleSocialLogin('Facebook'))),
+                ],
+              ),
+              if (_isLogin) ...[
+                const SizedBox(height: 16),
+                _socialBtn(LucideIcons.fingerprint, 'Sign in with Passkey', isDark, _isLoading ? null : _handleWebAuthnLogin),
+              ],
             ],
           ),
       ],

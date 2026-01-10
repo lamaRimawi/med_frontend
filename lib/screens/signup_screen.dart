@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../widgets/animated_bubble_background.dart';
@@ -30,6 +30,8 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _agreedToTerms = false;
   String? _alertMessage;
   bool _isAlertError = true;
+
+  bool get _isDarkMode => Theme.of(context).brightness == Brightness.dark;
 
   @override
   void initState() {
@@ -326,405 +328,240 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = _isDarkMode;
+    // Glass effect colors
+    final cardColor = isDark 
+        ? const Color(0xFF111827).withOpacity(0.9) 
+        : Colors.white.withOpacity(0.9);
+    final borderColor = isDark 
+        ? Colors.white.withOpacity(0.1) 
+        : Colors.white.withOpacity(0.5);
+
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0A1929) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0A1929) : const Color(0xFFF0F4F8),
       body: Stack(
         children: [
+          // Background
           AnimatedBubbleBackground(isDark: isDark),
-
-          // Header
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 100,
-              padding: const EdgeInsets.only(top: 40, left: 20, right: 20),
-              decoration: const BoxDecoration(
-                color: Color(0xFF39A4E6),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ).animate().fadeIn(delay: 200.ms).moveX(begin: -20, end: 0),
-                  const Expanded(
-                    child: Text(
-                      'Sign Up',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ).animate().fadeIn(delay: 300.ms).moveY(begin: -20, end: 0),
-                  const SizedBox(width: 40),
-                ],
-              ),
-            ),
-          ),
-
-          // Main Content
-          Positioned.fill(
-            top: 100,
+          
+          // Content
+          Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 30),
-
-                  ShaderMask(
-                    shaderCallback: (bounds) => const LinearGradient(
-                      colors: [Color(0xFF39A4E6), Color(0xFF2B8FD9), Color(0xFF39A4E6)],
-                    ).createShader(bounds),
-                    child: const Text(
-                      'Create Account',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ).animate().fadeIn(delay: 300.ms).moveY(begin: 30, end: 0),
-
-                  const SizedBox(height: 12),
-
-                  Text(
-                    'Create your MediScan account to connect with healthcare professionals and manage your medical history.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 16,
-                      height: 1.5,
-                    ),
-                  ).animate().fadeIn(delay: 400.ms).moveY(begin: 30, end: 0),
-
-                  const SizedBox(height: 32),
-
-                  // Alert Banner
-                  if (_alertMessage != null)
-                    AlertBanner(
-                      message: _alertMessage!,
-                      isError: _isAlertError,
-                      autoDismiss: !_isAlertError,
-                      onDismiss: () => setState(() => _alertMessage = null),
-                    ),
-
-                  // Signup Form
-                  CustomTextField(
-                    label: 'Full Name *',
-                    placeholder: 'Enter your full name',
-                    icon: LucideIcons.user,
-                    controller: _nameController,
-                    validator: Validators.validateName,
-                  ).animate().fadeIn(delay: 500.ms).moveY(begin: 20, end: 0),
-
-                  const SizedBox(height: 20),
-
-                  CustomTextField(
-                    label: 'Email Address *',
-                    placeholder: 'example@mediscan.com',
-                    icon: LucideIcons.mail,
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: Validators.validateEmail,
-                  ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
-
-                  const SizedBox(height: 20),
-
-                  CustomTextField(
-                    label: 'Phone Number (Optional)',
-                    placeholder: '+1 (234) 567-8900',
-                    icon: LucideIcons.phone,
-                    controller: _phoneController,
-                    keyboardType: TextInputType.phone,
-                    validator: Validators.validatePhone,
-                  ).animate().fadeIn(delay: 700.ms).moveY(begin: 20, end: 0),
-
-                  const SizedBox(height: 20),
-
-                  // Date of Birth Field
-                  GestureDetector(
-                    onTap: () async {
-                      final now = DateTime.now();
-                      final initialDate = _dateOfBirth ?? DateTime(now.year - 25, now.month, now.day);
-                      final firstDate = DateTime(now.year - 120);
-                      final lastDate = DateTime(now.year - 13);
-                      
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: initialDate.isBefore(firstDate) || initialDate.isAfter(lastDate) 
-                            ? lastDate 
-                            : initialDate,
-                        firstDate: firstDate,
-                        lastDate: lastDate,
-                        builder: (context, child) {
-                          return Theme(
-                            data: Theme.of(context).copyWith(
-                              colorScheme: const ColorScheme.light(
-                                primary: Color(0xFF39A4E6),
-                                onPrimary: Colors.white,
-                                surface: Colors.white,
-                                onSurface: Colors.black,
-                              ),
-                            ),
-                            child: child!,
-                          );
-                        },
-                      );
-                      if (picked != null) {
-                        setState(() {
-                          _dateOfBirth = picked;
-                          _alertMessage = null;
-                        });
-                      }
-                    },
+                  const SizedBox(height: 40), // Spacing for back button if needed
+                  
+                  // Logo/Header Section
+                  Hero(
+                    tag: 'app_logo',
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      width: 120,
+                      height: 120,
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF0F2137) : const Color(0xFFF9FAFB),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Validators.validateDateOfBirth(_dateOfBirth) != null
-                              ? Colors.red.withOpacity(0.5)
-                              : (isDark ? const Color(0xFF0F2137) : const Color(0xFFE5E7EB)),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            LucideIcons.calendar,
-                            color: Color(0xFF39A4E6),
-                            size: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Date of Birth *',
-                                  style: TextStyle(
-                                    color: Colors.grey[700],
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  _dateOfBirth == null
-                                      ? 'Select your date of birth'
-                                      : '${_dateOfBirth!.day.toString().padLeft(2, '0')}/${_dateOfBirth!.month.toString().padLeft(2, '0')}/${_dateOfBirth!.year}',
-                                  style: TextStyle(
-                                    color: _dateOfBirth == null 
-                                        ? (isDark ? Colors.grey[500] : Colors.grey[400]) 
-                                        : (isDark ? Colors.white : Colors.black87),
-                                    fontSize: 16,
-                                    fontWeight: _dateOfBirth == null ? FontWeight.normal : FontWeight.w500,
-                                  ),
-                                ),
-                                if (Validators.validateDateOfBirth(_dateOfBirth) != null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 4),
-                                    child: Text(
-                                      Validators.validateDateOfBirth(_dateOfBirth)!,
-                                      style: const TextStyle(
-                                        color: Colors.red,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF39A4E6).withOpacity(0.3),
+                            blurRadius: 20,
+                            spreadRadius: 5,
                           ),
                         ],
                       ),
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/images/app_icon.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     ),
-                  ).animate().fadeIn(delay: 750.ms).moveY(begin: 20, end: 0),
-
-                  const SizedBox(height: 20),
-
-                  CustomTextField(
-                    label: 'Password *',
-                    placeholder: 'Create a strong password',
-                    icon: LucideIcons.lock,
-                    controller: _passwordController,
-                    isPassword: true,
-                    showPassword: _showPassword,
-                    onTogglePassword: () => setState(() => _showPassword = !_showPassword),
-                    validator: Validators.validatePassword,
-                    validateOnChange: true,
-                  ).animate().fadeIn(delay: 800.ms).moveY(begin: 20, end: 0),
-
-                  const SizedBox(height: 20),
-
-                  CustomTextField(
-                    label: 'Confirm Password *',
-                    placeholder: 'Re-enter your password',
-                    icon: LucideIcons.lock,
-                    controller: _confirmPasswordController,
-                    isPassword: true,
-                    showPassword: _showConfirmPassword,
-                    onTogglePassword: () => setState(() => _showConfirmPassword = !_showConfirmPassword),
-                    validator: (value) => Validators.validateConfirmPassword(value, _passwordController.text),
-                  ).animate().fadeIn(delay: 900.ms).moveY(begin: 20, end: 0),
-
-                  const SizedBox(height: 32),
-
-                  // Terms Checkbox
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: _agreedToTerms,
-                        onChanged: (value) => setState(() => _agreedToTerms = value ?? false),
-                        activeColor: const Color(0xFF39A4E6),
-                      ),
-                      Expanded(
-                        child: Wrap(
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            Text(
-                              'I agree to the ',
-                              style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                            ),
-                            GestureDetector(
-                              onTap: () {},
-                              child: const Text(
-                                'Terms and Conditions',
-                                style: TextStyle(
-                                  color: Color(0xFF39A4E6),
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                            Text(
-                              ' and ',
-                              style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                            ),
-                            GestureDetector(
-                              onTap: () {},
-                              child: const Text(
-                                'Privacy Policy',
-                                style: TextStyle(
-                                  color: Color(0xFF39A4E6),
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ).animate().fadeIn(delay: 950.ms).moveY(begin: 20, end: 0),
-
-                  const SizedBox(height: 20),
-
-                  CustomButton(
-                    text: 'Sign Up',
-                    loadingText: 'Signing up...',
-                    onPressed: _isFormValid() ? _handleSignup : null,
-                    isLoading: _isLoading,
-                  ).animate().fadeIn(delay: 1000.ms).moveY(begin: 20, end: 0),
-
-                  const SizedBox(height: 32),
-
-                  // Divider
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Divider(
-                          color: isDark ? const Color(0xFF0F2137) : Colors.grey[200],
-                          thickness: 1,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF0F2137)
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                              color: isDark ? const Color(0xFF0F2137) : Colors.grey[200]!,
-                            ),
-                          ),
-                          child: Text(
-                            'or sign up with',
-                            style: TextStyle(
-                              color: isDark ? Colors.grey[500] : Colors.grey[400],
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Divider(
-                          color: isDark ? const Color(0xFF0F2137) : Colors.grey[200],
-                          thickness: 1,
-                        ),
-                      ),
-                    ],
-                  ).animate().fadeIn(delay: 1100.ms),
-
-                  const SizedBox(height: 32),
-
-                  // Social Login
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildSocialButton(LucideIcons.chrome, 'Google'),
-                      const SizedBox(width: 24),
-                      _buildSocialButton(LucideIcons.facebook, 'Facebook'),
-                    ],
-                  ).animate().fadeIn(delay: 1200.ms).moveY(begin: 20, end: 0),
+                  ).animate().scale(delay: 200.ms),
                   
                   const SizedBox(height: 24),
-
-                  // Login Link
-                  Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Already have an account? ",
-                          style: TextStyle(color: Colors.grey[600], fontSize: 15),
-                        ),
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: const Text(
-                            'Log In',
-                            style: TextStyle(
-                              color: Color(0xFF39A4E6),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
+                  
+                  Text(
+                    'Create Account',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                      letterSpacing: -0.5,
+                    ),
+                  ).animate().fadeIn(delay: 300.ms).moveY(begin: 20, end: 0),
+                  
+                  const SizedBox(height: 8),
+                  
+                  Text(
+                    'Join MediScan today',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ).animate().fadeIn(delay: 400.ms).moveY(begin: 20, end: 0),
+                  
+                  const SizedBox(height: 32),
+                  
+                  // Signup Card
+                  Container(
+                    width: 450,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: cardColor,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: borderColor),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
                         ),
                       ],
                     ),
-                  ).animate().fadeIn(delay: 1200.ms),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                         if (_alertMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 20),
+                              child: AlertBanner(
+                                message: _alertMessage!,
+                                isError: _isAlertError,
+                                autoDismiss: !_isAlertError,
+                                onDismiss: () => setState(() => _alertMessage = null),
+                              ),
+                            ),
+                         
+                         CustomTextField(
+                            label: 'Full Name',
+                            placeholder: 'Enter your full name',
+                            icon: LucideIcons.user,
+                            controller: _nameController,
+                            validator: Validators.validateName,
+                         ),
+                         const SizedBox(height: 20),
+                         CustomTextField(
+                            label: 'Email Address',
+                            placeholder: 'name@example.com',
+                            icon: LucideIcons.mail,
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: Validators.validateEmail,
+                         ),
+                         const SizedBox(height: 20),
+                         CustomTextField(
+                            label: 'Phone Number',
+                            placeholder: '+1 (234) 567-8900',
+                            icon: LucideIcons.phone,
+                            controller: _phoneController,
+                            keyboardType: TextInputType.phone,
+                            validator: Validators.validatePhone,
+                         ),
+                         const SizedBox(height: 20),
+                         
+                         // Date of Birth (styled to match CustomTextField)
+                         _buildDatePicker(isDark),
+
+                         const SizedBox(height: 20),
+                         CustomTextField(
+                            label: 'Password',
+                            placeholder: 'Create a password',
+                            icon: LucideIcons.lock,
+                            controller: _passwordController,
+                            isPassword: true,
+                            showPassword: _showPassword,
+                            onTogglePassword: () => setState(() => _showPassword = !_showPassword),
+                            validator: Validators.validatePassword,
+                            validateOnChange: true,
+                         ),
+                         const SizedBox(height: 20),
+                         CustomTextField(
+                            label: 'Confirm Password',
+                            placeholder: 'Confirm your password',
+                            icon: LucideIcons.lock,
+                            controller: _confirmPasswordController,
+                            isPassword: true,
+                            showPassword: _showConfirmPassword,
+                            onTogglePassword: () => setState(() => _showConfirmPassword = !_showConfirmPassword),
+                            validator: (value) => Validators.validateConfirmPassword(value, _passwordController.text),
+                         ),
+                         
+                         const SizedBox(height: 24),
+                         
+                         // Terms
+                         _buildTermsCheckbox(isDark),
+
+                         const SizedBox(height: 24),
+                         
+                         CustomButton(
+                            text: 'Sign Up',
+                            loadingText: 'Creating account...',
+                            onPressed: _isFormValid() ? _handleSignup : null,
+                            isLoading: _isLoading,
+                         ),
+                         
+                         const SizedBox(height: 24),
+                         
+                         // Divider
+                         Row(
+                            children: [
+                              Expanded(child: Divider(color: isDark ? Colors.white24 : Colors.grey[300])),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: Text(
+                                  'OR',
+                                  style: TextStyle(
+                                    color: isDark ? Colors.grey[500] : Colors.grey[400],
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              Expanded(child: Divider(color: isDark ? Colors.white24 : Colors.grey[300])),
+                            ],
+                         ),
+                         
+                         const SizedBox(height: 24),
+                         
+                         // Social Buttons
+                         Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _buildModernSocialButton(LucideIcons.chrome, 'Google', Colors.red),
+                              const SizedBox(width: 20),
+                              _buildModernSocialButton(LucideIcons.facebook, 'Facebook', Colors.blue),
+                            ],
+                         ),
+                      ],
+                    ),
+                  ).animate().fadeIn(delay: 500.ms).moveY(begin: 40, end: 0),
                   
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 32),
+                  
+                  // Login Link
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Already have an account? ",
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          fontSize: 16,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: const Text(
+                          'Sign In',
+                          style: TextStyle(
+                            color: Color(0xFF39A4E6),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ).animate().fadeIn(delay: 600.ms),
                 ],
               ),
             ),
@@ -734,30 +571,221 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Widget _buildSocialButton(IconData icon, String provider) {
+  Widget _buildDatePicker(bool isDark) {
+    final hasError = Validators.validateDateOfBirth(_dateOfBirth) != null && _dateOfBirth == null; // Logic tweak: only show error if attempted or null? Validator logic handled in _isFormValid and display.
+    // The original code showed error if != null. Let's stick to that logic but style it better.
+    final errorText = Validators.validateDateOfBirth(_dateOfBirth);
+    final showError = errorText != null && _dateOfBirth != null; // Show error if date selected is invalid (e.g. too young)? Or if null and validated?
+    // Wait, previous code was: border color if validateDateOfBirth != null. 
+    // Validators.validateDateOfBirth returns "Age must be between..." or "Required" if null.
+    // So if it returns string, we show error.
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Date of Birth',
+          style: TextStyle(
+            color: errorText != null && _dateOfBirth != null // Only show red label if explicitly invalid? Original didn't do this. Let's keep it simple.
+                ? const Color(0xFFEF4444)
+                : (isDark ? Colors.white : const Color(0xFF1F2937)),
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () async {
+            final now = DateTime.now();
+            final initialDate = _dateOfBirth ?? DateTime(now.year - 25, now.month, now.day);
+            final firstDate = DateTime(now.year - 120);
+            final lastDate = DateTime(now.year - 13);
+            
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: initialDate.isBefore(firstDate) || initialDate.isAfter(lastDate) 
+                  ? lastDate 
+                  : initialDate,
+              firstDate: firstDate,
+              lastDate: lastDate,
+              builder: (context, child) {
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: const ColorScheme.light(
+                      primary: Color(0xFF39A4E6),
+                      onPrimary: Colors.white,
+                      surface: Colors.white,
+                      onSurface: Colors.black,
+                    ),
+                  ),
+                  child: child!,
+                );
+              },
+            );
+            if (picked != null) {
+              setState(() {
+                _dateOfBirth = picked;
+                _alertMessage = null;
+              });
+            }
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withOpacity(0.08)
+                  : const Color(0xFFF9FAFB).withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: errorText != null && _dateOfBirth == null // Only show error border if validation fails?
+                    ? (isDark ? Colors.white.withOpacity(0.2) : Colors.black12) // Default if null (haven't touched yet?)
+                    // Actually let's use the logic: if errorText is not null, it might be "Required". 
+                    // But we don't want to show red immediately.
+                    // The previous code showed red if validateDateOfBirth != null. That means it was red by default?
+                    // Validators.validateDateOfBirth returns "Date of birth is required" if null.
+                    // So it was always red? Let's check previous code.
+                    // Previous code: color: Validators.validateDateOfBirth(_dateOfBirth) != null ? Colors.red : ...
+                    // Yes, it seems it was always red if null. That's annoying.
+                    // But wait, `_isFormValid` is called on submit.
+                    // Let's improve this: only show red if `_alertMessage` is not null (meaning submit attempted) AND error exists?
+                    // Or just keep it simple.
+                    : (errorText != null ? const Color(0xFFEF4444) : (isDark ? Colors.white.withOpacity(0.2) : Colors.black12)),
+                width: 1.5,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: (errorText != null ? const Color(0xFFEF4444) : const Color(0xFF9CA3AF)).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    LucideIcons.calendar,
+                    color: errorText != null ? const Color(0xFFEF4444) : const Color(0xFF9CA3AF),
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _dateOfBirth == null
+                        ? 'Select your date of birth'
+                        : '${_dateOfBirth!.day.toString().padLeft(2, '0')}/${_dateOfBirth!.month.toString().padLeft(2, '0')}/${_dateOfBirth!.year}',
+                    style: TextStyle(
+                      color: _dateOfBirth == null 
+                          ? (isDark ? Colors.white.withValues(alpha: 0.6) : Colors.grey[500]) 
+                          : (isDark ? Colors.white : const Color(0xFF1F2937)),
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildTermsCheckbox(bool isDark) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 24,
+          height: 24,
+          child: Checkbox(
+            value: _agreedToTerms,
+            onChanged: (value) => setState(() => _agreedToTerms = value ?? false),
+            activeColor: const Color(0xFF39A4E6),
+            side: BorderSide(
+              color: isDark ? Colors.white54 : Colors.grey[400]!,
+              width: 1.5,
+            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                'I agree to the ',
+                style: TextStyle(
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  fontSize: 14,
+                ),
+              ),
+              GestureDetector(
+                onTap: () {},
+                child: const Text(
+                  'Terms and Conditions',
+                  style: TextStyle(
+                    color: Color(0xFF39A4E6),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              Text(
+                ' and ',
+                style: TextStyle(
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  fontSize: 14,
+                ),
+              ),
+              GestureDetector(
+                onTap: () {},
+                child: const Text(
+                  'Privacy Policy',
+                  style: TextStyle(
+                    color: Color(0xFF39A4E6),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModernSocialButton(IconData icon, String label, Color iconColor) {
+    final isDark = _isDarkMode;
     return InkWell(
-      onTap: _isLoading ? null : () => _handleSocialLogin(provider),
-      borderRadius: BorderRadius.circular(50),
+      onTap: () => _handleSocialLogin(label),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        width: 56,
-        height: 56,
+        width: 60,
+        height: 60,
         decoration: BoxDecoration(
-          color: const Color(0xFF39A4E6),
-          shape: BoxShape.circle,
+          color: isDark ? const Color(0xFF1F2937) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark ? Colors.white10 : Colors.grey[200]!,
+          ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF39A4E6).withValues(alpha: 0.3),
-              blurRadius: 8,
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: Icon(icon, color: Colors.white, size: 24),
+        child: Center(
+          child: Icon(
+            icon,
+            color: iconColor,
+            size: 28,
+          ),
+        ),
       ),
-    ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(
-      begin: const Offset(1, 1),
-      end: const Offset(1.05, 1.05),
-      duration: 2.seconds,
     );
   }
 }

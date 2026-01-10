@@ -1,6 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../widgets/animated_bubble_background.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
 import '../services/auth_api.dart';
@@ -75,148 +76,154 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Glass effect colors
+    final cardColor = isDark 
+        ? const Color(0xFF111827).withOpacity(0.9) 
+        : Colors.white.withOpacity(0.9);
+    final borderColor = isDark 
+        ? Colors.white.withOpacity(0.1) 
+        : Colors.white.withOpacity(0.5);
+
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0A1929) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0A1929) : const Color(0xFFF0F4F8),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            LucideIcons.arrowLeft,
+            color: isDark ? Colors.white : const Color(0xFF1E293B),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: Stack(
         children: [
-          // Header
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 100,
-              padding: const EdgeInsets.only(top: 40, left: 20, right: 20),
-              decoration: const BoxDecoration(
-                color: Color(0xFF39A4E6),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
+          // Background
+          AnimatedBubbleBackground(isDark: isDark),
+          
+          // Content
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  IconButton(
-                    icon: const Icon(
-                      LucideIcons.arrowLeft,
-                      color: Colors.white,
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ).animate().fadeIn(delay: 200.ms).moveX(begin: -20, end: 0),
-                  const Expanded(
-                    child: Text(
-                      'Forgot Password',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
+                  // Logo/Header Section
+                  Hero(
+                    tag: 'app_logo',
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF39A4E6).withOpacity(0.2),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF39A4E6).withOpacity(0.2),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        LucideIcons.keyRound, // Changed icon for forgot password
+                        size: 48,
+                        color: Color(0xFF39A4E6),
                       ),
                     ),
-                  ).animate().fadeIn(delay: 300.ms).moveY(begin: -20, end: 0),
-                  const SizedBox(width: 40),
-                ],
-              ),
-            ),
-          ),
-
-          // Main Content
-          Positioned.fill(
-            top: 100,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  const SizedBox(height: 40),
-
-                  // Icon
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF39A4E6).withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      LucideIcons.mail,
-                      size: 48,
-                      color: Color(0xFF39A4E6),
-                    ),
-                  ).animate().scale(
-                    delay: 500.ms,
-                    duration: 500.ms,
-                    curve: Curves.elasticOut,
-                  ),
-
-                  const SizedBox(height: 32),
-
+                  ).animate().scale(delay: 200.ms),
+                  
+                  const SizedBox(height: 24),
+                  
                   Text(
-                    'Reset Your Password',
-                    style: const TextStyle(
-                      color: Color(0xFF39A4E6),
-                      fontSize: 24,
+                    'Forgot Password?',
+                    style: TextStyle(
+                      fontSize: 32,
                       fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                      letterSpacing: -0.5,
                     ),
-                  ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
-
-                  const SizedBox(height: 12),
-
+                  ).animate().fadeIn(delay: 300.ms).moveY(begin: 20, end: 0),
+                  
+                  const SizedBox(height: 8),
+                  
                   Text(
                     'Enter your email address and we\'ll send you a verification code to reset your password.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
+                      fontSize: 16,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
                       height: 1.5,
                     ),
-                  ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
-
-                  const SizedBox(height: 40),
-
-                  CustomTextField(
-                    label: 'Email Address',
-                    placeholder: 'example@example.com',
-                    icon: LucideIcons.mail,
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                  ).animate().fadeIn(delay: 700.ms).moveY(begin: 20, end: 0),
-
+                  ).animate().fadeIn(delay: 400.ms).moveY(begin: 20, end: 0),
+                  
                   const SizedBox(height: 32),
-
-                  CustomButton(
-                    text: 'Send Reset Code',
-                    onPressed: _handleSubmit,
-                    isLoading: _isLoading,
-                  ).animate().fadeIn(delay: 800.ms).moveY(begin: 20, end: 0),
-
-                  const SizedBox(height: 32),
-
-                  // Back to Login
-                  Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Remember your password? ",
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: const Text(
-                            'Back to Login',
-                            style: TextStyle(
-                              color: Color(0xFF39A4E6),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                  
+                  // Card
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: cardColor,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: borderColor),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
                         ),
                       ],
                     ),
-                  ).animate().fadeIn(delay: 900.ms),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        CustomTextField(
+                          label: 'Email Address',
+                          placeholder: 'example@example.com',
+                          icon: LucideIcons.mail,
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                        ).animate().fadeIn(delay: 500.ms).moveY(begin: 20, end: 0),
+
+                        const SizedBox(height: 32),
+
+                        CustomButton(
+                          text: 'Send Reset Code',
+                          onPressed: _handleSubmit,
+                          isLoading: _isLoading,
+                        ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
+                        
+                        const SizedBox(height: 24),
+                        
+                        // Back to Login
+                        Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Remember your password? ",
+                                style: TextStyle(
+                                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () => Navigator.pop(context),
+                                child: const Text(
+                                  'Back to Login',
+                                  style: TextStyle(
+                                    color: Color(0xFF39A4E6),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ).animate().fadeIn(delay: 700.ms),
+                      ],
+                    ),
+                  ).animate().fadeIn(delay: 450.ms).moveY(begin: 40, end: 0),
                 ],
               ),
             ),

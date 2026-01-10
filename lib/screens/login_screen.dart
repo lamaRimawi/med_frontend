@@ -354,280 +354,257 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = _isDarkMode;
+    // Glass effect colors
+    final cardColor = isDark 
+        ? const Color(0xFF111827).withOpacity(0.9) 
+        : Colors.white.withOpacity(0.9);
+    final borderColor = isDark 
+        ? Colors.white.withOpacity(0.1) 
+        : Colors.white.withOpacity(0.5);
+
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0A1929) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0A1929) : const Color(0xFFF0F4F8),
       body: Stack(
         children: [
+          // Background
           AnimatedBubbleBackground(isDark: isDark),
-
-          // Header
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 100,
-              padding: const EdgeInsets.only(top: 40, left: 20, right: 20),
-              decoration: const BoxDecoration(
-                color: Color(0xFF39A4E6),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      LucideIcons.arrowLeft,
-                      color: Colors.white,
-                    ),
-                    onPressed: () {
-                      if (Navigator.canPop(context)) {
-                        Navigator.pop(context);
-                      } else {
-                        Navigator.pushReplacementNamed(context, '/');
-                      }
-                    },
-                  ).animate().fadeIn(delay: 200.ms).moveX(begin: -20, end: 0),
-                  const Expanded(
-                    child: Text(
-                      'Log In',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ).animate().fadeIn(delay: 300.ms).moveY(begin: -20, end: 0),
-                  const SizedBox(width: 40), // Balance the back button
-                ],
-              ),
-            ),
-          ),
-
-          // Main Content
-          Positioned.fill(
-            top: 100,
+          
+          // Content
+          Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 30),
-
-                  // Welcome Section
-                  ShaderMask(
-                    shaderCallback: (bounds) => const LinearGradient(
-                      colors: [
-                        Color(0xFF39A4E6),
-                        Color(0xFF2B8FD9),
-                        Color(0xFF39A4E6),
-                      ],
-                    ).createShader(bounds),
-                    child: Text(
-                      'Welcome Back',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
+                  // Logo/Header Section
+                  Hero(
+                    tag: 'app_logo',
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF39A4E6).withOpacity(0.3),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/images/app_icon.png',
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
-                  ).animate().fadeIn(delay: 300.ms).moveY(begin: 30, end: 0),
-
-                  const SizedBox(height: 12),
-
-                  RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      style: TextStyle(
-                        color: isDark ? Colors.grey[400] : Colors.grey[500],
-                        fontSize: 18,
-                      ),
+                  ).animate().scale(delay: 200.ms),
+                  
+                  const SizedBox(height: 24),
+                  
+                  Text(
+                    'Welcome Back',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                      letterSpacing: -0.5,
+                    ),
+                  ).animate().fadeIn(delay: 300.ms).moveY(begin: 20, end: 0),
+                  
+                  const SizedBox(height: 8),
+                  
+                  Text(
+                    'Sign in to your MediScan account',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ).animate().fadeIn(delay: 400.ms).moveY(begin: 20, end: 0),
+                  
+                  const SizedBox(height: 32),
+                  
+                  // Login Card
+                  Container(
+                    width: 450,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: cardColor,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: borderColor),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const TextSpan(text: 'Sign in to '),
-                        TextSpan(
-                          text: 'MediScan',
-                          style: const TextStyle(
-                            color: Color(0xFF39A4E6),
-                            fontWeight: FontWeight.w600,
+                        if (_alertMessage != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: AlertBanner(
+                              message: _alertMessage!,
+                              isError: _isAlertError,
+                              autoDismiss: !_isAlertError,
+                              onDismiss: () => setState(() => _alertMessage = null),
+                            ),
+                          ),
+                          
+                        CustomTextField(
+                          label: 'Email Address',
+                          placeholder: 'name@example.com',
+                          icon: LucideIcons.mail,
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: Validators.validateEmail,
+                          validateOnChange: true,
+                        ),
+                        
+                        const SizedBox(height: 20),
+                        
+                        CustomTextField(
+                          label: 'Password',
+                          placeholder: 'Enter your password',
+                          icon: LucideIcons.lock,
+                          controller: _passwordController,
+                          isPassword: true,
+                          showPassword: !_obscurePassword,
+                          onTogglePassword: () =>
+                              setState(() => _obscurePassword = !_obscurePassword),
+                          validateOnChange: true,
+                          validator: Validators.validatePassword,
+                        ),
+                        
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () => Navigator.pushNamed(context, '/forgot-password'),
+                            child: const Text(
+                              'Forgot Password?',
+                              style: TextStyle(
+                                color: Color(0xFF39A4E6),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                         ),
-                        const TextSpan(text: ' to continue'),
+                        
+                        const SizedBox(height: 24),
+                        
+                        CustomButton(
+                          text: 'Sign In',
+                          loadingText: 'Signing in...',
+                          onPressed: _isFormValid() ? _handleLogin : null,
+                          isLoading: _isLoading,
+                        ),
+                        
+                        const SizedBox(height: 24),
+                        
+                        // Divider
+                        Row(
+                          children: [
+                            Expanded(child: Divider(color: isDark ? Colors.white24 : Colors.grey[300])),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                'OR',
+                                style: TextStyle(
+                                  color: isDark ? Colors.grey[500] : Colors.grey[400],
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Expanded(child: Divider(color: isDark ? Colors.white24 : Colors.grey[300])),
+                          ],
+                        ),
+                        
+                        const SizedBox(height: 24),
+                        
+                        // Social Buttons
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildModernSocialButton(LucideIcons.chrome, 'Google', Colors.red),
+                            const SizedBox(width: 20),
+                            _buildModernSocialButton(LucideIcons.facebook, 'Facebook', Colors.blue),
+                            const SizedBox(width: 20),
+                            _buildModernSocialButton(_biometricIcon, _biometricType, isDark ? Colors.white : Colors.black87),
+                          ],
+                        ),
                       ],
                     ),
-                  ).animate().fadeIn(delay: 400.ms).moveY(begin: 30, end: 0),
-
-                  const SizedBox(height: 40),
-
-                  // Alert Banner
-                  if (_alertMessage != null)
-                    AlertBanner(
-                      message: _alertMessage!,
-                      isError: _isAlertError,
-                      autoDismiss: !_isAlertError,
-                      onDismiss: () => setState(() => _alertMessage = null),
-                    ),
-
-                  // Login Form
-                  CustomTextField(
-                    label: 'Email Address',
-                    placeholder: 'example@mediscan.com',
-                    icon: LucideIcons.mail,
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: Validators.validateEmail,
-                    validateOnChange: true,
-                  ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
-
-                  const SizedBox(height: 24),
-
-                  CustomTextField(
-                    label: 'Password',
-                    placeholder: 'Enter your password',
-                    icon: LucideIcons.lock,
-                    controller: _passwordController,
-                    isPassword: true,
-                    showPassword: !_obscurePassword,
-                    onTogglePassword: () =>
-                        setState(() => _obscurePassword = !_obscurePassword),
-                    validateOnChange: true,
-                    validator: Validators.validatePassword,
-                  ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () =>
-                          Navigator.pushNamed(context, '/forgot-password'),
-                      child: const Text(
-                        'Forgot Password?',
-                        style: TextStyle(
-                          color: Color(0xFF39A4E6),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
-
-                  const SizedBox(height: 20),
-
-                  // ...existing code...
-                  const SizedBox(height: 24),
-
-                  CustomButton(
-                    text: 'Log In',
-                    loadingText: 'Logging in...',
-                    onPressed: _isFormValid() ? _handleLogin : null,
-                    isLoading: _isLoading,
-                  ).animate().fadeIn(delay: 800.ms).moveY(begin: 20, end: 0),
-
+                  ).animate().fadeIn(delay: 500.ms).moveY(begin: 40, end: 0),
+                  
                   const SizedBox(height: 32),
-
-                  // Divider
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Divider(
-                          color: isDark
-                              ? const Color(0xFF0F2137)
-                              : Colors.grey[200],
-                          thickness: 1,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF0F2137)
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                              color: isDark
-                                  ? const Color(0xFF0F2137)
-                                  : Colors.grey[200]!,
-                            ),
-                          ),
-                          child: Text(
-                            'or sign in with',
-                            style: TextStyle(
-                              color: isDark
-                                  ? Colors.grey[500]
-                                  : Colors.grey[400],
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Divider(
-                          color: isDark
-                              ? const Color(0xFF0F2137)
-                              : Colors.grey[200],
-                          thickness: 1,
-                        ),
-                      ),
-                    ],
-                  ).animate().fadeIn(delay: 900.ms),
-
-                  const SizedBox(height: 32),
-
-                  // Social Login
+                  
+                  // Sign Up Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildSocialButton(LucideIcons.chrome, 'Google'),
-                      const SizedBox(width: 24),
-                      _buildSocialButton(LucideIcons.facebook, 'Facebook'),
-                      const SizedBox(width: 24),
-                      _buildSocialButton(_biometricIcon, _biometricType),
-                    ],
-                  ).animate().fadeIn(delay: 1000.ms).moveY(begin: 20, end: 0),
-
-                  const SizedBox(height: 40),
-
-                  // Sign Up Link
-                  Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Don't have an account? ",
+                      Text(
+                        "Don't have an account? ",
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          fontSize: 16,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.pushNamed(context, '/signup'),
+                        child: const Text(
+                          'Sign Up',
                           style: TextStyle(
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
-                            fontSize: 15,
+                            color: Color(0xFF39A4E6),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
                         ),
-                        GestureDetector(
-                          onTap: () => Navigator.pushNamed(context, '/signup'),
-                          child: const Text(
-                            'Sign Up',
-                            style: TextStyle(
-                              color: Color(0xFF39A4E6),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ).animate().fadeIn(delay: 1100.ms),
-
-                  const SizedBox(height: 20),
+                      ),
+                    ],
+                  ).animate().fadeIn(delay: 600.ms),
                 ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildModernSocialButton(IconData icon, String label, Color iconColor) {
+    final isDark = _isDarkMode;
+    return InkWell(
+      onTap: () => _handleSocialLogin(label),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1F2937) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark ? Colors.white10 : Colors.grey[200]!,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Icon(
+            icon,
+            color: iconColor,
+            size: 28,
+          ),
+        ),
       ),
     );
   }

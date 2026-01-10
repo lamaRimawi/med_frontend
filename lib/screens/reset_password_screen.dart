@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../widgets/animated_bubble_background.dart';
@@ -124,186 +124,164 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Glass effect colors
+    final cardColor = isDark 
+        ? const Color(0xFF111827).withOpacity(0.9) 
+        : Colors.white.withOpacity(0.9);
+    final borderColor = isDark 
+        ? Colors.white.withOpacity(0.1) 
+        : Colors.white.withOpacity(0.5);
+
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0A1929) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0A1929) : const Color(0xFFF0F4F8),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            LucideIcons.arrowLeft,
+            color: isDark ? Colors.white : const Color(0xFF1E293B),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: Stack(
         children: [
           AnimatedBubbleBackground(isDark: isDark),
 
-          // Header
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 100,
-              padding: const EdgeInsets.only(top: 40, left: 20, right: 20),
-              decoration: const BoxDecoration(
-                color: Color(0xFF39A4E6),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      LucideIcons.arrowLeft,
-                      color: Colors.white,
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ).animate().fadeIn(delay: 200.ms).moveX(begin: -20, end: 0),
-                  const Expanded(
-                    child: Text(
-                      'Reset Password',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ).animate().fadeIn(delay: 300.ms).moveY(begin: -20, end: 0),
-                  const SizedBox(width: 40),
-                ],
-              ),
-            ),
-          ),
-
           // Main Content
-          Positioned.fill(
-            top: 100,
+          Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 40),
-
                   // Icon
-                  Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF39A4E6).withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(
-                                0xFF39A4E6,
-                              ).withValues(alpha: 0.2),
-                              blurRadius: 20,
-                              spreadRadius: 5,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          LucideIcons.lock,
-                          size: 60,
-                          color: Color(0xFF39A4E6),
-                        ),
-                      )
-                      .animate(
-                        onPlay: (controller) =>
-                            controller.repeat(reverse: true),
-                      )
-                      .scale(
-                        begin: const Offset(1, 1),
-                        end: const Offset(1.1, 1.1),
-                        duration: 2.seconds,
-                      )
-                      .then()
-                      .animate()
-                      .fadeIn(delay: 200.ms)
-                      .scale(duration: 500.ms, curve: Curves.elasticOut),
-
-                  const SizedBox(height: 32),
-
-                  ShaderMask(
-                    shaderCallback: (bounds) => const LinearGradient(
-                      colors: [
-                        Color(0xFF39A4E6),
-                        Color(0xFF2B8FD9),
-                        Color(0xFF39A4E6),
-                      ],
-                    ).createShader(bounds),
-                    child: const Text(
-                      'Create New Password',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
+                  Hero(
+                    tag: 'reset_password_icon',
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF39A4E6).withOpacity(0.2),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF39A4E6).withOpacity(0.2),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        LucideIcons.lock,
+                        size: 48,
+                        color: Color(0xFF39A4E6),
                       ),
                     ),
-                  ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
+                  ).animate().scale(delay: 200.ms),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 24),
+
+                  Text(
+                    'Create New Password',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                      letterSpacing: -0.5,
+                    ),
+                  ).animate().fadeIn(delay: 300.ms).moveY(begin: 20, end: 0),
+
+                  const SizedBox(height: 8),
 
                   Text(
                     'Enter your new password below. Make sure it\'s strong and secure.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.grey[600],
                       fontSize: 16,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
                       height: 1.5,
                     ),
-                  ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
-
-                  const SizedBox(height: 40),
-
-                  // Alert Banner
-                  if (_alertMessage != null)
-                    AlertBanner(
-                      message: _alertMessage!,
-                      isError: _isAlertError,
-                      autoDismiss: !_isAlertError,
-                      onDismiss: () => setState(() => _alertMessage = null),
-                    ),
-
-                  // Form
-                  CustomTextField(
-                    label: 'New Password *',
-                    placeholder: '••••••••••••',
-                    icon: LucideIcons.lock,
-                    controller: _passwordController,
-                    isPassword: true,
-                    showPassword: _showPassword,
-                    onTogglePassword: () =>
-                        setState(() => _showPassword = !_showPassword),
-                    validator: Validators.validatePassword,
-                    validateOnChange: true,
-                  ).animate().fadeIn(delay: 700.ms).moveY(begin: 20, end: 0),
-
-                  const SizedBox(height: 20),
-
-                  CustomTextField(
-                    label: 'Confirm Password *',
-                    placeholder: '••••••••••••',
-                    icon: LucideIcons.lock,
-                    controller: _confirmPasswordController,
-                    isPassword: true,
-                    showPassword: _showConfirmPassword,
-                    onTogglePassword: () => setState(
-                      () => _showConfirmPassword = !_showConfirmPassword,
-                    ),
-                    validator: (value) => Validators.validateConfirmPassword(
-                      value,
-                      _passwordController.text,
-                    ),
-                  ).animate().fadeIn(delay: 800.ms).moveY(begin: 20, end: 0),
+                  ).animate().fadeIn(delay: 400.ms).moveY(begin: 20, end: 0),
 
                   const SizedBox(height: 32),
 
-                  CustomButton(
-                    text: 'Reset Password',
-                    loadingText: 'Resetting...',
-                    onPressed: _isFormValid() ? _handleReset : null,
-                    isLoading: _isLoading,
-                  ).animate().fadeIn(delay: 900.ms).moveY(begin: 20, end: 0),
+                  // Card
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: cardColor,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: borderColor),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Alert Banner
+                        if (_alertMessage != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: AlertBanner(
+                              message: _alertMessage!,
+                              isError: _isAlertError,
+                              autoDismiss: !_isAlertError,
+                              onDismiss: () => setState(() => _alertMessage = null),
+                            ),
+                          ).animate().fadeIn(duration: 300.ms),
+
+                        // Form
+                        CustomTextField(
+                          label: 'New Password *',
+                          placeholder: '••••••••••••',
+                          icon: LucideIcons.lock,
+                          controller: _passwordController,
+                          isPassword: true,
+                          showPassword: _showPassword,
+                          onTogglePassword: () =>
+                              setState(() => _showPassword = !_showPassword),
+                          validator: Validators.validatePassword,
+                          validateOnChange: true,
+                        ).animate().fadeIn(delay: 500.ms).moveY(begin: 20, end: 0),
+
+                        const SizedBox(height: 20),
+
+                        CustomTextField(
+                          label: 'Confirm Password *',
+                          placeholder: '••••••••••••',
+                          icon: LucideIcons.lock,
+                          controller: _confirmPasswordController,
+                          isPassword: true,
+                          showPassword: _showConfirmPassword,
+                          onTogglePassword: () => setState(
+                            () => _showConfirmPassword = !_showConfirmPassword,
+                          ),
+                          validator: (value) => Validators.validateConfirmPassword(
+                            value,
+                            _passwordController.text,
+                          ),
+                        ).animate().fadeIn(delay: 600.ms).moveY(begin: 20, end: 0),
+
+                        const SizedBox(height: 32),
+
+                        CustomButton(
+                          text: 'Reset Password',
+                          loadingText: 'Resetting...',
+                          onPressed: _isFormValid() ? _handleReset : null,
+                          isLoading: _isLoading,
+                        ).animate().fadeIn(delay: 700.ms).moveY(begin: 20, end: 0),
+                      ],
+                    ),
+                  ).animate().fadeIn(delay: 450.ms).moveY(begin: 40, end: 0),
                 ],
               ),
             ),
