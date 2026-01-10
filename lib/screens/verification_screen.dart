@@ -393,9 +393,9 @@ class _OTPFieldState extends State<_OTPField> {
   Widget build(BuildContext context) {
     return AnimatedContainer(
           duration: 200.ms,
-          width: 45,
-          height: 56,
-          margin: const EdgeInsets.symmetric(horizontal: 4),
+          width: 38,
+          height: 50,
+          margin: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
             color: _isFocused 
                 ? (widget.isDark ? const Color(0xFF0F2137) : Colors.white) 
@@ -430,7 +430,7 @@ class _OTPFieldState extends State<_OTPField> {
             textAlign: TextAlign.center,
             maxLength: 1,
             style: TextStyle(
-              fontSize: 24,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: const Color(0xFF39A4E6), // Keep blue text for OTP
             ),

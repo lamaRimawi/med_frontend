@@ -42,7 +42,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           backgroundColor: Colors.transparent,
           child: Container(
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F2137) : Colors.white,
+              color: isDark ? const Color(0xFF162447) : Colors.white,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
@@ -102,7 +102,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: isDark ? const Color(0xFF0A1929) : Colors.grey[50],
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isDark ? const Color(0xFF0F2137) : Colors.grey[200]!,
+                      color: isDark ? const Color(0xFF162447) : Colors.grey[200]!,
                     ),
                   ),
                   child: TextField(
@@ -422,7 +422,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         color: isDark ? const Color(0xFF0F2137) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? const Color(0xFF0F2137) : Colors.grey.withOpacity(0.1),
+          color: isDark ? const Color(0xFF162447) : Colors.grey.withOpacity(0.1),
           width: 1,
         ),
         boxShadow: [
@@ -488,11 +488,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF0F2137) : Colors.white,
+          color: isDark ? const Color(0xFF162447) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isDark 
-                ? const Color(0xFF0F2137) 
+                ? const Color(0xFF162447) 
                 : Colors.grey.withOpacity(0.1),
             width: 1,
           ),

@@ -754,11 +754,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark
-            ? const Color(0xFF0F2137).withOpacity(0.9)
+            ? const Color(0xFF162447).withOpacity(0.9)
             : Colors.white.withOpacity(0.8),
         border: Border(
           bottom: BorderSide(
-            color: isDark ? const Color(0xFF0F2137) : Colors.grey[100]!,
+            color: isDark ? const Color(0xFF162447) : Colors.grey[100]!,
           ),
         ),
       ),
@@ -809,7 +809,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: isDark
-                              ? const Color(0xFF0F2137)
+                              ? const Color(0xFF162447)
                               : Colors.grey[200]!,
                         ),
                       ),
@@ -861,14 +861,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         color: _showFilters || _filterType != 'all'
                             ? const Color(0xFF39A4E6)
                             : isDark
-                            ? const Color(0xFF0F2137)
+                            ? const Color(0xFF162447)
                             : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: _showFilters || _filterType != 'all'
                               ? const Color(0xFF39A4E6)
                               : isDark
-                              ? const Color(0xFF0F2137)
+                              ? const Color(0xFF162447)
                               : Colors.grey[200]!,
                         ),
                       ),
@@ -1062,10 +1062,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F2137) : Colors.white,
+        color: isDark ? const Color(0xFF162447) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark ? const Color(0xFF0F2137) : Colors.grey[100]!,
+          color: isDark ? const Color(0xFF162447) : Colors.grey[100]!,
         ),
         boxShadow: [
           BoxShadow(
@@ -1292,7 +1292,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         decoration: BoxDecoration(
           color: isDestructive
               ? (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2))
-              : (isDark ? const Color(0xFF0F2137) : const Color(0xFFF1F5F9)), // Navy blue for buttons
+              : (isDark ? const Color(0xFF162447) : const Color(0xFFF1F5F9)), // Navy blue for buttons
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(
@@ -1319,7 +1319,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             margin: const EdgeInsets.all(24),
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F2137) : Colors.white,
+              color: isDark ? const Color(0xFF162447) : Colors.white,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
@@ -1470,7 +1470,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         color: isDark ? const Color(0xFF0A1929) : Colors.grey[100],
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? const Color(0xFF0F2137) : Colors.grey[300]!,
+          color: isDark ? const Color(0xFF162447) : Colors.grey[300]!,
           width: 1.5,
         ),
       ),
@@ -2494,7 +2494,7 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
           ? const Color(0xFF0A1929)
           : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF0F2137) : Colors.white,
+        backgroundColor: isDark ? const Color(0xFF162447) : Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: Icon(

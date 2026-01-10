@@ -213,8 +213,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         
                         // Back to Login
                         Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(
                                 "Remember your password? ",

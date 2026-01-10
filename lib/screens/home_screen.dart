@@ -936,7 +936,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: _isDarkMode ? const Color(0xFF0F2137) : Colors.white,
+                    color: _isDarkMode ? const Color(0xFF162447) : Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
@@ -1004,13 +1004,13 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         height: 56,
         decoration: BoxDecoration(
-          color: _isDarkMode ? const Color(0xFF0F2137) : Colors.white,
+          color: _isDarkMode ? const Color(0xFF162447) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: _isSearchFocused
                 ? const Color(0xFF39A4E6)
                 : (_isDarkMode
-                      ? const Color(0xFF0F2137)
+                      ? const Color(0xFF162447)
                       : const Color(0xFFE5E7EB)),
             width: 2,
           ),
@@ -1058,7 +1058,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 24,
                   decoration: BoxDecoration(
                     color: _isDarkMode
-                        ? const Color(0xFF0F2137)
+                        ? const Color(0xFF162447)
                         : const Color(0xFFE5E7EB),
                     shape: BoxShape.circle,
                   ),
