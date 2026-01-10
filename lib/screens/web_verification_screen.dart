@@ -120,7 +120,7 @@ class _WebVerificationScreenState extends State<WebVerificationScreen> {
 
     // Glass effect colors
     final cardColor = isDark 
-        ? const Color(0xFF111827).withOpacity(0.9) 
+        ? const Color(0xFF122640).withOpacity(0.9) 
         : Colors.white;
     final borderColor = isDark 
         ? Colors.white.withOpacity(0.1) 

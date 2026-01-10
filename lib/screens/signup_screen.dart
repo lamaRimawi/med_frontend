@@ -331,7 +331,7 @@ class _SignupScreenState extends State<SignupScreen> {
     final isDark = _isDarkMode;
     // Glass effect colors - Only for Dark Mode
     final cardColor = isDark 
-        ? const Color(0xFF111827).withOpacity(0.9) 
+        ? const Color(0xFF122640).withOpacity(0.9) 
         : Colors.white;
     final borderColor = isDark 
         ? Colors.white.withOpacity(0.1) 
@@ -342,6 +342,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
     return Scaffold(
       backgroundColor: bgColor,
+      extendBodyBehindAppBar: true,
       body: Stack(
         children: [
           // Background
@@ -794,7 +795,7 @@ class _SignupScreenState extends State<SignupScreen> {
         width: 60,
         height: 60,
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1F2937) : Colors.white,
+          color: isDark ? const Color(0xFF1A3450) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isDark ? Colors.white10 : Colors.grey[200]!,

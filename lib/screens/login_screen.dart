@@ -354,19 +354,18 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = _isDarkMode;
-    // Glass effect colors - Only for Dark Mode
+    // Glass effect colors
     final cardColor = isDark 
-        ? const Color(0xFF111827).withOpacity(0.9) 
+        ? const Color(0xFF122640).withOpacity(0.9) 
         : Colors.white;
     final borderColor = isDark 
         ? Colors.white.withOpacity(0.1) 
         : Colors.transparent;
-    
-    // Background color
     final bgColor = isDark ? const Color(0xFF0A1929) : Colors.white;
 
     return Scaffold(
       backgroundColor: bgColor,
+      extendBodyBehindAppBar: true,
       body: Stack(
         children: [
           // Background
@@ -614,7 +613,7 @@ class _LoginScreenState extends State<LoginScreen> {
         width: 60,
         height: 60,
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1F2937) : Colors.white,
+          color: isDark ? const Color(0xFF1A3450) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isDark ? Colors.white10 : Colors.grey[200]!,
