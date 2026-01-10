@@ -51,6 +51,20 @@ class NotificationService {
       },
     );
 
+    // Create High Importance Channel for Android
+    final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+        _localNotifications.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    await androidImplementation?.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'high_importance_channel',
+        'High Importance Notifications',
+        description: 'This channel is used for important notifications.',
+        importance: Importance.max,
+      ),
+    );
+
     // 3. Handle Token
     await _setupToken();
 

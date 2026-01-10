@@ -59,9 +59,24 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
           (message.notification?.title?.toLowerCase().contains('connection') ?? false)) {
         if (mounted) {
           _loadData();
-          // Optionally switch to connections tab if not already there? 
-          // The user might be viewing profiles, so maybe just refreshing data is enough.
-          // If they want to see it "directly", refreshing the list is key.
+          
+          // Show a toast to inform the user of the new request
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(LucideIcons.userPlus, color: Colors.white, size: 20),
+                  SizedBox(width: 12),
+                  Text('New connection request received'),
+                ],
+              ),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: const Color(0xFF39A4E6),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              margin: const EdgeInsets.all(16),
+              duration: const Duration(seconds: 3),
+            ),
+          );
         }
       }
     });
