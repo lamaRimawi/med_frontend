@@ -80,13 +80,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     // Glass effect colors
     final cardColor = isDark 
         ? const Color(0xFF111827).withOpacity(0.9) 
-        : Colors.white.withOpacity(0.9);
+        : Colors.white;
     final borderColor = isDark 
         ? Colors.white.withOpacity(0.1) 
-        : Colors.white.withOpacity(0.5);
+        : Colors.transparent;
+    final bgColor = isDark ? const Color(0xFF0A1929) : Colors.white;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0A1929) : const Color(0xFFF0F4F8),
+      backgroundColor: bgColor,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -102,7 +103,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       body: Stack(
         children: [
           // Background
-          AnimatedBubbleBackground(isDark: isDark),
+          if (isDark) AnimatedBubbleBackground(isDark: isDark),
+          if (!isDark)
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.white,
+                    const Color(0xFFF0F9FF).withOpacity(0.5),
+                  ],
+                ),
+              ),
+            ),
           
           // Content
           Center(

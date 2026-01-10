@@ -121,20 +121,34 @@ class _WebVerificationScreenState extends State<WebVerificationScreen> {
     // Glass effect colors
     final cardColor = isDark 
         ? const Color(0xFF111827).withOpacity(0.9) 
-        : Colors.white.withOpacity(0.9);
+        : Colors.white;
     final borderColor = isDark 
         ? Colors.white.withOpacity(0.1) 
-        : Colors.white.withOpacity(0.5);
+        : Colors.transparent;
     final shadowColor = isDark 
         ? Colors.black.withOpacity(0.5) 
         : const Color(0xFF39A4E6).withOpacity(0.15);
     final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
+    final bgColor = isDark ? const Color(0xFF0A1929) : Colors.white;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0A1929) : const Color(0xFFF0F4F8),
+      backgroundColor: bgColor,
       body: Stack(
         children: [
-          const AnimatedBubbleBackground(),
+          if (isDark) const AnimatedBubbleBackground(),
+          if (!isDark)
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.white,
+                    const Color(0xFFF0F9FF).withOpacity(0.5),
+                  ],
+                ),
+              ),
+            ),
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),

@@ -329,20 +329,38 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = _isDarkMode;
-    // Glass effect colors
+    // Glass effect colors - Only for Dark Mode
     final cardColor = isDark 
         ? const Color(0xFF111827).withOpacity(0.9) 
-        : Colors.white.withOpacity(0.9);
+        : Colors.white;
     final borderColor = isDark 
         ? Colors.white.withOpacity(0.1) 
-        : Colors.white.withOpacity(0.5);
+        : Colors.transparent;
+    
+    // Background color
+    final bgColor = isDark ? const Color(0xFF0A1929) : Colors.white;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0A1929) : const Color(0xFFF0F4F8),
+      backgroundColor: bgColor,
       body: Stack(
         children: [
           // Background
-          AnimatedBubbleBackground(isDark: isDark),
+          if (isDark) AnimatedBubbleBackground(isDark: isDark),
+          if (!isDark)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      const Color(0xFF39A4E6).withOpacity(0.05),
+                      Colors.white,
+                    ],
+                  ),
+                ),
+              ),
+            ),
           
           // Content
           Center(
@@ -527,7 +545,18 @@ class _SignupScreenState extends State<SignupScreen> {
                          Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              _buildModernSocialButton(LucideIcons.chrome, 'Google', Colors.red),
+                              _buildModernSocialButton(
+                                Text(
+                                  'G',
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                                'Google',
+                                null,
+                              ),
                               const SizedBox(width: 20),
                               _buildModernSocialButton(LucideIcons.facebook, 'Facebook', Colors.blue),
                             ],
@@ -756,7 +785,7 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Widget _buildModernSocialButton(IconData icon, String label, Color iconColor) {
+  Widget _buildModernSocialButton(dynamic iconOrWidget, String label, Color? iconColor) {
     final isDark = _isDarkMode;
     return InkWell(
       onTap: () => _handleSocialLogin(label),
@@ -779,11 +808,13 @@ class _SignupScreenState extends State<SignupScreen> {
           ],
         ),
         child: Center(
-          child: Icon(
-            icon,
-            color: iconColor,
-            size: 28,
-          ),
+          child: iconOrWidget is Widget
+              ? iconOrWidget
+              : Icon(
+                  iconOrWidget as IconData,
+                  color: iconColor,
+                  size: 28,
+                ),
         ),
       ),
     );
