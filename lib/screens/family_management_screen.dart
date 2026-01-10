@@ -11,6 +11,9 @@ import '../models/user_model.dart';
 import '../models/profile_model.dart';
 import '../widgets/access_verification_modal.dart';
 import '../services/profile_state_service.dart';
+import '../services/notification_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'dart:async';
 
 class FamilyManagementScreen extends StatefulWidget {
   final int initialTab;
@@ -29,6 +32,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
   User? _currentUser;
   int? _currentUserId; // Store current user ID for ownership checks
   int? _selectedProfileId; // Track which profile is actually selected
+  StreamSubscription<RemoteMessage>? _notificationSubscription;
   
   bool get _isDarkMode {
     final themeProvider = ThemeProvider.of(context);
@@ -46,6 +50,21 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
     });
     _loadCurrentUser();
     _loadData(); // Ensure connection data is loaded initially
+    _setupNotificationListener();
+  }
+
+  void _setupNotificationListener() {
+    _notificationSubscription = NotificationService().onMessage.listen((message) {
+      if (message.data['type'] == 'connection_request' || 
+          (message.notification?.title?.toLowerCase().contains('connection') ?? false)) {
+        if (mounted) {
+          _loadData();
+          // Optionally switch to connections tab if not already there? 
+          // The user might be viewing profiles, so maybe just refreshing data is enough.
+          // If they want to see it "directly", refreshing the list is key.
+        }
+      }
+    });
   }
 
   Future<void> _loadCurrentUser() async {
@@ -85,6 +104,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
 
   @override
   void dispose() {
+    _notificationSubscription?.cancel();
     _tabController.dispose();
     super.dispose();
   }
