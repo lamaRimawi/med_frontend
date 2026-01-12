@@ -502,7 +502,6 @@ class _ProfileScreenState extends State<ProfileScreen>
 
       if (!prefixFound) {
         // Regex to find country code (e.g. +962) and the rest
-        // Matches + followed by 1-4 digits, then optionally space, then the rest
         final match = RegExp(r'^(\+\d{1,4})[\s-]*(.*)$').firstMatch(fullPhone);
 
         if (match != null) {
@@ -511,6 +510,17 @@ class _ProfileScreenState extends State<ProfileScreen>
         } else {
           // Fallback cleaning if no + found
           phoneBody = fullPhone.replaceFirst(RegExp(r'^\+'), '').trim();
+          
+          // Smart heuristics for common prefixes if missing
+          if (phoneBody.startsWith('059') || phoneBody.startsWith('056')) {
+            prefix = '+970'; // Palestine
+          } else if (phoneBody.startsWith('079') || 
+                     phoneBody.startsWith('078') || 
+                     phoneBody.startsWith('077')) {
+            prefix = '+962'; // Jordan
+          } else if (phoneBody.startsWith('05')) {
+             prefix = '+966'; // Saudi Arabia (common start)
+          }
         }
       }
 
@@ -1388,7 +1398,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 keyboardType: TextInputType.phone,
                                 inputFormatters: [
                                   FilteringTextInputFormatter.digitsOnly,
-                                  LengthLimitingTextInputFormatter(9),
+                                  LengthLimitingTextInputFormatter(15),
                                 ],
                                 errorText: _phoneError,
                               ),
@@ -1497,10 +1507,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                             final phone = _profileData['phone']
                                 .toString()
                                 .trim();
-                            if (phone.isNotEmpty && phone.length != 9) {
+                            if (phone.isNotEmpty && phone.length < 7) {
                               setState(
                                 () => _phoneError =
-                                    'Phone number must be 9 digits',
+                                    'Phone number must be at least 7 digits',
                               );
                               return;
                             }

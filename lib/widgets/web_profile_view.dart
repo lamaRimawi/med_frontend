@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -159,6 +160,18 @@ class _WebProfileViewState extends State<WebProfileView> {
       if (match != null) {
         prefix = match.group(1) ?? '+962';
         phoneBody = match.group(2) ?? '';
+      } else {
+        // Smart heuristics for unformatted numbers
+        if (fullPhone.startsWith('059') || fullPhone.startsWith('056')) {
+          prefix = '+970'; // Palestine
+        } else if (fullPhone.startsWith('079') ||
+            fullPhone.startsWith('078') ||
+            fullPhone.startsWith('077')) {
+          prefix = '+962'; // Jordan
+        } else if (fullPhone.startsWith('05')) {
+          prefix = '+966'; // Saudi Arabia
+        }
+        phoneBody = fullPhone;
       }
 
       final codes = _uniqueCountryCodes.map((c) => c['code']).toSet();
@@ -199,6 +212,19 @@ class _WebProfileViewState extends State<WebProfileView> {
   Future<void> _saveProfile() async {
     try {
       setState(() => _isLoading = true);
+
+      final phone = _phoneController.text.trim();
+      if (phone.isNotEmpty && phone.length < 7) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Phone number must be at least 7 digits'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
 
       final nameParts = _nameController.text.trim().split(' ');
       final firstName = nameParts.isNotEmpty ? nameParts.first : '';
@@ -833,6 +859,10 @@ class _WebProfileViewState extends State<WebProfileView> {
                 child: TextField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(15),
+                  ],
                   style: GoogleFonts.inter(
                     color: widget.isDarkMode ? Colors.white : const Color(0xFF1E293B),
                     fontSize: 15,
