@@ -617,6 +617,9 @@ class _HomeScreenState extends State<HomeScreen> {
         onClose: () async {
           setState(() {
             _showCameraUpload = false;
+            _showReports = false;
+            _showProfile = false;
+            _showTimeline = false;
             _activeTab = 'home';
             _selectedIndex = 0;
             _isLoadingReports = true; // Show loading immediately
@@ -672,6 +675,9 @@ class _HomeScreenState extends State<HomeScreen> {
         onClose: () async {
           setState(() {
             _showCameraUpload = false;
+            _showReports = false;
+            _showProfile = false;
+            _showTimeline = false;
             _activeTab = 'home';
             _selectedIndex = 0;
             _isLoadingReports = true;

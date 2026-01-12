@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:share_plus/share_plus.dart';
@@ -98,7 +98,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                           Text(
                             widget.capturedItems.length == 1
                                 ? 'Your medical report has been successfully processed and is ready to view'
-                                : 'Your medical report (${widget.capturedItems.length} files) has been successfully processed and is ready to view',
+                                : 'Your medical report (${widget.capturedItems.length} ${widget.capturedItems.any((i) => i.type == 'application/pdf' || i.type.endsWith('pdf')) ? 'files' : 'images'}) has been successfully processed and is ready to view',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 16,
@@ -237,11 +237,17 @@ class _SuccessScreenState extends State<SuccessScreen> {
   }
 
   Widget _buildStatsCards() {
+    final bool isPdf = widget.capturedItems.any(
+        (item) => item.type == 'application/pdf' || item.type.endsWith('pdf'));
+    final String typeLabel = isPdf
+        ? (widget.capturedItems.length == 1 ? 'File' : 'Files')
+        : (widget.capturedItems.length == 1 ? 'Image' : 'Images');
+
     final stats = [
       {
         'icon': LucideIcons.fileCheck,
         'value': '${widget.capturedItems.length}',
-        'label': 'Files',
+        'label': typeLabel,
       },
       {'icon': LucideIcons.zap, 'value': 'Fast', 'label': 'Speed'},
       {'icon': LucideIcons.checkCircle2, 'value': '100%', 'label': 'Success'},
