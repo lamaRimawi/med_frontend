@@ -568,12 +568,18 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 ] : null,
               ),
               child: Center(
-                child: Text(
-                  metric,
-                  style: TextStyle(
-                    color: itemTextColor,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    fontSize: 13,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 150), // Limit width to prevent huge chips
+                  child: Text(
+                    metric,
+                    style: TextStyle(
+                      color: itemTextColor,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontSize: 13,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
@@ -623,7 +629,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Spacer to avoid overlap with the top-left button
+                        const SizedBox(width: 80),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
@@ -635,7 +644,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),
-                                maxLines: 1,
+                                maxLines: 2, // Allow wrapping for long names
                                 overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.end,
                               ),
