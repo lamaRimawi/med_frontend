@@ -1,10 +1,60 @@
 import 'dart:io';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../main.dart'; // Import to use navigatorKey
 import 'api_client.dart';
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  debugPrint('Handling a background message: ${message.messageId}');
+
+  // If message has notification payload, system handles it.
+  // If it's a data-only message, we might need to show a local notification.
+  if (message.notification == null && message.data.isNotEmpty) {
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings();
+    const InitializationSettings initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsIOS,
+    );
+    
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+    String? title = message.data['title'];
+    String? body = message.data['body'] ?? message.data['message'];
+    final type = message.data['type'];
+
+    if (title == null && type == 'connection_request') {
+      title = 'New Connection Request';
+      body = 'Someone wants to connect with you.';
+    }
+
+    if (title != null) {
+      await flutterLocalNotificationsPlugin.show(
+        message.hashCode,
+        title,
+        body,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'high_importance_channel',
+            'High Importance Notifications',
+            importance: Importance.max,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(),
+        ),
+        payload: type,
+      );
+    }
+  }
+}
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -19,6 +69,9 @@ class NotificationService {
   Stream<RemoteMessage> get onMessage => _messageStreamController.stream;
 
   Future<void> initialize(BuildContext context) async {
+    // 0. Register Background Handler
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
     // 1. Request permissions (especially for iOS)
     NotificationSettings settings = await _fcm.requestPermission(
       alert: true,
