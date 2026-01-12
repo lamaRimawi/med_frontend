@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:mediScan/services/document_scanner_service.dart';
@@ -1505,17 +1505,15 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           icon: const Icon(LucideIcons.chevronLeft),
           onPressed: () => setState(() => viewMode = ViewMode.review),
         ),
-        title: Column(
-          children: [
-            const Text(
-              'View Item',
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-            Text(
-              item.name,
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-          ],
+        title: Text(
+          item.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       body: Stack(
@@ -1547,44 +1545,6 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                           ),
                         ],
                       ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              color: const Color(0xFF0A1929).withOpacity(0.8),
-              padding: const EdgeInsets.all(24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    onPressed: viewerItemIndex > 0
-                        ? () => setState(() => viewerItemIndex--)
-                        : null,
-                    icon: Icon(
-                      LucideIcons.chevronLeft,
-                      color: viewerItemIndex > 0 ? Colors.white : Colors.grey,
-                    ),
-                  ),
-                  Text(
-                    '${viewerItemIndex + 1} / ${capturedItems.length}',
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  IconButton(
-                    onPressed: viewerItemIndex < capturedItems.length - 1
-                        ? () => setState(() => viewerItemIndex++)
-                        : null,
-                    icon: Icon(
-                      LucideIcons.chevronRight,
-                      color: viewerItemIndex < capturedItems.length - 1
-                          ? Colors.white
-                          : Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
         ],
       ),
