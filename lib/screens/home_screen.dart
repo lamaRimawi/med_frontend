@@ -488,7 +488,7 @@ class _HomeScreenState extends State<HomeScreen> {
       {
         'icon': LucideIcons.camera,
         'label': 'Imaging',
-        'color': const Color(0xFF8B5CF6),
+        'color': const Color(0xFF06B6D4),
         'count': counts['Imaging'] ?? 0,
         'quickView': 'imaging',
         'description': 'X-rays, MRI, CT scans',
@@ -1036,9 +1036,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 onTap: () => setState(() => _isSearchFocused = true),
                 onSubmitted: (_) => setState(() => _isSearchFocused = false),
                 decoration: InputDecoration(
-                  hintText: 'Search reports, doctors...',
+                  hintText: 'Search reports...',
                   hintStyle: TextStyle(
-                    color: _isDarkMode ? Colors.grey[400] : Colors.grey[400],
+                    color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
                   ),
                   border: InputBorder.none,
                 ),
@@ -2023,7 +2023,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final isConnectionRequest = notification.type == 'connection_request' || 
                                notification.title.toLowerCase().contains('connection request');
     
-    final iconColor = (isShare || isConnectionRequest) ? const Color(0xFF8B5CF6) : const Color(0xFF39A4E6);
+    final iconColor = (isShare || isConnectionRequest) ? const Color(0xFFF97316) : const Color(0xFF39A4E6);
 
     return GestureDetector(
       onTap: () async {

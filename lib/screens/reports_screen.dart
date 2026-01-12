@@ -1021,7 +1021,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       case 'Prescriptions':
         return const Color(0xFF10B981); // Emerald
       case 'Imaging':
-        return const Color(0xFF8B5CF6); // Purple
+        return const Color(0xFF06B6D4); // Cyan
       case 'Cardiology':
         return const Color(0xFFEF4444); // Red
       case 'Neurology':

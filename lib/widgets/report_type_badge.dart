@@ -30,8 +30,8 @@ class ReportTypeBadge extends StatelessWidget {
     ),
     'Imaging': _BadgeConfig(
       icon: LucideIcons.scan,
-      color: Color(0xFFA78BFA),
-      bg: Color(0x26A78BFA),
+      color: Color(0xFF06B6D4),
+      bg: Color(0x2606B6D4),
     ),
     'Vitals': _BadgeConfig(
       icon: LucideIcons.activity,
@@ -50,8 +50,8 @@ class ReportTypeBadge extends StatelessWidget {
     ),
     'Neurology': _BadgeConfig(
       icon: LucideIcons.brain,
-      color: Color(0xFF8B5CF6),
-      bg: Color(0x268B5CF6),
+      color: Color(0xFF14B8A6),
+      bg: Color(0x2614B8A6),
     ),
     'Orthopedics': _BadgeConfig(
       icon: LucideIcons.bone,

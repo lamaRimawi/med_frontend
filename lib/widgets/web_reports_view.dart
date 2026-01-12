@@ -868,7 +868,7 @@ class _WebReportsViewState extends State<WebReportsView> {
                   icon: LucideIcons.share2,
                   label: 'Share',
                   onTap: () => _handleShareReport(report),
-                  color: const Color(0xFF8B5CF6),
+                  color: const Color(0xFFF97316),
                 ),
                 const SizedBox(width: 12),
                 _buildActionButton(

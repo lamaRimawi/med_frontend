@@ -441,7 +441,7 @@ class _WebDashboardViewState extends State<WebDashboardView> {
             _buildGlassStatCard('Total Reports', '${_totalReports ?? 0}', LucideIcons.fileText, const Color(0xFF39A4E6)),
             _buildGlassStatCard('Health Score', _healthScore ?? 'N/A', LucideIcons.activity, const Color(0xFF10B981)),
             _buildGlassStatCard('Recent', '${widget.reports.length}', LucideIcons.clock, const Color(0xFFF59E0B)),
-            _buildGlassStatCard('Tests', _totalReports != null ? '${_totalReports! * 5}' : '0', LucideIcons.flaskConical, const Color(0xFF8B5CF6)),
+            _buildGlassStatCard('Tests', _totalReports != null ? '${_totalReports! * 5}' : '0', LucideIcons.flaskConical, const Color(0xFF06B6D4)),
           ],
         );
       },

@@ -449,13 +449,13 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                     gradient: LinearGradient(
                       colors: isSelf
                           ? [const Color(0xFF39A4E6), const Color(0xFF2B8FD9)]
-                          : [const Color(0xFF8B5CF6), const Color(0xFF7C3AED)],
+                          : [const Color(0xFF10B981), const Color(0xFF059669)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: (isSelf ? const Color(0xFF39A4E6) : const Color(0xFF8B5CF6))
+                        color: (isSelf ? const Color(0xFF39A4E6) : const Color(0xFF10B981))
                             .withOpacity(0.3),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
