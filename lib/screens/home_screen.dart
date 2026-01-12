@@ -1281,7 +1281,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.9),
                         fontSize: 14,
-                        decoration: TextDecoration.underline,
                       ),
                     ),
                   ),
