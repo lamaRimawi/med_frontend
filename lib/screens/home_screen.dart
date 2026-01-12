@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'dart:async';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -2648,7 +2648,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               crossAxisCount: 3,
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
-                              childAspectRatio: 0.8,
+                              childAspectRatio: 0.75,
                             ),
                         itemCount: reportTypes.length,
                         itemBuilder: (context, index) {
@@ -2758,7 +2758,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             size: 28,
                                           ),
                                         ),
-                                        const SizedBox(height: 12),
+                                        const SizedBox(height: 8),
                                         Padding(
                                           padding: const EdgeInsets.symmetric(
                                             horizontal: 4,
