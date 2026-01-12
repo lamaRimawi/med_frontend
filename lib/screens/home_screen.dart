@@ -2604,8 +2604,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ? Colors.grey[400]
                                       : Colors.grey[500],
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
