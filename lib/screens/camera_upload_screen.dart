@@ -1013,7 +1013,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                           border: Border.all(
                             color: Colors.white.withOpacity(0.2),
                           ),
-                          color: Colors.grey[900],
+                          color: const Color(0xFF1E293B),
                         ),
                         child: Stack(
                           children: [
