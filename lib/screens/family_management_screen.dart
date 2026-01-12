@@ -799,19 +799,24 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        email,
+                        (conn.name != null && conn.name!.isNotEmpty) ? conn.name! : email,
                         style: TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 15,
                           color: isDark ? Colors.white : const Color(0xFF111827),
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 6),
-                      Row(
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
                         children: [
                           _buildSmallBadge(LucideIcons.user, conn.relationship, isDark),
-                          const SizedBox(width: 8),
-                          _buildSmallBadge(LucideIcons.shield, conn.accessLevel ?? 'view', isDark),
+                          // Only show access level if it's not 'view' to reduce text
+                          if (conn.accessLevel != null && conn.accessLevel != 'view')
+                            _buildSmallBadge(LucideIcons.shield, conn.accessLevel!, isDark),
                         ],
                       ),
                     ],
@@ -1345,6 +1350,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
 
   void _showAddConnectionDialog() {
     final emailController = TextEditingController();
+    final nameController = TextEditingController();
     final formKey = GlobalKey<FormState>();
     String? selectedRelationship;
     String selectedAccessLevel = 'view'; // Default access level
@@ -1373,45 +1379,94 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
             right: 24,
             top: 24,
           ),
-          child: Form(
-            key: formKey,
-            child: Column(
-               mainAxisSize: MainAxisSize.min,
-               crossAxisAlignment: CrossAxisAlignment.start,
-               children: [
-                  Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: _isDarkMode ? Colors.grey[700] : Colors.grey[300],
-                          borderRadius: BorderRadius.circular(2),
+          child: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                 mainAxisSize: MainAxisSize.min,
+                 crossAxisAlignment: CrossAxisAlignment.start,
+                 children: [
+                    Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: _isDarkMode ? Colors.grey[700] : Colors.grey[300],
+                            borderRadius: BorderRadius.circular(2),
+                          ),
                         ),
                       ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Share Access',
+                      style: TextStyle(
+                        fontSize: 20, 
+                        fontWeight: FontWeight.bold,
+                        color: _isDarkMode ? Colors.white : Colors.black
+                      ),
                     ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Share Access',
-                    style: TextStyle(
-                      fontSize: 20, 
-                      fontWeight: FontWeight.bold,
-                      color: _isDarkMode ? Colors.white : Colors.black
+                    const SizedBox(height: 8),
+                    Text('Invite a family member or doctor by email.', 
+                      style: TextStyle(color: Colors.grey)
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text('Invite a family member or doctor by email.', 
-                    style: TextStyle(color: Colors.grey)
-                  ),
-                  const SizedBox(height: 24),
-                  
-                  // Profile Selector
-                  if (availableProfiles.isNotEmpty) ...[
-                    DropdownButtonFormField<int>(
-                      value: selectedProfileId,
+                    const SizedBox(height: 24),
+                    
+                    // Profile Selector
+                    if (availableProfiles.isNotEmpty) ...[
+                      DropdownButtonFormField<int>(
+                        value: selectedProfileId,
+                        decoration: InputDecoration(
+                          labelText: 'Share Record For',
+                          labelStyle: TextStyle(color: _isDarkMode ? Colors.grey[400] : Colors.grey[600]),
+                          prefixIcon: Icon(LucideIcons.userCircle, color: _isDarkMode ? Colors.grey[400] : Colors.grey[600], size: 20),
+                          filled: true,
+                          fillColor: _isDarkMode ? Colors.white.withOpacity(0.05) : Colors.grey[50],
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF39A4E6))),
+                        ),
+                        dropdownColor: _isDarkMode ? const Color(0xFF132F4C) : Colors.white,
+                        style: TextStyle(color: _isDarkMode ? Colors.white : Colors.black, fontSize: 16),
+                        icon: Icon(LucideIcons.chevronDown, color: _isDarkMode ? Colors.grey[400] : Colors.grey[600], size: 20),
+                        items: availableProfiles.map((p) => DropdownMenuItem(
+                          value: p.id,
+                          child: Text(p.fullName),
+                        )).toList(),
+                        onChanged: (val) => setModalState(() => selectedProfileId = val),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Email Field
+                    _buildTextField(
+                      controller: emailController, 
+                      label: 'Email Address', 
+                      icon: LucideIcons.mail, 
+                      isDark: _isDarkMode,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'Email is required';
+                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) return 'Enter a valid email';
+                        return null;
+                      }
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Name Field (Optional)
+                    _buildTextField(
+                      controller: nameController, 
+                      label: 'Name (Optional)', 
+                      icon: LucideIcons.user, 
+                      isDark: _isDarkMode,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Access Level Dropdown
+                    DropdownButtonFormField<String>(
+                      value: selectedAccessLevel,
                       decoration: InputDecoration(
-                        labelText: 'Share Record For',
+                        labelText: 'Access Level',
                         labelStyle: TextStyle(color: _isDarkMode ? Colors.grey[400] : Colors.grey[600]),
-                        prefixIcon: Icon(LucideIcons.userCircle, color: _isDarkMode ? Colors.grey[400] : Colors.grey[600], size: 20),
+                        prefixIcon: Icon(LucideIcons.shield, color: _isDarkMode ? Colors.grey[400] : Colors.grey[600], size: 20),
                         filled: true,
                         fillColor: _isDarkMode ? Colors.white.withOpacity(0.05) : Colors.grey[50],
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -1421,106 +1476,69 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                       dropdownColor: _isDarkMode ? const Color(0xFF132F4C) : Colors.white,
                       style: TextStyle(color: _isDarkMode ? Colors.white : Colors.black, fontSize: 16),
                       icon: Icon(LucideIcons.chevronDown, color: _isDarkMode ? Colors.grey[400] : Colors.grey[600], size: 20),
-                      items: availableProfiles.map((p) => DropdownMenuItem(
-                        value: p.id,
-                        child: Text(p.fullName),
-                      )).toList(),
-                      onChanged: (val) => setModalState(() => selectedProfileId = val),
+                      items: [
+                        DropdownMenuItem(value: 'view', child: Text('Viewer (Read Only)')),
+                        DropdownMenuItem(value: 'upload', child: Text('Contributor (Read & Upload)')),
+                        DropdownMenuItem(value: 'manage', child: Text('Manager (Full Access)')),
+                      ],
+                      onChanged: (val) => setModalState(() => selectedAccessLevel = val!),
                     ),
                     const SizedBox(height: 16),
-                  ],
-
-                  // Email Field
-                  _buildTextField(
-                    controller: emailController, 
-                    label: 'Email Address', 
-                    icon: LucideIcons.mail, 
-                    isDark: _isDarkMode,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return 'Email is required';
-                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) return 'Enter a valid email';
-                      return null;
-                    }
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Access Level Dropdown
-                  DropdownButtonFormField<String>(
-                    value: selectedAccessLevel,
-                    decoration: InputDecoration(
-                      labelText: 'Access Level',
-                      labelStyle: TextStyle(color: _isDarkMode ? Colors.grey[400] : Colors.grey[600]),
-                      prefixIcon: Icon(LucideIcons.shield, color: _isDarkMode ? Colors.grey[400] : Colors.grey[600], size: 20),
-                      filled: true,
-                      fillColor: _isDarkMode ? Colors.white.withOpacity(0.05) : Colors.grey[50],
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF39A4E6))),
-                    ),
-                    dropdownColor: _isDarkMode ? const Color(0xFF132F4C) : Colors.white,
-                    style: TextStyle(color: _isDarkMode ? Colors.white : Colors.black, fontSize: 16),
-                    icon: Icon(LucideIcons.chevronDown, color: _isDarkMode ? Colors.grey[400] : Colors.grey[600], size: 20),
-                    items: [
-                      DropdownMenuItem(value: 'view', child: Text('Viewer (Read Only)')),
-                      DropdownMenuItem(value: 'upload', child: Text('Contributor (Read & Upload)')),
-                      DropdownMenuItem(value: 'manage', child: Text('Manager (Full Access)')),
-                    ],
-                    onChanged: (val) => setModalState(() => selectedAccessLevel = val!),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Relationship Dropdown
-                  DropdownButtonFormField<String>(
-                    value: selectedRelationship,
-                    decoration: InputDecoration(
-                      labelText: 'Relationship (User to Profile)',
-                      labelStyle: TextStyle(color: _isDarkMode ? Colors.grey[400] : Colors.grey[600]),
-                      prefixIcon: Icon(LucideIcons.users, color: _isDarkMode ? Colors.grey[400] : Colors.grey[600], size: 20),
-                      filled: true,
-                      fillColor: _isDarkMode ? Colors.white.withOpacity(0.05) : Colors.grey[50],
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF39A4E6))),
-                      errorStyle: const TextStyle(color: Colors.redAccent),
-                    ),
-                    dropdownColor: _isDarkMode ? const Color(0xFF132F4C) : Colors.white,
-                    style: TextStyle(color: _isDarkMode ? Colors.white : Colors.black, fontSize: 16),
-                    icon: Icon(LucideIcons.chevronDown, color: _isDarkMode ? Colors.grey[400] : Colors.grey[600], size: 20),
-                    items: relationshipOptions.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) => setModalState(() => selectedRelationship = newValue),
-                    validator: (value) => value == null ? 'Please select a relationship' : null,
-                  ),
-
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () {
-                         if (formKey.currentState!.validate()) {
-                           Navigator.pop(context);
-                           // Always use connection request (with or without profile)
-                           _sendConnectionRequest(
-                             emailController.text, 
-                             selectedRelationship!,
-                             profileId: selectedProfileId,
-                             accessLevel: selectedAccessLevel,
-                           );
-                         }
-                      },
-                      style: ElevatedButton.styleFrom(
-                         backgroundColor: const Color(0xFF39A4E6),
-                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    
+                    // Relationship Dropdown
+                    DropdownButtonFormField<String>(
+                      value: selectedRelationship,
+                      decoration: InputDecoration(
+                        labelText: 'Relationship (User to Profile)',
+                        labelStyle: TextStyle(color: _isDarkMode ? Colors.grey[400] : Colors.grey[600]),
+                        prefixIcon: Icon(LucideIcons.users, color: _isDarkMode ? Colors.grey[400] : Colors.grey[600], size: 20),
+                        filled: true,
+                        fillColor: _isDarkMode ? Colors.white.withOpacity(0.05) : Colors.grey[50],
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF39A4E6))),
+                        errorStyle: const TextStyle(color: Colors.redAccent),
                       ),
-                      child: const Text('Send Invite', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      dropdownColor: _isDarkMode ? const Color(0xFF132F4C) : Colors.white,
+                      style: TextStyle(color: _isDarkMode ? Colors.white : Colors.black, fontSize: 16),
+                      icon: Icon(LucideIcons.chevronDown, color: _isDarkMode ? Colors.grey[400] : Colors.grey[600], size: 20),
+                      items: relationshipOptions.map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) => setModalState(() => selectedRelationship = newValue),
+                      validator: (value) => value == null ? 'Please select a relationship' : null,
                     ),
-                  )
-               ],
+
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () {
+                           if (formKey.currentState!.validate()) {
+                             Navigator.pop(context);
+                             // Always use connection request (with or without profile)
+                             _sendConnectionRequest(
+                               emailController.text, 
+                               selectedRelationship!,
+                               profileId: selectedProfileId,
+                               accessLevel: selectedAccessLevel,
+                               name: nameController.text.trim(),
+                             );
+                           }
+                        },
+                        style: ElevatedButton.styleFrom(
+                           backgroundColor: const Color(0xFF39A4E6),
+                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text('Send Invite', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      ),
+                    )
+                 ],
+              ),
             ),
           ),
         ),
@@ -1528,7 +1546,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
     );
   }
 
-  Future<void> _sendConnectionRequest(String email, String relationship, {int? profileId, String accessLevel = 'view'}) async {
+  Future<void> _sendConnectionRequest(String email, String relationship, {int? profileId, String accessLevel = 'view', String? name}) async {
      setState(() => _isLoading = true);
      try {
        await ConnectionService.sendRequest(
@@ -1536,6 +1554,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
           relationship: relationship,
           accessLevel: accessLevel,
           profileId: profileId,  // Pass profile ID if provided
+          name: name,
        );
        if (mounted) {
          _showToast('Request sent to $email');

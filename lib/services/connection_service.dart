@@ -33,6 +33,7 @@ class ConnectionService {
     required String relationship,
     required String accessLevel,
     int? profileId,  // Add optional profile ID
+    String? name,
   }) async {
     final Map<String, dynamic> body = {
       'receiver_email': receiverEmail,
@@ -43,6 +44,10 @@ class ConnectionService {
     // Add profile_id if provided (as integer)
     if (profileId != null) {
       body['profile_id'] = profileId;
+    }
+
+    if (name != null && name.isNotEmpty) {
+      body['name'] = name;
     }
     
     final response = await _client.post(
