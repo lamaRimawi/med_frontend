@@ -12,6 +12,9 @@ import '../models/profile_model.dart';
 import '../widgets/profile_selector.dart';
 import '../services/profile_state_service.dart';
 
+import '../services/api_client.dart'; // For AccessVerificationException
+import '../widgets/access_verification_modal.dart';
+
 class TimelineScreen extends StatefulWidget {
   final VoidCallback onBack;
   final bool isDarkMode;
@@ -125,12 +128,25 @@ class _TimelineScreenState extends State<TimelineScreen> {
           names.add(details.patientInfo.name.trim());
         }
       }
-      _patientNames = names.toList()..sort();
+      // Sort names, putting 'Unknown' last
+      _patientNames = names.toList()..sort((a, b) {
+        if (a == 'Unknown') return 1;
+        if (b == 'Unknown') return -1;
+        return a.compareTo(b);
+      });
       
-      // Default to first patient if not selected
-      if (_patientNames.isNotEmpty && _selectedPatient == null) {
-        _selectedPatient = _patientNames.first;
+      // Default to first patient if not selected, or if current selection is invalid
+      if (_patientNames.isNotEmpty) {
+        if (_selectedPatient == null || !_patientNames.contains(_selectedPatient)) {
+          _selectedPatient = _patientNames.first;
+        }
       }
+
+      // Check for partial failures
+      if (_timelineReports.isNotEmpty && _reportDetailsCache.isEmpty) {
+        _errorMessage = "Unable to load report details. Please try again.";
+      }
+
 
       // 4. Extract unique metric names (test names) for the selected patient
       _extractAvailableMetrics();
@@ -145,20 +161,54 @@ class _TimelineScreenState extends State<TimelineScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _errorMessage = e.toString();
-          _isLoading = false;
-        });
+        if (e is AccessVerificationException) {
+          _showVerificationModal();
+        } else {
+          setState(() {
+            _errorMessage = e.toString();
+            _isLoading = false;
+          });
+        }
       }
     }
   }
 
   Future<void> _fetchReportDetails(int reportId) async {
     try {
-      final details = await TimelineApi.getReport(reportId);
+      final details = await TimelineApi.getReport(reportId, profileId: _selectedProfileId);
       _reportDetailsCache[reportId] = details;
     } catch (e) {
+      if (e is AccessVerificationException) rethrow;
       debugPrint('Error fetching details for report $reportId: $e');
+    }
+  }
+
+  Future<void> _showVerificationModal() async {
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AccessVerificationModal(
+        resourceType: 'profile',
+        resourceId: _selectedProfileId ?? 0,
+      ),
+    );
+
+    if (result == true) {
+      if (mounted) {
+        setState(() {
+           _isLoading = true;
+           _errorMessage = null;
+        });
+        _loadTimelineData();
+      }
+    } else {
+       if (mounted && _timelineReports.isEmpty) {
+          setState(() {
+            _errorMessage = "Verification required to view health trends";
+            _isLoading = false;
+          });
+       }
     }
   }
 
@@ -277,49 +327,88 @@ class _TimelineScreenState extends State<TimelineScreen> {
       body: Container(
         decoration: BoxDecoration(gradient: bgGradient),
         child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(isDark, textColor),
-              if (_errorMessage != null)
-                Expanded(child: Center(child: Text(_errorMessage!, style: TextStyle(color: subTextColor))))
-              else if (_isLoading)
-                 Expanded(child: Center(child: CircularProgressIndicator(color: isDark ? Colors.white : const Color(0xFF39A4E6))))
-              else 
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    child: Column(
+          child: RefreshIndicator(
+            onRefresh: _loadTimelineData,
+            color: const Color(0xFF39A4E6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(isDark, textColor),
+                if (_errorMessage != null)
+                  Expanded(
+                    child: ListView(
                       children: [
-                        _buildMetricSelector(isDark, textColor),
-                        const SizedBox(height: 20),
-                        if (_selectedMetric.isNotEmpty) ...[
-                          _buildChartSection(isDark, textColor, subTextColor),
-                          const SizedBox(height: 20),
-                          _buildStatsCards(isDark, textColor, subTextColor),
-                          const SizedBox(height: 20),
-                          _buildHistoryList(isDark, textColor, subTextColor),
-                        ] else if (_availableMetrics.isEmpty) ...[
-                          // Empty state with chart and cards structure
-                          _buildEmptyChartSection(isDark, textColor, subTextColor),
-                          const SizedBox(height: 20),
-                          _buildEmptyStatsCards(isDark, textColor, subTextColor),
-                          const SizedBox(height: 20),
-                          _buildEmptyHistoryList(isDark, textColor, subTextColor),
-                        ] else
-                           Padding(
-                            padding: const EdgeInsets.all(32.0),
-                            child: Text(
-                              "No health metrics found in your reports.",
-                              style: TextStyle(color: subTextColor),
-                              textAlign: TextAlign.center,
-                            ),
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(LucideIcons.alertCircle, size: 48, color: Colors.red[400]),
+                              const SizedBox(height: 16),
+                              Text(
+                                _errorMessage!,
+                                style: TextStyle(color: subTextColor, fontSize: 16),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: _loadTimelineData,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF39A4E6),
+                                  foregroundColor: Colors.white,
+                                ),
+                                child: const Text('Try Again'),
+                              ),
+                            ],
                           ),
+                        ),
                       ],
                     ),
+                  )
+                else if (_isLoading)
+                   Expanded(child: Center(child: CircularProgressIndicator(color: isDark ? Colors.white : const Color(0xFF39A4E6))))
+                else 
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: Column(
+                        children: [
+                          // Always show selector if we have patients, even just one, for clarity
+                          if (_patientNames.isNotEmpty) ...[
+                            _buildPatientSelector(isDark, textColor),
+                            const SizedBox(height: 12),
+                          ],
+                          _buildMetricSelector(isDark, textColor),
+                          const SizedBox(height: 20),
+                          if (_selectedMetric.isNotEmpty) ...[
+                            _buildChartSection(isDark, textColor, subTextColor),
+                            const SizedBox(height: 20),
+                            _buildStatsCards(isDark, textColor, subTextColor),
+                            const SizedBox(height: 20),
+                            _buildHistoryList(isDark, textColor, subTextColor),
+                          ] else if (_availableMetrics.isEmpty) ...[
+                            // Empty state with chart and cards structure
+                            _buildEmptyChartSection(isDark, textColor, subTextColor),
+                            const SizedBox(height: 20),
+                            _buildEmptyStatsCards(isDark, textColor, subTextColor),
+                            const SizedBox(height: 20),
+                            _buildEmptyHistoryList(isDark, textColor, subTextColor),
+                          ] else
+                             Padding(
+                              padding: const EdgeInsets.all(32.0),
+                              child: Text(
+                                "No health metrics found in your reports for $_selectedPatient.",
+                                style: TextStyle(color: subTextColor),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -327,6 +416,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
   }
 
   Widget _buildHeader(bool isDark, Color textColor) {
+    final title = (_selectedProfileName != null && _selectedProfileName!.isNotEmpty)
+        ? "$_selectedProfileName's Trends"
+        : 'Health Trends';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -336,31 +429,97 @@ class _TimelineScreenState extends State<TimelineScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Health Trends',
+                  title,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: textColor,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 if (_selectedProfileName != null && _selectedProfileName!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 4.0),
                     child: Text(
-                      _selectedProfileName!,
-                      style: const TextStyle(
+                      'Health History & Analytics',
+                      style: TextStyle(
                         fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF39A4E6),
+                        fontWeight: FontWeight.w400,
+                        color: isDark ? Colors.white70 : Colors.grey[600],
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPatientSelector(bool isDark, Color textColor) {
+    if (_patientNames.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      height: 40,
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        scrollDirection: Axis.horizontal,
+        itemCount: _patientNames.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final name = _patientNames[index];
+          final isSelected = name == _selectedPatient;
+          
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedPatient = name;
+                _extractAvailableMetrics();
+                 if (_availableMetrics.isNotEmpty) {
+                    _selectMetric(_availableMetrics.first);
+                 } else {
+                    _selectedMetric = '';
+                    _trendData = [];
+                 }
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: isSelected 
+                    ? const Color(0xFF39A4E6).withOpacity(0.15) 
+                    : (isDark ? Colors.white.withOpacity(0.05) : Colors.grey[200]),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isSelected ? const Color(0xFF39A4E6) : Colors.transparent,
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    LucideIcons.user, 
+                    size: 16, 
+                    color: isSelected ? const Color(0xFF39A4E6) : (isDark ? Colors.white70 : Colors.grey[600])
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    name,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected ? const Color(0xFF39A4E6) : (isDark ? Colors.white : Colors.black87),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

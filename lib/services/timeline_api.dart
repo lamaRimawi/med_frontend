@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import '../config/api_config.dart';
 import '../models/timeline_models.dart';
 import '../models/extracted_report_data.dart';
@@ -9,22 +10,42 @@ class TimelineApi {
 
   static Future<List<TimelineReport>> getTimeline({int? profileId}) async {
     String path = ApiConfig.reportsTimeline;
+    Map<String, String>? headers;
+
     if (profileId != null) {
       path = '$path?profile_id=$profileId';
+      
+      final sessionToken = await _client.getSessionToken('profile', profileId.toString());
+      if (sessionToken != null) {
+        headers = {'X-Access-Session-Token': sessionToken};
+      }
     }
-    final response = await _client.get(path, auth: true);
+    final response = await _client.get(path, auth: true, headers: headers);
 
     if (response.statusCode == 200) {
       final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
       final timelineList = data['timeline'] as List;
       return timelineList.map((item) => TimelineReport.fromJson(item)).toList();
     } else {
+      debugPrint('TimelineApi Error [${response.statusCode}]: ${response.body}');
       throw Exception('Failed to load timeline: ${response.statusCode}');
     }
   }
 
-  static Future<TimelineStats> getStats() async {
-    final response = await _client.get(ApiConfig.reportsStats, auth: true);
+  static Future<TimelineStats> getStats({int? profileId}) async {
+    String path = ApiConfig.reportsStats;
+    Map<String, String>? headers;
+
+    if (profileId != null) {
+      path = '$path?profile_id=$profileId';
+      
+      final sessionToken = await _client.getSessionToken('profile', profileId.toString());
+      if (sessionToken != null) {
+        headers = {'X-Access-Session-Token': sessionToken};
+      }
+    }
+
+    final response = await _client.get(path, auth: true, headers: headers);
 
     if (response.statusCode == 200) {
       final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
@@ -37,14 +58,22 @@ class TimelineApi {
   static Future<HealthTrends> getTrends(List<String> fieldNames, {int? profileId}) async {
     final fieldNamesParam = fieldNames.join(',');
     final Map<String, String> query = {'field_name': fieldNamesParam};
+    Map<String, String>? headers;
+
     if (profileId != null) {
       query['profile_id'] = profileId.toString();
+
+      final sessionToken = await _client.getSessionToken('profile', profileId.toString());
+      if (sessionToken != null) {
+        headers = {'X-Access-Session-Token': sessionToken};
+      }
     }
     
     final response = await _client.get(
       ApiConfig.reportsTrends,
       query: query,
       auth: true,
+      headers: headers,
     );
 
     if (response.statusCode == 200) {
@@ -55,10 +84,20 @@ class TimelineApi {
     }
   }
 
-  static Future<ExtractedReportData> getReport(int reportId) async {
+  static Future<ExtractedReportData> getReport(int reportId, {int? profileId}) async {
+    Map<String, String>? headers;
+
+    if (profileId != null) {
+      final sessionToken = await _client.getSessionToken('profile', profileId.toString());
+      if (sessionToken != null) {
+        headers = {'X-Access-Session-Token': sessionToken};
+      }
+    }
+
     final response = await _client.get(
       '${ApiConfig.reports}/$reportId',
       auth: true,
+      headers: headers,
     );
 
     if (response.statusCode == 200) {

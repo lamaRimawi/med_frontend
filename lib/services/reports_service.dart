@@ -59,6 +59,7 @@ class ReportsService {
         if (response.statusCode == 200) {
           final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
           final reportsList = data['reports'] as List<dynamic>;
+
           final parsedReports = reportsList
               .map((e) => Report.fromJson(e as Map<String, dynamic>))
               .toList();
