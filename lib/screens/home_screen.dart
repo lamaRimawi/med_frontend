@@ -851,6 +851,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 _showTimeline = false;
                 // _showRecords = false;
                 _showCameraUpload = false;
+                
+                // Always reset initial report ID when switching tabs
+                _initialReportId = null;
 
                 // Set active flag
                 if (index == 1) {
@@ -1410,6 +1413,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     const SizedBox(height: 6),
                                     Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         if ((filtered[i]['time'] ?? '')
                                             .isNotEmpty) ...[
@@ -1430,7 +1434,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                               fontWeight: FontWeight.w600,
                                               fontSize: 15,
                                             ),
-                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
                                       ],
