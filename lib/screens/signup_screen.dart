@@ -23,6 +23,41 @@ class _SignupScreenState extends State<SignupScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  String _selectedCountryCode = '+970';
+  
+  final List<Map<String, String>> _countryCodes = [
+    {'code': '+970', 'flag': '🇵🇸', 'name': 'Palestine'},
+    {'code': '+962', 'flag': '🇯🇴', 'name': 'Jordan'},
+    {'code': '+20', 'flag': '🇪🇬', 'name': 'Egypt'},
+    {'code': '+966', 'flag': '🇸🇦', 'name': 'Saudi Arabia'},
+    {'code': '+971', 'flag': '🇦🇪', 'name': 'UAE'},
+    {'code': '+965', 'flag': '🇰🇼', 'name': 'Kuwait'},
+    {'code': '+974', 'flag': '🇶🇦', 'name': 'Qatar'},
+    {'code': '+973', 'flag': '🇧🇭', 'name': 'Bahrain'},
+    {'code': '+968', 'flag': '🇴🇲', 'name': 'Oman'},
+    {'code': '+961', 'flag': '🇱🇧', 'name': 'Lebanon'},
+    {'code': '+964', 'flag': '🇮🇶', 'name': 'Iraq'},
+    {'code': '+963', 'flag': '🇸🇾', 'name': 'Syria'},
+    {'code': '+967', 'flag': '🇾🇪', 'name': 'Yemen'},
+    {'code': '+212', 'flag': '🇲🇦', 'name': 'Morocco'},
+    {'code': '+213', 'flag': '🇩🇿', 'name': 'Algeria'},
+    {'code': '+216', 'flag': '🇹🇳', 'name': 'Tunisia'},
+    {'code': '+218', 'flag': '🇱🇾', 'name': 'Libya'},
+    {'code': '+249', 'flag': '🇸🇩', 'name': 'Sudan'},
+    {'code': '+90', 'flag': '🇹🇷', 'name': 'Turkey'},
+    {'code': '+1', 'flag': '🇺🇸', 'name': 'USA/Canada'},
+    {'code': '+44', 'flag': '🇬🇧', 'name': 'UK'},
+    {'code': '+49', 'flag': '🇩🇪', 'name': 'Germany'},
+    {'code': '+33', 'flag': '🇫🇷', 'name': 'France'},
+    {'code': '+39', 'flag': '🇮🇹', 'name': 'Italy'},
+    {'code': '+34', 'flag': '🇪🇸', 'name': 'Spain'},
+    {'code': '+86', 'flag': '🇨🇳', 'name': 'China'},
+    {'code': '+91', 'flag': '🇮🇳', 'name': 'India'},
+    {'code': '+81', 'flag': '🇯🇵', 'name': 'Japan'},
+    {'code': '+61', 'flag': '🇦🇺', 'name': 'Australia'},
+    {'code': '+55', 'flag': '🇧🇷', 'name': 'Brazil'},
+  ];
+
   DateTime? _dateOfBirth;
   bool _isLoading = false;
   bool _showPassword = false;
@@ -114,7 +149,7 @@ class _SignupScreenState extends State<SignupScreen> {
     final (success, message) = await AuthApi.register(
       name: _nameController.text,
       email: _emailController.text,
-      phone: _phoneController.text,
+      phone: '$_selectedCountryCode${_phoneController.text.trim()}',
       dateOfBirth: _dateOfBirth!,
       password: _passwordController.text,
     );
@@ -468,13 +503,89 @@ class _SignupScreenState extends State<SignupScreen> {
                             validator: Validators.validateEmail,
                          ),
                          const SizedBox(height: 20),
-                         CustomTextField(
-                            label: 'Phone Number',
-                            placeholder: '+1 (234) 567-8900',
-                            icon: LucideIcons.phone,
-                            controller: _phoneController,
-                            keyboardType: TextInputType.phone,
-                            validator: Validators.validatePhone,
+                         
+                         // Phone Number Field with Country Code
+                         Column(
+                           crossAxisAlignment: CrossAxisAlignment.start,
+                           children: [
+                             Text(
+                               'Phone Number',
+                               style: TextStyle(
+                                 color: isDark ? Colors.white : const Color(0xFF1F2937),
+                                 fontWeight: FontWeight.bold,
+                                 fontSize: 14,
+                               ),
+                             ),
+                             const SizedBox(height: 8),
+                             Row(
+                               crossAxisAlignment: CrossAxisAlignment.start,
+                               children: [
+                                 // Country Code Dropdown
+                                 Container(
+                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                   decoration: BoxDecoration(
+                                     color: isDark
+                                         ? Colors.white.withOpacity(0.08)
+                                         : const Color(0xFFF9FAFB).withValues(alpha: 0.8),
+                                     borderRadius: BorderRadius.circular(16),
+                                     border: Border.all(
+                                       color: isDark ? Colors.white.withOpacity(0.2) : Colors.black12,
+                                       width: 1.5,
+                                     ),
+                                   ),
+                                   child: DropdownButtonHideUnderline(
+                                     child: DropdownButton<String>(
+                                       value: _selectedCountryCode,
+                                       dropdownColor: isDark ? const Color(0xFF1F2937) : Colors.white,
+                                       icon: Icon(
+                                         LucideIcons.chevronDown,
+                                         color: isDark ? Colors.white70 : Colors.grey[600],
+                                         size: 20,
+                                       ),
+                                       items: _countryCodes.map((country) {
+                                         return DropdownMenuItem<String>(
+                                           value: country['code'],
+                                           child: Row(
+                                             children: [
+                                               Text(
+                                                 country['flag']!,
+                                                 style: const TextStyle(fontSize: 24),
+                                               ),
+                                               const SizedBox(width: 8),
+                                               Text(
+                                                 country['code']!,
+                                                 style: TextStyle(
+                                                   color: isDark ? Colors.white : const Color(0xFF1F2937),
+                                                   fontWeight: FontWeight.w500,
+                                                 ),
+                                               ),
+                                             ],
+                                           ),
+                                         );
+                                       }).toList(),
+                                       onChanged: (value) {
+                                         if (value != null) {
+                                           setState(() => _selectedCountryCode = value);
+                                         }
+                                       },
+                                     ),
+                                   ),
+                                 ),
+                                 const SizedBox(width: 12),
+                                 // Phone Number Input
+                                 Expanded(
+                                   child: CustomTextField(
+                                     label: '',
+                                     placeholder: '(234) 567-8900',
+                                     icon: LucideIcons.phone,
+                                     controller: _phoneController,
+                                     keyboardType: TextInputType.phone,
+                                     validator: Validators.validatePhone,
+                                   ),
+                                 ),
+                               ],
+                             ),
+                           ],
                          ),
                          const SizedBox(height: 20),
                          

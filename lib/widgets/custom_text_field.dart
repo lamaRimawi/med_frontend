@@ -106,17 +106,19 @@ class _CustomTextFieldState extends State<CustomTextField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          widget.label,
-          style: TextStyle(
-            color: _hasError
-                ? const Color(0xFFEF4444)
-                : widget.labelColor ?? (_isDarkMode ? Colors.white : const Color(0xFF1F2937)),
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
+        if (widget.label.isNotEmpty) ...[
+          Text(
+            widget.label,
+            style: TextStyle(
+              color: _hasError
+                  ? const Color(0xFFEF4444)
+                  : widget.labelColor ?? (_isDarkMode ? Colors.white : const Color(0xFF1F2937)),
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
+          const SizedBox(height: 8),
+        ],
         AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(

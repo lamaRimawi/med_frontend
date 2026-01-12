@@ -117,8 +117,8 @@ class Validators {
     // Remove common formatting characters
     final digitsOnly = value.replaceAll(RegExp(r'[\s\-\(\)\+]'), '');
     
-    if (digitsOnly.length < 10) {
-      return 'Phone number must be at least 10 digits';
+    if (digitsOnly.length < 7) {
+      return 'Phone number must be at least 7 digits';
     }
     
     if (digitsOnly.length > 15) {
