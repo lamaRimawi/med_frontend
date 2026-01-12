@@ -17,8 +17,20 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (message.notification == null && message.data.isNotEmpty) {
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     
+    // Create the channel in the background isolate as well
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'high_importance_channel', // id
+      'High Importance Notifications', // title
+      description: 'This channel is used for important notifications.',
+      importance: Importance.max,
+    );
+
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+    
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/launcher_icon');
     const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings();
     const InitializationSettings initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
@@ -31,6 +43,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     String? body = message.data['body'] ?? message.data['message'];
     final type = message.data['type'];
 
+    // Handle Connection Request specifically if title is missing
     if (title == null && type == 'connection_request') {
       title = 'New Connection Request';
       body = 'Someone wants to connect with you.';
@@ -41,14 +54,17 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         message.hashCode,
         title,
         body,
-        const NotificationDetails(
+        NotificationDetails(
           android: AndroidNotificationDetails(
-            'high_importance_channel',
-            'High Importance Notifications',
+            channel.id,
+            channel.name,
+            channelDescription: channel.description,
             importance: Importance.max,
             priority: Priority.high,
+            icon: '@mipmap/launcher_icon',
+            enableVibration: true,
           ),
-          iOS: DarwinNotificationDetails(),
+          iOS: const DarwinNotificationDetails(),
         ),
         payload: type,
       );
@@ -85,7 +101,7 @@ class NotificationService {
 
     // 2. Setup Local Notifications for Foreground
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/launcher_icon');
     const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings();
     const InitializationSettings initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
@@ -191,6 +207,8 @@ class NotificationService {
       'High Importance Notifications',
       importance: Importance.max,
       priority: Priority.high,
+      icon: '@mipmap/launcher_icon',
+      enableVibration: true,
       styleInformation: BigTextStyleInformation(body ?? ''), // Expandable text
     );
     final NotificationDetails details = NotificationDetails(

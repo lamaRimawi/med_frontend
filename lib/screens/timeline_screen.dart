@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -43,6 +43,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
   String? _errorMessage;
   int? _touchedSpotIndex;
   int? _selectedProfileId;
+  String? _selectedProfileName;
 
   @override
   void initState() {
@@ -63,6 +64,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
     if (mounted) {
       setState(() {
         _selectedProfileId = profile?.id;
+        _selectedProfileName = profile?.fullName;
         _isLoading = true;
       });
       _loadTimelineData();
@@ -80,6 +82,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
     if (mounted) {
       setState(() {
         _selectedProfileId = selectedProfile?.id;
+        _selectedProfileName = selectedProfile?.fullName;
       });
     }
   }
@@ -91,11 +94,12 @@ class _TimelineScreenState extends State<TimelineScreen> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
-    });
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
+      _timelineReports = [];
+      _reportDetailsCache.clear(); // Clear cache to prevent data mixing between profiles
+      _availableMetrics = [];
+      _patientNames = [];
+      _trendData = [];
+      _selectedMetric = '';
     });
 
     // Removed Demo Data Logic
@@ -331,18 +335,28 @@ class _TimelineScreenState extends State<TimelineScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      'Health Trends',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
-                      ),
-                    ),
-                  ],
+                Text(
+                  'Health Trends',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
                 ),
+                if (_selectedProfileName != null && _selectedProfileName!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      _selectedProfileName!,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF39A4E6),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
               ],
             ),
           ),
