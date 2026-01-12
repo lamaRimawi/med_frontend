@@ -26,6 +26,7 @@ import 'package:mediScan/widgets/profile_selector.dart';
 import 'package:mediScan/screens/family_management_screen.dart';
 import 'package:mediScan/services/vlm_service.dart';
 import 'package:mediScan/services/profile_state_service.dart';
+import 'package:mediScan/services/profile_service.dart';
 
 enum ViewMode { camera, review, viewer, processing, success }
 
@@ -61,17 +62,30 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
 
   // Profile state
   UserProfile? selectedProfile;
-
-
+  bool _hasMultipleProfiles = false;
 
   @override
   void initState() {
     super.initState();
     _initializeProfile();
+    _checkProfiles();
     // _initializeCamera(); // Removed for native scanner
     // _checkTutorial(); // Removed tutorial
     // Listen to profile changes
     ProfileStateService().profileNotifier.addListener(_onProfileChanged);
+  }
+
+  Future<void> _checkProfiles() async {
+    try {
+      final profiles = await ProfileService.getProfiles();
+      if (mounted) {
+        setState(() {
+          _hasMultipleProfiles = profiles.length > 1;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error checking profiles: $e');
+    }
   }
 
   void _onProfileChanged() {
@@ -1317,7 +1331,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                                     : Colors.grey[200]!,
                               ),
                               color: widget.isDarkMode
-                                  ? Colors.grey[900]
+                                  ? const Color(0xFF1E293B)
                                   : Colors.grey[100],
                             ),
                             child: ClipRRect(
@@ -1410,43 +1424,44 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
             ),
           ),
           // Profile Selector Integration
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Upload for Profile',
-                      style: TextStyle(
-                        color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+          if (_hasMultipleProfiles)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Upload for Profile',
+                        style: TextStyle(
+                          color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    TextButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const FamilyManagementScreen()),
-                        );
-                      },
-                      icon: const Icon(LucideIcons.users, size: 14),
-                      label: const Text('Manage Family', style: TextStyle(fontSize: 12)),
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const FamilyManagementScreen()),
+                          );
+                        },
+                        icon: const Icon(LucideIcons.users, size: 14),
+                        label: const Text('Manage Family', style: TextStyle(fontSize: 12)),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
             ),
-          ),
           Padding(
             padding: const EdgeInsets.all(24),
             child: ElevatedButton(
