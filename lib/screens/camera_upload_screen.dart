@@ -439,15 +439,12 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                   content: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF14B8A6), Color(0xFF06B6D4)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      color: const Color(0xFF1E293B),
                       borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.5)),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF14B8A6).withOpacity(0.4),
+                          color: Colors.black.withOpacity(0.2),
                           blurRadius: 16,
                           offset: const Offset(0, 6),
                         ),
@@ -458,12 +455,12 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: const Color(0xFFF59E0B).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
                             LucideIcons.copy,
-                            color: Colors.white,
+                            color: Color(0xFFF59E0B),
                             size: 24,
                           ),
                         ),
@@ -474,7 +471,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Text(
-                                'Already Processed',
+                                'Duplicate Report',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -483,9 +480,9 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                error.length > 80 ? '${error.substring(0, 80)}...' : error,
+                                'This report has already been processed.',
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: Colors.grey[400],
                                   fontSize: 13,
                                   height: 1.3,
                                 ),
@@ -504,7 +501,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                   padding: EdgeInsets.zero,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  duration: const Duration(seconds: 5),
+                  duration: const Duration(seconds: 4),
                 ),
               );
             } else {
