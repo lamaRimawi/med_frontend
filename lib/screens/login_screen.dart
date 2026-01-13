@@ -549,9 +549,17 @@ class _LoginScreenState extends State<LoginScreen> {
                           children: [
                             _buildModernSocialButton(
                               Image.network(
-                                'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_Color_Icon.svg/512px-Google_Color_Icon.svg.png',
+                                'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
                                 height: 28,
                                 width: 28,
+                                errorBuilder: (context, error, stackTrace) => const Text(
+                                  'G',
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.red,
+                                  ),
+                                ),
                               ),
                               'Google',
                               null,
