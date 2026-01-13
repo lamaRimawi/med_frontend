@@ -267,13 +267,26 @@ class _TimelineScreenState extends State<TimelineScreen> {
           _trendData = [];
         }
         
-        // Filter by patient
-        if (_selectedPatient != null) {
-          _trendData = _trendData.where((point) {
-            final details = _reportDetailsCache[point.reportId];
-            return details != null && details.patientInfo.name.trim() == _selectedPatient;
-          }).toList();
-        }
+        // Filter by patient and strict metric name/value matching
+        _trendData = _trendData.where((point) {
+          final details = _reportDetailsCache[point.reportId];
+          if (details == null) return false;
+          
+          // 1. Check patient name match
+          if (_selectedPatient != null && 
+              details.patientInfo.name.trim() != _selectedPatient) {
+            return false;
+          }
+          
+          // 2. Strict metric identification
+          // We look into the actual report details to find an exact match for the selected metric
+          // that also has the same value as this data point.
+          final hasExactMatch = details.testResults?.any((test) => 
+            test.name == metric && test.value == point.rawValue
+          ) ?? false;
+          
+          return hasExactMatch;
+        }).toList();
         
         // Sort by date just in case
         _trendData.sort((a, b) => DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
