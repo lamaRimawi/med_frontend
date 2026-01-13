@@ -658,12 +658,17 @@ class _SignupScreenState extends State<SignupScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               _buildModernSocialButton(
-                                Text(
-                                  'G',
-                                  style: TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.red,
+                                Image.network(
+                                  'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
+                                  height: 28,
+                                  width: 28,
+                                  errorBuilder: (context, error, stackTrace) => const Text(
+                                    'G',
+                                    style: TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.red,
+                                    ),
                                   ),
                                 ),
                                 'Google',
