@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -419,7 +419,7 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
                 width: 420,
                 decoration: BoxDecoration(
                   color: widget.isDarkMode
-                      ? const Color(0xFF0F2137)
+                      ? const Color(0xFF1E293B)
                       : Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(

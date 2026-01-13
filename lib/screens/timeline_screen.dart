@@ -994,7 +994,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
         ],
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
-             getTooltipColor: (touchedSpot) => isDark ? const Color(0xFF162447) : Colors.white,
+             getTooltipColor: (touchedSpot) => isDark ? const Color(0xFF1E293B) : Colors.white,
              getTooltipItems: (touchedSpots) {
               return touchedSpots.map((LineBarSpot touchedSpot) {
                 final point = _trendData[touchedSpot.x.toInt()];
@@ -1078,7 +1078,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF162447) : Colors.white.withOpacity(0.7),
+        color: isDark ? const Color(0xFF1E293B) : Colors.white.withOpacity(0.7),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: isDark ? Colors.white.withOpacity(0.1) : Colors.white),
         boxShadow: isDark ? null : [
@@ -1118,7 +1118,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
   Widget _buildHistoryList(bool isDark, Color textColor, Color? subTextColor) {
     final cardColor = isDark 
-        ? const Color(0xFF162447) 
+        ? const Color(0xFF1E293B) 
         : Colors.white.withOpacity(0.7);
 
     return Container(
@@ -1204,7 +1204,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
   Widget _buildEmptyChartSection(bool isDark, Color textColor, Color? subTextColor) {
     final cardColor = isDark 
-        ? const Color(0xFF162447) 
+        ? const Color(0xFF1E293B) 
         : Colors.white.withOpacity(0.7);
     
     final borderColor = isDark 
@@ -1389,7 +1389,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF162447) : Colors.white.withOpacity(0.7),
+          color: isDark ? const Color(0xFF1E293B) : Colors.white.withOpacity(0.7),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: isDark ? Colors.white.withOpacity(0.1) : Colors.white),
           boxShadow: isDark ? null : [
