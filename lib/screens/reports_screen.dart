@@ -1292,15 +1292,22 @@ class _ReportsScreenState extends State<ReportsScreen> {
         decoration: BoxDecoration(
           color: isDestructive
               ? (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2))
-              : (isDark ? const Color(0xFF162447) : const Color(0xFFF1F5F9)), // Navy blue for buttons
+              : (isDark
+                  ? const Color(0xFF39A4E6).withOpacity(0.1)
+                  : const Color(0xFF39A4E6).withOpacity(0.1)),
           borderRadius: BorderRadius.circular(12),
+          border: isDestructive
+              ? null
+              : Border.all(
+                  color: const Color(0xFF39A4E6).withOpacity(0.3),
+                ),
         ),
         child: Icon(
           icon,
           size: 20,
           color: isDestructive
               ? (isDark ? Colors.red[300] : Colors.red[500])
-              : (isDark ? Colors.grey[300] : const Color(0xFF64748B)),
+              : const Color(0xFF39A4E6),
         ),
       ),
     );
