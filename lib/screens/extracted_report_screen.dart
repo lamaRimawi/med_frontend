@@ -378,7 +378,7 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
   // Helper method for header buttons
   Widget _roundIconButton(IconData icon, {required VoidCallback onTap}) {
     return Material(
-      color: widget.isDarkMode ? const Color(0xFF0F2137) : Colors.grey.shade100,
+      color: widget.isDarkMode ? const Color(0xFF1E293B) : Colors.grey.shade100,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
@@ -419,7 +419,7 @@ class _ExtractedReportScreenState extends State<ExtractedReportScreen> {
                 width: 420,
                 decoration: BoxDecoration(
                   color: widget.isDarkMode
-                      ? const Color(0xFF1E293B)
+                      ? const Color(0xFF0F2137)
                       : Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(

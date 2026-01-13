@@ -805,7 +805,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        color: isDark ? const Color(0xFF0F2137) : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: isDark
