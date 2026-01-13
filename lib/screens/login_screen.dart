@@ -548,13 +548,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             _buildModernSocialButton(
-                              Text(
-                                'G',
-                                style: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.red,
-                                ),
+                              Image.network(
+                                'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_Color_Icon.svg/512px-Google_Color_Icon.svg.png',
+                                height: 28,
+                                width: 28,
                               ),
                               'Google',
                               null,
