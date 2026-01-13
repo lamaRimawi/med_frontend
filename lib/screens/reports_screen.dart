@@ -1615,39 +1615,48 @@ class _ReportsScreenState extends State<ReportsScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(LucideIcons.checkCircle, color: Colors.white, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Report saved successfully',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
+        // clear previous snackbars to prevent stacking
+        ScaffoldMessenger.of(context).clearSnackBars();
+        
+        final snackBar = SnackBar(
+          content: Row(
+            children: [
+              const Icon(LucideIcons.checkCircle, color: Colors.white, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Report saved successfully',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-              ],
-            ),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: const Color(0xFF10B981),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            elevation: 8,
-            duration: const Duration(seconds: 20),
-            action: SnackBarAction(
-              label: 'OPEN',
-              textColor: Colors.white,
-              onPressed: () {
-                OpenFile.open(path);
-              },
-            ),
+              ),
+            ],
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: const Color(0xFF10B981),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          elevation: 8,
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'OPEN',
+            textColor: Colors.white,
+            onPressed: () {
+              OpenFile.open(path);
+            },
           ),
         );
+
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        
+        // Final fallback: manually dismiss after 5.5 seconds just in case
+        Future.delayed(const Duration(milliseconds: 5500), () {
+          if (mounted) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          }
+        });
       }
     } catch (e) {
       debugPrint('Error generating/saving PDF: $e');
