@@ -1637,7 +1637,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
             elevation: 8,
-            duration: const Duration(seconds: 2),
+            duration: const Duration(seconds: 20),
             action: SnackBarAction(
               label: 'OPEN',
               textColor: Colors.white,
