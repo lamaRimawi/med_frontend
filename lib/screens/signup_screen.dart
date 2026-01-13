@@ -488,7 +488,7 @@ class _SignupScreenState extends State<SignupScreen> {
                          
                          CustomTextField(
                             label: 'Full Name',
-                            placeholder: 'Full Name',
+                            placeholder: 'Enter your full name',
                             icon: LucideIcons.user,
                             controller: _nameController,
                             validator: Validators.validateName,
@@ -595,7 +595,7 @@ class _SignupScreenState extends State<SignupScreen> {
                          const SizedBox(height: 20),
                          CustomTextField(
                             label: 'Password',
-                            placeholder: 'Password',
+                            placeholder: 'Create a password',
                             icon: LucideIcons.lock,
                             controller: _passwordController,
                             isPassword: true,
@@ -607,7 +607,7 @@ class _SignupScreenState extends State<SignupScreen> {
                          const SizedBox(height: 20),
                          CustomTextField(
                             label: 'Confirm Password',
-                            placeholder: 'Confirm Password',
+                            placeholder: 'Confirm your password',
                             icon: LucideIcons.lock,
                             controller: _confirmPasswordController,
                             isPassword: true,

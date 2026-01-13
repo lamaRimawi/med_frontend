@@ -158,7 +158,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
               hintText: widget.placeholder,
               hintStyle: TextStyle(
                 color: widget.hintColor ?? (_isDarkMode ? Colors.white.withValues(alpha: 0.6) : Colors.grey[500]),
-                fontSize: 14,
+                fontSize: 12,
               ),
               // Use prefix/suffix icon constraints to keep them at the edges while text is centered
               prefixIcon: Padding(

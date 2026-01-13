@@ -486,7 +486,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         
                         CustomTextField(
                           label: 'Password',
-                          placeholder: 'Password',
+                          placeholder: 'Enter your password',
                           icon: LucideIcons.lock,
                           controller: _passwordController,
                           isPassword: true,
