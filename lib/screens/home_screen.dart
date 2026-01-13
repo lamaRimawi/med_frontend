@@ -1115,14 +1115,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (!isSearching)
-                  Text(
-                    'Month',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 14,
-                    ),
-                  ),
               ],
             ),
             const SizedBox(height: 16),
