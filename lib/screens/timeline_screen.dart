@@ -278,6 +278,21 @@ class _TimelineScreenState extends State<TimelineScreen> {
         // Sort by date just in case
         _trendData.sort((a, b) => DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
         
+        // Deduplicate points with same date and value to handle potential backend/upload duplicates
+        final uniquePoints = <String, TrendDataPoint>{};
+        final dedupedList = <TrendDataPoint>[];
+        
+        for (var point in _trendData) {
+          // Create a unique key based on date and value
+          final key = '${point.date}_${point.value}';
+          
+          if (!uniquePoints.containsKey(key)) {
+            uniquePoints[key] = point;
+            dedupedList.add(point);
+          }
+        }
+        _trendData = dedupedList;
+        
         _isMetricLoading = false;
       });
     } catch (e) {
