@@ -1615,6 +1615,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       );
 
       if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
