@@ -171,11 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final cachedProfileId = ReportsService().cachedProfileId;
       
       // Determine if we want 'Self' (null profileId in cache) or specific profile
-      final targetProfileId = (_selectedProfileRelation == 'Self' || _selectedProfileId == null) 
-          ? null 
-          : _selectedProfileId;
-
-      if (cached != null && cachedProfileId == targetProfileId) {
+      if (cached != null && cachedProfileId == _selectedProfileId) {
         _mapReportsToUi(cached);
         setState(() => _isLoadingReports = false);
       } else {
@@ -187,15 +183,14 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       // 2. Fetch fresh
-      final isSelf = _selectedProfileRelation == 'Self' || _selectedProfileId == null;
       final reports = await ReportsService().getReports(
-        profileId: isSelf ? null : _selectedProfileId,
+        profileId: _selectedProfileId,
       );
 
       // 3. Fetch timeline for better names
       try {
         final timeline = await ReportsService().getTimeline(
-          profileId: isSelf ? null : _selectedProfileId,
+          profileId: _selectedProfileId,
         );
         final typeMap = <int, String>{};
         for (var item in timeline) {
@@ -366,28 +361,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _mapReportsToUi(List<Report> reports) {
-    // Filter reports if viewing 'Self' to exclude other profiles
-    // This is necessary because fetching with profileId=null (for Self) returns ALL reports
-    final isSelf = _selectedProfileRelation == 'Self' || _selectedProfileId == null;
-    
-    List<Report> filteredReports = reports;
-    
-    if (isSelf) {
-      filteredReports = reports.where((r) {
-        // Keep report if it has no profile ID (assumed Self/Legacy) 
-        // OR if it matches the current Self profile ID (if we have one)
-        // We explicitly exclude reports that have a profileId that DOES NOT match our current ID
-        if (r.profileId != null && _selectedProfileId != null) {
-           return r.profileId == _selectedProfileId;
-        }
-        // If report has profileId but we don't have one selected (shouldn't happen often if initialized),
-        // or if report has no profileId, we include it.
-        // Actually, if report has profileId (e.g. dependent) and we are null (Self), we should probably EXCLUDE it 
-        // if we assume Self reports have null ID.
-        // But let's stick to: if we have an ID, match it. If report has null, keep it.
-        return r.profileId == null || r.profileId == _selectedProfileId;
-      }).toList();
-    }
+    // Filter reports based on the currently selected profile ID
+    List<Report> filteredReports = reports.where((r) {
+      if (_selectedProfileId != null) {
+        return r.profileId == _selectedProfileId;
+      }
+      return r.profileId == null;
+    }).toList();
 
     _reports = filteredReports.map((r) {
       // Parse created_at (Upload Date) - Used for "Recent" bucketing
@@ -2114,14 +2094,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        notification.title,
-                        style: TextStyle(
-                          color: isDark ? Colors.white : const Color(0xFF111827),
-                          fontSize: 14,
-                          fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.w800,
+                      Expanded(
+                        child: Text(
+                          notification.title,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: TextStyle(
+                            color: isDark ? Colors.white : const Color(0xFF111827),
+                            fontSize: 14,
+                            fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.w800,
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Text(
                         notification.timeAgo,
                         style: TextStyle(

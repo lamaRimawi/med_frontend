@@ -167,20 +167,19 @@ class _ReportsScreenState extends State<ReportsScreen> {
       }
 
       // If 'Self', pass null to avoid backend verification checks reserved for other profiles
-      final isSelf = _selectedProfile == null || _selectedProfile?.relationship == 'Self';
-      final apiProfileId = isSelf ? null : _selectedProfile?.id;
-
       final reports = await ReportsService().getReports(
         forceRefresh: true,
-        profileId: apiProfileId,
+        profileId: _selectedProfileId,
       );
       
-      // Filter reports if viewing 'Self' to exclude other profiles
-      // This is necessary because fetching with profileId=null (for Self) returns ALL reports
-      List<Report> processedReports = reports;
-      if (isSelf && _selectedProfileId != null) {
-          processedReports = reports.where((r) => r.profileId == null || r.profileId == _selectedProfileId).toList();
-      }
+      // Filter reports to ensure they belong to the current profile
+      // Even if the backend returns all reports for some IDs, the frontend ensures strict consistency here.
+      List<Report> processedReports = reports.where((r) {
+        if (_selectedProfileId != null) {
+          return r.profileId == _selectedProfileId;
+        }
+        return r.profileId == null;
+      }).toList();
 
       // Fetch timeline to get report types
       try {

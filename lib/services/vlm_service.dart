@@ -24,17 +24,22 @@ class VlmService {
     print('VlmService: Response status: ${res.statusCode}');
     print('VlmService: Response body: ${res.body}');
 
-    // Handle duplicate report (409 Conflict)
-    if (res.statusCode == 409) {
+    // Handle specialized errors (403 Permission / 409 Duplicate)
+    if (res.statusCode == 403 || res.statusCode == 409) {
       try {
         final data = ApiClient.decodeJson<Map<String, dynamic>>(res);
+        final code = data['code'];
         final reportId = data['report_id'] ?? data['existing_report_id'];
-        final msg = _safeErr(res);
-        throw Exception('DUPLICATE_REPORT: $msg (report_id: $reportId)');
+        final msg = data['error'] ?? data['message'] ?? _safeErr(res);
+        
+        if (code == 'ACCESS_DENIED') {
+          throw Exception('ACCESS_DENIED: $msg');
+        }
+        if (code == 'DUPLICATE_FILE' || res.statusCode == 409) {
+          throw Exception('DUPLICATE_REPORT: $msg (report_id: $reportId)');
+        }
       } catch (e) {
-        if (e.toString().contains('DUPLICATE_REPORT')) rethrow;
-        final msg = _safeErr(res);
-        throw Exception('DUPLICATE_REPORT: $msg');
+        if (e.toString().contains('ACCESS_DENIED') || e.toString().contains('DUPLICATE_REPORT')) rethrow;
       }
     }
     
@@ -330,6 +335,28 @@ class VlmService {
       request.headers['Authorization'] = 'Bearer $token';
 
       final streamedResponse = await request.send();
+
+      // Check for immediate errors (403 Forbidden / 409 Conflict)
+      if (streamedResponse.statusCode != 200 && streamedResponse.statusCode != 201) {
+        final body = await streamedResponse.stream.bytesToString();
+        try {
+          final data = jsonDecode(body);
+          final code = data['code'];
+          final msg = data['error'] ?? data['message'] ?? body;
+          final reportId = data['report_id'] ?? data['existing_report_id'];
+          
+          if (code == 'ACCESS_DENIED') {
+            onError('ACCESS_DENIED: $msg');
+          } else if (code == 'DUPLICATE_FILE' || streamedResponse.statusCode == 409) {
+            onError('DUPLICATE_REPORT: $msg (report_id: $reportId)');
+          } else {
+            onError('Backend Error ${streamedResponse.statusCode}: $msg');
+          }
+        } catch (e) {
+          onError('Backend ${streamedResponse.statusCode}: $body');
+        }
+        return;
+      }
 
       streamedResponse.stream
           .transform(utf8.decoder)

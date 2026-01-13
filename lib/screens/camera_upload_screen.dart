@@ -385,6 +385,23 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
           debugPrint('Backend extraction error: $error');
           if (!mounted) return;
           
+          // Helper to reset loading state
+          void resetLoading() {
+            setState(() {
+              viewMode = ViewMode.review;
+              processingProgress = 0;
+            });
+          }
+
+          if (error.contains('ACCESS_DENIED')) {
+            resetLoading();
+             _showErrorDialog(
+               'View-Only Access',
+               'You only have view access to this profile. You cannot upload reports.',
+             );
+             return;
+          }
+          
           if (error.contains('DUPLICATE_REPORT')) {
             // Try to extract report ID from error message
             int? reportId;
@@ -396,10 +413,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
               }
             } catch (_) {}
             
-            setState(() {
-              processingProgress = 0;
-              viewMode = ViewMode.review;
-            });
+            resetLoading();
             _showDuplicateReportDialog(reportId);
             return;
           }
@@ -411,10 +425,10 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                   children: [
                     const Icon(LucideIcons.alertCircle, color: Colors.white, size: 20),
                     const SizedBox(width: 12),
-                    Expanded(
+                    const Expanded(
                       child: Text(
                         'Session expired. Please login again.',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
                       ),
                     ),
                   ],
@@ -432,106 +446,29 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
               (route) => false,
             );
           } else {
-            // Check if it's a duplicate error to show special notification
-            if (error.contains('Duplicate') || error.contains('duplicate') || error.contains('already been processed')) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.5)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF59E0B).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            LucideIcons.copy,
-                            color: Color(0xFFF59E0B),
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text(
-                                'Duplicate Report',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'This report has already been processed.',
-                                style: TextStyle(
-                                  color: Colors.grey[400],
-                                  fontSize: 13,
-                                  height: 1.3,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  behavior: SnackBarBehavior.floating,
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-                  padding: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  duration: const Duration(seconds: 4),
-                ),
-              );
-            } else {
-              // Regular error notification
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      const Icon(LucideIcons.xCircle, color: Colors.white, size: 20),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Processing failed: $error',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-                        ),
+            // Regular error notification
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(LucideIcons.xCircle, color: Colors.white, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Processing failed: $error',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
                       ),
-                    ],
-                  ),
-                  behavior: SnackBarBehavior.floating,
-                  backgroundColor: const Color(0xFFEF4444),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                  elevation: 8,
+                    ),
+                  ],
                 ),
-              );
-            }
-            setState(() {
-              viewMode = ViewMode.review;
-              processingProgress = 0;
-            });
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: const Color(0xFFEF4444),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                elevation: 8,
+              ),
+            );
+            resetLoading();
           }
         },
       );
