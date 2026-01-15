@@ -2822,21 +2822,17 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
                 ),
                 const SizedBox(height: 16),
-                _buildPrivacySwitchItem(
-                  LucideIcons.fingerprint,
-                  'Biometric Login',
-                  'Use fingerprint or face ID to login',
-                  _biometricEnabled,
-                  (val) async {
-                    if (kIsWeb) {
+                if (kIsWeb)
+                  _buildPrivacySwitchItem(
+                    LucideIcons.fingerprint,
+                    'Biometric Login',
+                    'Use fingerprint or face ID to login',
+                    _biometricEnabled,
+                    (val) async {
                       await _handleWebAuthnRegistration(val);
-                    } else {
-                      setState(() => _biometricEnabled = val);
-                      await _updateSetting('biometric_enabled', val);
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
+                    },
+                  ),
+                if (kIsWeb) const SizedBox(height: 16),
                 _buildPrivacySwitchItem(
                   LucideIcons.shieldCheck,
                   'Two-Factor Authentication',

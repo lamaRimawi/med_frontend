@@ -16,6 +16,7 @@ class User {
   final bool biometricEnabled;
   final bool shareMedicalData;
   final bool profileVisible;
+  final bool biometricAllowed;
 
   User({
     required this.firstName,
@@ -32,6 +33,7 @@ class User {
     this.biometricEnabled = false,
     this.shareMedicalData = true,
     this.profileVisible = true,
+    this.biometricAllowed = true,
   });
 
   String get fullName => '$firstName $lastName';
@@ -52,6 +54,9 @@ class User {
       biometricEnabled: json['biometric_enabled'] ?? false,
       shareMedicalData: json['share_medical_data'] ?? true,
       profileVisible: json['profile_visible'] ?? true,
+      biometricAllowed: json.containsKey('biometric_allowed')
+          ? json['biometric_allowed'] ?? true
+          : true,
     );
   }
 
@@ -71,6 +76,7 @@ class User {
       'biometric_enabled': biometricEnabled,
       'share_medical_data': shareMedicalData,
       'profile_visible': profileVisible,
+      'biometric_allowed': biometricAllowed,
     };
   }
 
@@ -99,6 +105,7 @@ class User {
     await prefs.setBool('user_biometric_enabled', user.biometricEnabled);
     await prefs.setBool('user_share_medical_data', user.shareMedicalData);
     await prefs.setBool('user_profile_visible', user.profileVisible);
+    await prefs.setBool('user_biometric_allowed', user.biometricAllowed);
   }
 
   // Load from SharedPreferences
@@ -130,6 +137,7 @@ class User {
         biometricEnabled: prefs.getBool('user_biometric_enabled') ?? false,
         shareMedicalData: prefs.getBool('user_share_medical_data') ?? true,
         profileVisible: prefs.getBool('user_profile_visible') ?? true,
+        biometricAllowed: prefs.getBool('user_biometric_allowed') ?? true,
       );
     }
     return null;
@@ -152,6 +160,7 @@ class User {
     await prefs.remove('user_biometric_enabled');
     await prefs.remove('user_share_medical_data');
     await prefs.remove('user_profile_visible');
+    await prefs.remove('user_biometric_allowed');
   }
 }
 

@@ -238,6 +238,14 @@ class AuthService {
     try {
       print('🔐 Starting biometric authentication...');
 
+      final prefs = await SharedPreferences.getInstance();
+      final biometricAllowed =
+          prefs.getBool('user_biometric_allowed') ?? true;
+      if (!biometricAllowed) {
+        print('❌ Biometric login is disabled for this account (local flag)');
+        return (false, 'Biometric login is disabled for this account');
+      }
+
       // First, check if biometrics are available
       final canAuth = await canCheckBiometrics() || await isDeviceSupported();
       if (!canAuth) {
@@ -258,7 +266,6 @@ class AuthService {
       print('✅ Biometric authentication successful');
 
       // Check for stored credentials
-      final prefs = await SharedPreferences.getInstance();
       final jwtToken = prefs.getString('jwt_token');
 
       // First, try to verify existing token with backend
@@ -268,6 +275,13 @@ class AuthService {
             await AuthApi.getUserProfile();
 
         if (profileSuccess && user != null) {
+          if (!user.biometricAllowed) {
+            print('❌ Biometric login is disabled for this account');
+            return (
+              false,
+              'Biometric login is disabled for this account',
+            );
+          }
           print('✅ Valid session found, logged in successfully');
           return (true, null);
         } else {
@@ -277,8 +291,10 @@ class AuthService {
       }
 
       // If token is invalid/expired, use saved credentials to re-login
-      final savedEmail = prefs.getString('user_email');
-      final savedPassword = prefs.getString('user_password');
+      final savedEmail =
+          prefs.getString('biometric_email') ?? prefs.getString('user_email');
+      final savedPassword = prefs.getString('biometric_password') ??
+          prefs.getString('user_password');
 
       if (savedEmail != null && savedPassword != null) {
         print('🔵 Re-authenticating with backend using saved credentials...');

@@ -173,6 +173,8 @@ class AuthApi {
       await prefs.setString('jwt_token', token);
       await prefs.setString('user_password', password);
       await prefs.setString('user_email', email);
+      await prefs.setString('biometric_email', email);
+      await prefs.setString('biometric_password', password);
       return (true, null, requires2FA: false);
     }
 

@@ -11,7 +11,7 @@ import '../services/auth_service.dart';
 import '../services/auth_api.dart';
 import '../services/profile_state_service.dart';
 import '../services/notification_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../models/user_model.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool isReturningUser;
@@ -31,6 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isAlertError = true;
   String _biometricType = 'Fingerprint';
   IconData _biometricIcon = LucideIcons.fingerprint;
+  bool _biometricAllowed = true;
 
   bool get _isDarkMode =>
       ThemeProvider.of(context)?.themeMode == ThemeMode.dark ?? false;
@@ -41,6 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.addListener(_validateForm);
     _passwordController.addListener(_validateForm);
     _loadBiometricType();
+    _loadBiometricAllowed();
   }
 
   Future<void> _loadBiometricType() async {
@@ -60,6 +62,19 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       print('⚠️ Error loading biometric type: $e');
       // Keep default values
+    }
+  }
+
+  Future<void> _loadBiometricAllowed() async {
+    try {
+      final user = await User.loadFromPrefs();
+      if (mounted && user != null) {
+        setState(() {
+          _biometricAllowed = user.biometricAllowed;
+        });
+      }
+    } catch (e) {
+      print('⚠️ Error loading biometric_allowed: $e');
     }
   }
 
@@ -305,20 +320,6 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         }
       } else if (provider == _biometricType) {
-        // Check if enabled first
-        final prefs = await SharedPreferences.getInstance();
-        final isEnabled = prefs.getBool('biometric_enabled') ?? false;
-
-        if (!isEnabled) {
-          if (!mounted) return;
-          setState(() {
-            _alertMessage = 'Biometric login is not enabled in Settings';
-            _isAlertError = true;
-            _isLoading = false;
-          });
-          return;
-        }
-
         final (success, message) = await AuthService.loginWithBiometrics();
 
         if (!mounted) return;
@@ -565,9 +566,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               null,
                             ),
                             const SizedBox(width: 20),
-                            _buildModernSocialButton(LucideIcons.facebook, 'Facebook', Colors.blue),
-                            const SizedBox(width: 20),
-                            _buildModernSocialButton(_biometricIcon, _biometricType, isDark ? Colors.white : Colors.black87),
+                            _buildModernSocialButton(
+                              LucideIcons.facebook,
+                              'Facebook',
+                              Colors.blue,
+                            ),
+                            if (_biometricAllowed) const SizedBox(width: 20),
+                            if (_biometricAllowed)
+                              _buildModernSocialButton(
+                                _biometricIcon,
+                                _biometricType,
+                                isDark ? Colors.white : Colors.black87,
+                              ),
                           ],
                         ),
                       ],
