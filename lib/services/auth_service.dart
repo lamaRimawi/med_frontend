@@ -18,6 +18,15 @@ class AuthService {
     try {
       print('Google Sign-In initiated');
 
+      // Always clear any previously selected Google account so the user
+      // is prompted to choose an account every time they sign in
+      try {
+        await _googleSignIn.signOut();
+        await _googleSignIn.disconnect();
+      } catch (e) {
+        print('Google Sign-In pre-clear error (ignored): $e');
+      }
+
       // Trigger the authentication flow
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null; // User cancelled
