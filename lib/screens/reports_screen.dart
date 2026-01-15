@@ -2024,11 +2024,18 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   font: ttf,
                 ),
                 cellStyle: pw.TextStyle(
-                  fontSize: 10,
+                  fontSize: 9,
                   color: PdfColors.grey800,
                   font: ttf,
                 ),
-                cellPadding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                cellPadding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(3),   // Test name
+                  1: const pw.FlexColumnWidth(1.5), // Value
+                  2: const pw.FlexColumnWidth(1.3), // Unit
+                  3: const pw.FlexColumnWidth(2.7), // Range
+                  4: const pw.FlexColumnWidth(1.8), // Status (wider to avoid word breaking)
+                },
                 data: <List<String>>[
                   <String>['TEST NAME', 'VALUE', 'UNIT', 'RANGE', 'STATUS'],
                   ...validFields.map(
