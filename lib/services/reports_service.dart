@@ -133,21 +133,32 @@ class ReportsService {
 
   Future<void> deleteReport(int reportId, {int? profileId}) async {
     try {
-       Map<String, String>? headers;
-       if (profileId != null) {
-          final sessionToken = await _client.getSessionToken('profile', profileId.toString());
-          if (sessionToken != null) {
-            headers = {'X-Access-Session-Token': sessionToken};
-          }
-       }
+      Map<String, String>? headers;
+      String path = '${ApiConfig.reports}/$reportId';
+
+      if (profileId != null) {
+        final sessionToken =
+            await _client.getSessionToken('profile', profileId.toString());
+        if (sessionToken != null) {
+          headers = {'X-Access-Session-Token': sessionToken};
+        }
+        path = '$path?profile_id=$profileId';
+      }
+
+      debugPrint(
+        'ReportsService.deleteReport: DELETE $path profileId=$profileId hasSessionHeader=${headers != null}',
+      );
 
       final response = await _client.delete(
-        '${ApiConfig.reports}/$reportId',
+        path,
         auth: true,
         headers: headers,
       );
 
       if (response.statusCode != 200) {
+        debugPrint(
+          'ReportsService Delete Error [${response.statusCode}]: ${response.body}',
+        );
         throw Exception('Failed to delete report: ${response.statusCode}');
       }
     } catch (e) {
