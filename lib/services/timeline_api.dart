@@ -20,11 +20,17 @@ class TimelineApi {
         headers = {'X-Access-Session-Token': sessionToken};
       }
     }
+    debugPrint(
+      'TimelineApi.getTimeline: profileId=$profileId path=$path hasSessionHeader=${headers != null}',
+    );
     final response = await _client.get(path, auth: true, headers: headers);
 
     if (response.statusCode == 200) {
       final data = ApiClient.decodeJson<Map<String, dynamic>>(response);
       final timelineList = data['timeline'] as List;
+      debugPrint(
+        'TimelineApi.getTimeline: received ${timelineList.length} items for profileId=$profileId',
+      );
       return timelineList.map((item) => TimelineReport.fromJson(item)).toList();
     } else {
       debugPrint('TimelineApi Error [${response.statusCode}]: ${response.body}');
@@ -94,6 +100,9 @@ class TimelineApi {
       }
     }
 
+    debugPrint(
+      'TimelineApi.getReport: reportId=$reportId profileId=$profileId hasSessionHeader=${headers != null}',
+    );
     final response = await _client.get(
       '${ApiConfig.reports}/$reportId',
       auth: true,
@@ -123,6 +132,9 @@ class TimelineApi {
           }
       }
 
+      debugPrint(
+        'TimelineApi.getReport: mapped reportId=$reportId profileId=$profileId patientName=$patientName testsCount=${fieldsList?.length ?? 0}',
+      );
       return ExtractedReportData(
         reportType: data['report_type'] ?? 'General',
         patientInfo: PatientInfo(

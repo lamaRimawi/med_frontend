@@ -108,9 +108,15 @@ class _TimelineScreenState extends State<TimelineScreen> {
     // Removed Demo Data Logic
 
     try {
+      debugPrint(
+        'TimelineScreen: loading timeline for profileId=$_selectedProfileId name=$_selectedProfileName',
+      );
       // 1. Fetch the timeline to get report IDs
       final timeline = await TimelineApi.getTimeline(profileId: _selectedProfileId);
       _timelineReports = timeline;
+      debugPrint(
+        'TimelineScreen: received ${_timelineReports.length} timeline items for profileId=$_selectedProfileId',
+      );
 
       // 2. Fetch details for each report to discover available metrics
       // Note: In a production app with pagination, we wouldn't fetch ALL details at once.
@@ -141,6 +147,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
           _selectedPatient = _patientNames.first;
         }
       }
+
+      debugPrint(
+        'TimelineScreen: patientNames=$_patientNames selectedPatient=$_selectedPatient metricsCount=${_availableMetrics.length}',
+      );
 
       // Check for partial failures
       if (_timelineReports.isNotEmpty && _reportDetailsCache.isEmpty) {
