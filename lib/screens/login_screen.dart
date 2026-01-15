@@ -52,8 +52,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
       setState(() {
         _biometricType = biometricType;
-        // Keep the fingerprint icon as it was before
-        _biometricIcon = LucideIcons.fingerprint;
+        if (biometricType == 'Face ID') {
+          _biometricIcon = Icons.face;
+        } else if (biometricType == 'Fingerprint') {
+          _biometricIcon = LucideIcons.fingerprint;
+        } else {
+          _biometricIcon = LucideIcons.fingerprint;
+        }
       });
 
       print(
