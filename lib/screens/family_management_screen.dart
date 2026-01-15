@@ -590,8 +590,6 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
       itemBuilder: (context) => [
         if (canShare)
           _buildPopupItem(LucideIcons.share2, 'Share Access', 'share', isDark),
-        if (canEdit)
-          _buildPopupItem(LucideIcons.edit3, 'Edit Details', 'edit', isDark),
         if (canTransfer)
           _buildPopupItem(LucideIcons.arrowRightLeft, 'Transfer Ownership', 'transfer', isDark, color: Colors.orange),
         if (canDelete)
@@ -599,10 +597,15 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
       ],
       onSelected: (value) {
         switch (value) {
-          case 'share': _showShareProfileDialog(profile); break;
-          case 'edit': _showEditProfileDialog(profile); break;
-          case 'transfer': _showTransferOwnershipDialog(profile); break;
-          case 'delete': _confirmDeleteProfile(profile); break;
+          case 'share':
+            _showShareProfileDialog(profile);
+            break;
+          case 'transfer':
+            _showTransferOwnershipDialog(profile);
+            break;
+          case 'delete':
+            _confirmDeleteProfile(profile);
+            break;
         }
       },
     );
@@ -662,6 +665,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
 
   Widget _buildConnectionsTab() {
     final isDark = _isDarkMode;
+    const double horizontalPadding = 20.0;
     
     if (_sentConnections.isEmpty && _receivedConnections.isEmpty) {
       return Center(
@@ -711,7 +715,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
       onRefresh: _loadData,
       color: const Color(0xFF39A4E6),
       child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 8),
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           if (_receivedConnections.isNotEmpty) ...[
@@ -743,8 +747,10 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
 
   Widget _buildConnectionCard(FamilyConnection conn, {required bool isReceived}) {
     final isDark = _isDarkMode;
-    final email = isReceived ? (conn.fromEmail ?? 'Unknown') : (conn.toEmail ?? 'Unknown');
     final status = conn.status;
+    final String accountLabel = (conn.name != null && conn.name!.isNotEmpty)
+        ? conn.name!
+        : 'Shared account';
     
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -764,16 +770,16 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           children: [
             Row(
               children: [
                 Container(
-                  width: 54,
-                  height: 54,
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(16),
                     gradient: LinearGradient(
                       colors: [Colors.orange.shade400, Colors.orange.shade700],
                       begin: Alignment.topLeft,
@@ -782,8 +788,8 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                     boxShadow: [
                       BoxShadow(
                         color: Colors.orange.withOpacity(0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
@@ -799,26 +805,35 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        (conn.name != null && conn.name!.isNotEmpty) ? conn.name! : email,
+                        conn.relationship,
                         style: TextStyle(
                           fontWeight: FontWeight.w800,
-                          fontSize: 15,
+                          fontSize: 14,
                           color: isDark ? Colors.white : const Color(0xFF111827),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 4,
-                        children: [
-                          _buildSmallBadge(LucideIcons.user, conn.relationship, isDark),
-                          // Only show access level if it's not 'view' to reduce text
-                          if (conn.accessLevel != null && conn.accessLevel != 'view')
-                            _buildSmallBadge(LucideIcons.shield, conn.accessLevel!, isDark),
-                        ],
+                      const SizedBox(height: 4),
+                      Text(
+                        accountLabel,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                          color: isDark ? Colors.grey[300] : Colors.grey[600],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
+                      const SizedBox(height: 6),
+                      if (conn.accessLevel != null && conn.accessLevel != 'view')
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: [
+                            _buildSmallBadge(LucideIcons.shield, conn.accessLevel!, isDark),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -956,6 +971,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
     if (gender == null || gender.isEmpty) gender = 'Male';
 
     String? relationship = profile?.relationship;
+    final bool isSelfProfile = profile?.relationship == 'Self';
     
     // For DOB, keep it as a controller for the text field, but manage DateTime separately if needed
     final dobController = TextEditingController(text: profile?.dateOfBirth);
@@ -1058,43 +1074,71 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
                   ),
                   const SizedBox(height: 16),
 
-                  // Relationship Dropdown
-                  DropdownButtonFormField<String>(
-                    value: relationship,
-                    decoration: InputDecoration(
-                      labelText: 'Relationship',
-                      labelStyle: TextStyle(
-                        color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                      ),
-                      prefixIcon: Icon(
-                        LucideIcons.users,
-                        color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                        size: 20,
-                      ),
-                      filled: true,
-                      fillColor: _isDarkMode ? const Color(0xFF0A1929) : Colors.grey[50],
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: _isDarkMode ? Colors.grey[800]! : Colors.grey[200]!,
+                  if (isSelfProfile)
+                    TextFormField(
+                      initialValue: 'Self',
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Relationship',
+                        labelStyle: TextStyle(
+                          color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                        prefixIcon: Icon(
+                          LucideIcons.users,
+                          color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                          size: 20,
+                        ),
+                        filled: true,
+                        fillColor: _isDarkMode ? const Color(0xFF0A1929) : Colors.grey[50],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: _isDarkMode ? Colors.grey[800]! : Colors.grey[200]!,
+                          ),
                         ),
                       ),
+                    )
+                  else
+                    DropdownButtonFormField<String>(
+                      value: relationship,
+                      decoration: InputDecoration(
+                        labelText: 'Relationship',
+                        labelStyle: TextStyle(
+                          color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                        prefixIcon: Icon(
+                          LucideIcons.users,
+                          color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                          size: 20,
+                        ),
+                        filled: true,
+                        fillColor: _isDarkMode ? const Color(0xFF0A1929) : Colors.grey[50],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: _isDarkMode ? Colors.grey[800]! : Colors.grey[200]!,
+                          ),
+                        ),
+                      ),
+                      dropdownColor: _isDarkMode ? const Color(0xFF132F4C) : Colors.white,
+                      style: TextStyle(color: _isDarkMode ? Colors.white : Colors.black),
+                      items: familyRoles.map((role) {
+                        return DropdownMenuItem(
+                          value: role,
+                          child: Text(role),
+                        );
+                      }).toList(),
+                      onChanged: (val) => setModalState(() => relationship = val),
+                      validator: (val) => val == null ? 'Please select a relationship' : null,
                     ),
-                    dropdownColor: _isDarkMode ? const Color(0xFF132F4C) : Colors.white,
-                    style: TextStyle(color: _isDarkMode ? Colors.white : Colors.black),
-                    items: familyRoles.map((role) {
-                      return DropdownMenuItem(
-                        value: role,
-                        child: Text(role),
-                      );
-                    }).toList(),
-                    onChanged: (val) => setModalState(() => relationship = val),
-                    validator: (val) => val == null ? 'Please select a relationship' : null,
-                  ),
                   const SizedBox(height: 16),
 
                   // Gender & DOB Row
@@ -1586,75 +1630,221 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> with Si
   }
 
   void _showShareProfileDialog(UserProfile profile) {
-     final emailController = TextEditingController();
-     
-     showDialog(
-       context: context,
-       builder: (context) => AlertDialog(
-         backgroundColor: _isDarkMode ? const Color(0xFF132F4C) : Colors.white,
-         title: Text('Share ${profile.firstName}\'s Profile', style: TextStyle(color: _isDarkMode ? Colors.white : Colors.black)),
-         content: Column(
-           mainAxisSize: MainAxisSize.min,
-           children: [
-             Text('Allow another user (e.g. spouse) to view/manage this profile.', style: TextStyle(color: Colors.grey)),
-             const SizedBox(height: 16),
-             _buildTextField(controller: emailController, label: 'User Email', icon: LucideIcons.mail, isDark: _isDarkMode),
-           ],
-         ),
-         actions: [
-           TextButton(child: const Text('Cancel'), onPressed: () => Navigator.pop(context)),
-           TextButton(
-             child: const Text('Share'),
-             onPressed: () {
-               Navigator.pop(context);
-               _sendConnectionRequest(emailController.text, 'Family Member', profileId: profile.id);
-             },
-           ),
-         ],
-       ),
-     );
+    final emailController = TextEditingController();
+
+    final existingEmails = <String>{};
+    for (final conn in _sentConnections.where((c) => c.status == 'accepted')) {
+      if (conn.toEmail != null && conn.toEmail!.isNotEmpty) {
+        existingEmails.add(conn.toEmail!);
+      }
+    }
+    for (final conn in _receivedConnections.where((c) => c.status == 'accepted')) {
+      if (conn.fromEmail != null && conn.fromEmail!.isNotEmpty) {
+        existingEmails.add(conn.fromEmail!);
+      }
+    }
+
+    String? selectedEmail;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          backgroundColor: _isDarkMode ? const Color(0xFF132F4C) : Colors.white,
+          title: Text(
+            'Share ${profile.firstName}\'s Profile',
+            style: TextStyle(color: _isDarkMode ? Colors.white : Colors.black),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Allow a trusted person to view or manage this profile.',
+                  style: TextStyle(color: _isDarkMode ? Colors.grey[300] : Colors.grey[700]),
+                ),
+                if (existingEmails.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    'Choose from existing connections',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: _isDarkMode ? Colors.grey[200] : Colors.grey[800],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: existingEmails.map((email) {
+                      final isSelected = email == selectedEmail;
+                      return ChoiceChip(
+                        label: Text(
+                          email,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        selected: isSelected,
+                        onSelected: (_) {
+                          setState(() {
+                            selectedEmail = email;
+                            emailController.text = email;
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                _buildTextField(
+                  controller: emailController,
+                  label: 'User Email',
+                  icon: LucideIcons.mail,
+                  isDark: _isDarkMode,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(context),
+            ),
+            TextButton(
+              child: const Text('Share'),
+              onPressed: () {
+                Navigator.pop(context);
+                _sendConnectionRequest(emailController.text, 'Family Member', profileId: profile.id);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
 
   void _showTransferOwnershipDialog(UserProfile profile) {
-     final emailController = TextEditingController();
-     
-     showDialog(
-       context: context,
-       builder: (context) => AlertDialog(
-         backgroundColor: _isDarkMode ? const Color(0xFF132F4C) : Colors.white,
-         title: Text('Transfer Ownership', style: TextStyle(color: _isDarkMode ? Colors.white : Colors.black)),
-         content: Column(
-           mainAxisSize: MainAxisSize.min,
-           children: [
-              const Text('Transfer this profile to the child/person themselves. They must have an account.', style: TextStyle(color: Colors.grey)),
-              const SizedBox(height: 8),
-              Container(padding: const EdgeInsets.all(8), color: Colors.orange.withOpacity(0.1), 
-                child: Row(children: [Icon(LucideIcons.alertTriangle, color: Colors.orange, size: 16), SizedBox(width:8), Expanded(child: Text('You will lose ownership but may retain shared access.', style: TextStyle(color: Colors.orange, fontSize: 12)))])
-              ),
-              const SizedBox(height: 16),
-              _buildTextField(controller: emailController, label: 'Their Account Email', icon: LucideIcons.mail, isDark: _isDarkMode),
-           ],
-         ),
-         actions: [
-           TextButton(child: const Text('Cancel'), onPressed: () => Navigator.pop(context)),
-           ElevatedButton(
-             style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-             child: const Text('Transfer', style: TextStyle(color: Colors.white)),
-             onPressed: () async {
+    final emailController = TextEditingController();
+
+    final existingEmails = <String>{};
+    for (final conn in _sentConnections.where((c) => c.status == 'accepted')) {
+      if (conn.toEmail != null && conn.toEmail!.isNotEmpty) {
+        existingEmails.add(conn.toEmail!);
+      }
+    }
+    for (final conn in _receivedConnections.where((c) => c.status == 'accepted')) {
+      if (conn.fromEmail != null && conn.fromEmail!.isNotEmpty) {
+        existingEmails.add(conn.fromEmail!);
+      }
+    }
+
+    String? selectedEmail;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          backgroundColor: _isDarkMode ? const Color(0xFF132F4C) : Colors.white,
+          title: Text(
+            'Transfer Ownership',
+            style: TextStyle(color: _isDarkMode ? Colors.white : Colors.black),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Transfer this profile to the person themselves. They must have an account.',
+                  style: TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  color: Colors.orange.withOpacity(0.1),
+                  child: Row(
+                    children: [
+                      Icon(LucideIcons.alertTriangle, color: Colors.orange, size: 16),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'You will lose ownership but may retain shared access.',
+                          style: TextStyle(color: Colors.orange, fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (existingEmails.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    'Choose an existing connection',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: _isDarkMode ? Colors.grey[200] : Colors.grey[800],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: existingEmails.map((email) {
+                      final isSelected = email == selectedEmail;
+                      return ChoiceChip(
+                        label: Text(
+                          email,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        selected: isSelected,
+                        onSelected: (_) {
+                          setState(() {
+                            selectedEmail = email;
+                            emailController.text = email;
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                _buildTextField(
+                  controller: emailController,
+                  label: 'Their Account Email',
+                  icon: LucideIcons.mail,
+                  isDark: _isDarkMode,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(context),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+              child: const Text('Transfer', style: TextStyle(color: Colors.white)),
+              onPressed: () async {
                 Navigator.pop(context);
                 try {
-                   await ProfileService.transferOwnership(profileId: profile.id, email: emailController.text);
-                   _loadData();
-                   if (mounted) _showToast('Transfer request sent successfully');
-                } catch(e) {
-                   if (mounted) _showToast('Error: $e', isError: true);
+                  await ProfileService.transferOwnership(
+                    profileId: profile.id,
+                    email: emailController.text,
+                  );
+                  _loadData();
+                  if (mounted) _showToast('Transfer request sent successfully');
+                } catch (e) {
+                  if (mounted) _showToast('Error: $e', isError: true);
                 }
-             },
-           ),
-         ],
-       ),
-     );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _confirmDeleteProfile(UserProfile profile) {
