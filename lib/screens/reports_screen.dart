@@ -774,24 +774,24 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _selectedProfileRelation == 'Self' || _selectedProfile == null
-                              ? 'My Medical Reports'
-                              : 'Medical Reports for ${_selectedProfile?.firstName ?? "Family Member"}',
+                          'Medical Reports',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: isDark ? Colors.white : const Color(0xFF111827),
                           ),
                         ),
-                        if (_selectedProfileRelation != 'Self' && _selectedProfile != null)
+                        if (_selectedProfile != null)
                           Text(
-                             'Viewing ${_selectedProfile!.firstName}\'s Records',
-                             style: TextStyle(
-                               fontSize: 12, 
-                               color: const Color(0xFF39A4E6), 
-                               fontWeight: FontWeight.w500
-                             ),
-                          )
+                            _selectedProfileRelation == 'Self'
+                                ? 'Viewing my records'
+                                : 'Viewing ${_selectedProfile!.firstName}\'s records',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: const Color(0xFF39A4E6),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                       ],
                     ),
                   ),
