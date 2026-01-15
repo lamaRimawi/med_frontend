@@ -29,16 +29,12 @@ class UserProfile {
 
   /// Check if current user is the owner of this profile
   bool isOwner(int? currentUserId) {
-    // Explicit access level check is most reliable
+    if (currentUserId == null) return false;
     if (accessLevel == 'owner') return true;
-    
-    // Fallback logic
-    if (currentUserId == null || creatorId == null) {
-      return relationship == 'Self' || !isShared;
-    }
-    return creatorId == currentUserId;
+    if (creatorId != null && creatorId == currentUserId) return true;
+    return false;
   }
-  
+
   bool get canManage => accessLevel == 'owner' || accessLevel == 'manage';
   bool get canUpload => canManage || accessLevel == 'upload';
 
