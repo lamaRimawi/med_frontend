@@ -166,7 +166,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
         });
       }
 
-      // If 'Self', pass null to avoid backend verification checks reserved for other profiles
+      debugPrint(
+        'ReportsScreen._fetchReports: fetching for profileId=$_selectedProfileId relation=$_selectedProfileRelation',
+      );
       final reports = await ReportsService().getReports(
         forceRefresh: true,
         profileId: _selectedProfileId,
@@ -181,9 +183,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
         return r.profileId == null;
       }).toList();
 
+      debugPrint(
+        'ReportsScreen._fetchReports: apiReports=${reports.length} filteredReports=${processedReports.length} for profileId=$_selectedProfileId',
+      );
+
       // Fetch timeline to get report types
       try {
-        final timeline = await ReportsService().getTimeline();
+        final timeline = await ReportsService().getTimeline(
+          profileId: _selectedProfileId,
+        );
         final typeMap = <int, String>{};
         for (var item in timeline) {
           if (item['report_id'] != null && item['report_type'] != null) {

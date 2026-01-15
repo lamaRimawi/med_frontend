@@ -256,7 +256,24 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Future<void> _loadRecentReports() async {
     try {
-      final reports = await ReportsService().getReports();
+      final selectedProfile = await ProfileStateService().getSelectedProfile();
+      int? profileId;
+      String? relation;
+      if (selectedProfile != null) {
+        profileId = selectedProfile.id;
+        relation = selectedProfile.relationship;
+      }
+
+      final effectiveProfileId =
+          relation == 'Self' ? null : profileId;
+
+      debugPrint(
+        'ProfileScreen._loadRecentReports: loading for profileId=$effectiveProfileId rawProfileId=$profileId relation=$relation',
+      );
+
+      final reports = await ReportsService().getReports(
+        profileId: effectiveProfileId,
+      );
       if (mounted) {
         setState(() {
           _medicalReports = reports

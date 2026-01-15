@@ -43,7 +43,7 @@ class ReportsService {
         if (profileId != null) {
           path = '$path?profile_id=$profileId';
         }
-        
+
         // Check for session token
         Map<String, String>? headers;
         if (profileId != null) {
@@ -53,7 +53,9 @@ class ReportsService {
              headers = {'X-Access-Session-Token': sessionToken};
            }
         }
-
+        debugPrint(
+          'ReportsService.getReports: GET $path profileId=$profileId hasSessionHeader=${headers != null}',
+        );
         final response = await _client.get(path, auth: true, headers: headers);
 
         if (response.statusCode == 200) {
@@ -63,6 +65,10 @@ class ReportsService {
           final parsedReports = reportsList
               .map((e) => Report.fromJson(e as Map<String, dynamic>))
               .toList();
+
+          debugPrint(
+            'ReportsService.getReports: parsed ${parsedReports.length} reports for profileId=$profileId',
+          );
 
           // Update cache for this profile
           _cachedReports = parsedReports;

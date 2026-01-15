@@ -86,11 +86,18 @@ class _WebReportsViewState extends State<WebReportsView> {
     });
 
     try {
-      final reports = await ReportsService().getReports(profileId: _selectedProfileId);
+      debugPrint(
+        'WebReportsView._loadReports: fetching for profileId=$_selectedProfileId',
+      );
+      final reports = await ReportsService().getReports(
+        profileId: _selectedProfileId,
+      );
       
       // Fetch timeline to get report types
       try {
-        final timeline = await ReportsService().getTimeline();
+        final timeline = await ReportsService().getTimeline(
+          profileId: _selectedProfileId,
+        );
         final typeMap = <int, String>{};
         for (var item in timeline) {
           if (item['report_id'] != null && item['report_type'] != null) {
