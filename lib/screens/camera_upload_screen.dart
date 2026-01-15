@@ -339,7 +339,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
     });
   }
 
-  void _handleProcess() {
+  void _handleProcess({bool allowDuplicate = false}) {
     setState(() {
       viewMode = ViewMode.processing;
       processingProgress = 0;
@@ -352,6 +352,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
       VlmService.extractFromImagesStreamed(
         capturedItems.map((e) => e.path).toList(),
         profileId: selectedProfile?.id,
+        allowDuplicate: allowDuplicate,
         onProgress: (status, percent) {
           if (!mounted) return;
           setState(() {
@@ -402,7 +403,7 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
              return;
           }
           
-          if (error.contains('DUPLICATE_REPORT')) {
+          if (error.contains('DUPLICATE_REPORT') && !allowDuplicate) {
             // Try to extract report ID from error message
             int? reportId;
             try {
@@ -542,7 +543,6 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
               
               const SizedBox(height: 24),
               
-              // Buttons
               Row(
                 children: [
                   Expanded(
@@ -557,8 +557,8 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         side: BorderSide(
-                          color: widget.isDarkMode 
-                              ? Colors.grey[700]! 
+                          color: widget.isDarkMode
+                              ? Colors.grey[700]!
                               : Colors.grey[300]!,
                           width: 1.5,
                         ),
@@ -582,21 +582,18 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                     child: ElevatedButton.icon(
                       onPressed: () {
                         Navigator.pop(context);
-                        
                         if (reportId != null) {
-                          // Navigate to the extracted report screen with the report ID
                           Navigator.pushNamed(
                             context,
                             '/extracted-report',
                             arguments: reportId,
                           );
                         } else {
-                          // Fallback: go to reports list
                           Navigator.of(context).popUntil((route) => route.isFirst);
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981), // Green
+                        backgroundColor: const Color(0xFF10B981),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         elevation: 0,
@@ -616,6 +613,26 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                   ),
                 ],
               ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2, end: 0),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _handleProcess(allowDuplicate: true);
+                  },
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: const Text(
+                    'Upload anyway',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ).animate().fadeIn(delay: 350.ms).slideY(begin: 0.2, end: 0),
             ],
           ),
         ),

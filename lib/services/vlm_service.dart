@@ -295,6 +295,7 @@ class VlmService {
       required Function(ExtractedReportData data) onComplete,
       required Function(String error) onError,
       int? profileId,
+      bool allowDuplicate = false,
     }) async {
     await extractFromImagesStreamed(
       [filePath],
@@ -302,6 +303,7 @@ class VlmService {
       onComplete: onComplete,
       onError: onError,
       profileId: profileId,
+      allowDuplicate: allowDuplicate,
     );
   }
 
@@ -311,6 +313,7 @@ class VlmService {
       required Function(ExtractedReportData data) onComplete,
       required Function(String error) onError,
       int? profileId,
+      bool allowDuplicate = false,
     }) async {
     final client = ApiClient.instance;
     final token = await client.getToken();
@@ -330,6 +333,9 @@ class VlmService {
       
       if (profileId != null) {
         request.fields['profile_id'] = profileId.toString();
+      }
+      if (allowDuplicate) {
+        request.fields['allow_duplicate'] = 'true';
       }
       
       request.headers['Authorization'] = 'Bearer $token';
