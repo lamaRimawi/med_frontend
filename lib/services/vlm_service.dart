@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 
 import 'package:http/http.dart' as http;
 
@@ -364,15 +365,18 @@ class VlmService {
         return;
       }
 
+      bool wasCompleted = false;
+
       streamedResponse.stream
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen(
         (String line) async {
           if (line.trim().isEmpty) return;
+          if (wasCompleted) return;
 
           try {
-            print('VlmStream: $line');
+            debugPrint('VlmStream: $line');
             
             // Handle SSE format: strip "data: " prefix if present
             String jsonStr = line;
@@ -390,11 +394,12 @@ class VlmService {
               
               // Check if this is the final completion message
               if (percent >= 100 && data.containsKey('report_id')) {
-                print('VlmStream: Completion detected with report_id: ${data['report_id']}');
+                debugPrint('VlmStream: Completion detected with report_id: ${data['report_id']}');
+                wasCompleted = true;
                 // Fetch the full report using the report_id
                 try {
                   final reportId = data['report_id'] as int;
-                  print('VlmStream: Fetching full report details for ID: $reportId');
+                  debugPrint('VlmStream: Fetching full report details for ID: $reportId');
                   
                   final client = ApiClient.instance;
                   final detailRes = await client.get(
@@ -402,14 +407,14 @@ class VlmService {
                     auth: true,
                   );
                   
-                  print('VlmStream: Fetch status: ${detailRes.statusCode}');
+                  debugPrint('VlmStream: Fetch status: ${detailRes.statusCode}');
                   
                   if (detailRes.statusCode == 200) {
                     final detailData = ApiClient.decodeJson<Map<String, dynamic>>(detailRes);
                     // Handle wrapped response { "report": { ... } } or flat { ... }
                     final fullReport = detailData['report'] as Map<String, dynamic>? ?? detailData;
                     
-                    print('VlmStream: Report keys: ${fullReport.keys.toList()}');
+                    debugPrint('VlmStream: Report keys: ${fullReport.keys.toList()}');
                     
                     // Parsing with fallbacks
                     final report = _parseReportData(fullReport);
@@ -418,11 +423,12 @@ class VlmService {
                     onError('Failed to fetch report details: ${detailRes.statusCode}');
                   }
                 } catch (e) {
-                  print('Error fetching report: $e');
+                  debugPrint('Error fetching report: $e');
                   onError('Failed to load report: $e');
                 }
               }
             } else if (data['type'] == 'result') {
+               wasCompleted = true;
                final resultData = data['data'];
                if (resultData != null) {
                  final report = _parseReportData(resultData);
@@ -432,18 +438,20 @@ class VlmService {
                  onComplete(report);
                }
             } else if (data['error'] != null) {
-               onError(data['error'].toString());
+               if (!wasCompleted) {
+                 onError(data['error'].toString());
+               }
             }
           } catch (e) {
-            print('Error parsing update: $e');
+            debugPrint('Error parsing update: $e');
           }
         },
         onError: (error) {
-          print('Network Error: $error');
-          onError(error.toString());
+          debugPrint('Network Error: $error');
+          if (!wasCompleted) onError(error.toString());
         },
         onDone: () {
-          print('Stream closed.');
+          debugPrint('Stream closed.');
         },
       );
     } catch (e) {

@@ -520,6 +520,60 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
   }
 
+  String _getReportDisplayDate(Report report) {
+    // Priority 1: Check for explicit "Report Date" or similar in fields
+    final dateKeywords = [
+      'report date', 'test date', 'collection date', 'date of test', 
+      'investigation date', 'date', 'reported', 'received date', 
+      'date printed', 'sampling date'
+    ];
+    
+    final datePattern = RegExp(r'\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}');
+    String? bestGuess;
+
+    // Check main fields
+    for (var f in report.fields) {
+      final name = f.fieldName.toLowerCase().replaceAll('_', ' ');
+      final value = f.fieldValue.trim();
+      
+      if (value.isEmpty || value.toLowerCase() == 'n/a' || value.toLowerCase() == 'null') continue;
+
+      // Exact keyword match
+      if (dateKeywords.any((k) => name == k || name.contains(k))) {
+        return value.split('T')[0].split(' ')[0];
+      }
+      
+      // If we see a value that looks like a date, save it as a backup
+      if (bestGuess == null && datePattern.hasMatch(value)) {
+        bestGuess = value.split('T')[0].split(' ')[0];
+      }
+    }
+    
+    // Check additional fields
+    for (var f in report.additionalFields) {
+      final name = f.fieldName.toLowerCase().replaceAll('_', ' ');
+      final value = f.fieldValue.trim();
+
+      if (value.isEmpty || value.toLowerCase() == 'n/a' || value.toLowerCase() == 'null') continue;
+
+      if (dateKeywords.any((k) => name == k || name.contains(k))) {
+        return value.split('T')[0].split(' ')[0];
+      }
+
+      if (bestGuess == null && datePattern.hasMatch(value)) {
+        bestGuess = value.split('T')[0].split(' ')[0];
+      }
+    }
+
+    // Try our "best guess" regex match if no keyword match was found
+    if (bestGuess != null) return bestGuess;
+
+    // Priority 2: Fallback to top-level reportDate
+    return report.reportDate.contains('T') 
+        ? report.reportDate.split('T')[0] 
+        : report.reportDate.split(' ')[0];
+  }
+
   Future<void> _handleViewReport(Report report) async {
     try {
       // Show loading
@@ -1200,10 +1254,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
-                              // Ensure valid date format or fallback
-                              report.reportDate.contains('T') 
-                                  ? report.reportDate.split('T')[0] 
-                                  : report.reportDate.split(' ')[0], 
+                              _getReportDisplayDate(report),
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
@@ -2426,6 +2477,60 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
     return null;
   }
 
+  String _getReportDisplayDate(Report report) {
+    // Priority 1: Check for explicit "Report Date" or similar in fields
+    final dateKeywords = [
+      'report date', 'test date', 'collection date', 'date of test', 
+      'investigation date', 'date', 'reported', 'received date', 
+      'date printed', 'sampling date'
+    ];
+    
+    final datePattern = RegExp(r'\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}');
+    String? bestGuess;
+
+    // Check main fields
+    for (var f in report.fields) {
+      final name = f.fieldName.toLowerCase().replaceAll('_', ' ');
+      final value = f.fieldValue.trim();
+      
+      if (value.isEmpty || value.toLowerCase() == 'n/a' || value.toLowerCase() == 'null') continue;
+
+      // Exact keyword match
+      if (dateKeywords.any((k) => name == k || name.contains(k))) {
+        return value.split('T')[0].split(' ')[0];
+      }
+      
+      // If we see a value that looks like a date, save it as a backup
+      if (bestGuess == null && datePattern.hasMatch(value)) {
+        bestGuess = value.split('T')[0].split(' ')[0];
+      }
+    }
+    
+    // Check additional fields
+    for (var f in report.additionalFields) {
+      final name = f.fieldName.toLowerCase().replaceAll('_', ' ');
+      final value = f.fieldValue.trim();
+
+      if (value.isEmpty || value.toLowerCase() == 'n/a' || value.toLowerCase() == 'null') continue;
+
+      if (dateKeywords.any((k) => name == k || name.contains(k))) {
+        return value.split('T')[0].split(' ')[0];
+      }
+
+      if (bestGuess == null && datePattern.hasMatch(value)) {
+        bestGuess = value.split('T')[0].split(' ')[0];
+      }
+    }
+
+    // Try our "best guess" regex match if no keyword match was found
+    if (bestGuess != null) return bestGuess;
+
+    // Priority 2: Fallback to top-level reportDate
+    return report.reportDate.contains('T') 
+        ? report.reportDate.split('T')[0] 
+        : report.reportDate.split(' ')[0];
+  }
+
   String? _getSmartReportType() {
     // List of keys to look for in priority order
     final keys = [
@@ -2619,7 +2724,7 @@ class _ModernReportViewerState extends State<_ModernReportViewer>
             reportType: widget.report.reportType ??
                 _getSmartReportType() ??
                 'General Report',
-            reportDate: widget.report.reportDate,
+            reportDate: _getReportDisplayDate(widget.report),
             doctorName: _getFieldValue('doctor'),
             hospitalName: _getFieldValue('hospital'),
           ),

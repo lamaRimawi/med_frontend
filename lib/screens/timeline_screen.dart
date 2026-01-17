@@ -356,8 +356,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
     );
 
     final bgGradient = isDark ? darkBgGradient : lightBgGradient;
-    final textColor = isDark ? Colors.white : const Color(0xFF1F2937);
-    final subTextColor = isDark ? Colors.white70 : Colors.grey[600];
+    final textColor = isDark ? Colors.white : const Color(0xFF111827); // Darker text for light mode
+    final subTextColor = isDark ? Colors.white.withOpacity(0.7) : const Color(0xFF4B5563); // Darker grey (Gray 600 equivalent) for light mode
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -371,7 +371,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(isDark, textColor),
+                _buildHeader(isDark, textColor, subTextColor),
                 if (_errorMessage != null)
                   Expanded(
                     child: ListView(
@@ -448,7 +448,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
     );
   }
 
-  Widget _buildHeader(bool isDark, Color textColor) {
+  Widget _buildHeader(bool isDark, Color textColor, Color? subTextColor) {
     final title = (_selectedProfileName != null && _selectedProfileName!.isNotEmpty)
         ? "$_selectedProfileName's Trends"
         : 'Health Trends';
@@ -479,7 +479,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
-                        color: isDark ? Colors.white70 : Colors.grey[600],
+                        color: subTextColor,
                       ),
                     ),
                   ),
@@ -1284,14 +1284,14 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         children: [
                           Icon(
                             LucideIcons.activity,
-                            color: isDark ? Colors.white70 : Colors.black54,
+                            color: isDark ? Colors.white70 : Colors.black87,
                             size: 16,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             'Select Metric',
                             style: TextStyle(
-                              color: isDark ? Colors.white70 : Colors.black54,
+                              color: isDark ? Colors.white70 : Colors.black87,
                               fontSize: 14,
                             ),
                           ),
@@ -1304,7 +1304,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         Text(
                           'No Data',
                           style: TextStyle(
-                            color: textColor.withOpacity(0.5),
+                            color: textColor.withOpacity(0.8), // Increased opacity
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -1312,7 +1312,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                         Text(
                           '--',
                           style: TextStyle(
-                            color: textColor.withOpacity(0.3),
+                            color: textColor.withOpacity(0.6), // Increased opacity
                             fontSize: 24,
                             fontWeight: FontWeight.w300,
                           ),
@@ -1418,7 +1418,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
   Widget _buildEmptyStatCard(String label, String value, IconData icon, bool isDark, Color textColor, Color? subTextColor) {
     return Opacity(
-      opacity: 0.5,
+      opacity: 0.9, // Increased from 0.5 to 0.9 for better visibility
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -1441,7 +1441,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
             Text(
               value,
               style: TextStyle(
-                color: textColor.withOpacity(0.5),
+                color: textColor.withOpacity(0.8), // Increased opacity
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
@@ -1451,7 +1451,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
             Text(
               label,
               style: TextStyle(
-                color: subTextColor?.withOpacity(0.5) ?? Colors.grey,
+                color: subTextColor?.withOpacity(0.8) ?? Colors.grey[700], // Increased opacity
                 fontSize: 10,
               ),
             ),
@@ -1467,7 +1467,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
         : Colors.white.withOpacity(0.7);
 
     return Opacity(
-      opacity: 0.5,
+      opacity: 0.9, // Increased from 0.5 to 0.9 for better visibility
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16),
         padding: const EdgeInsets.all(20),
@@ -1489,7 +1489,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
             Text(
               'History',
               style: TextStyle(
-                color: textColor.withOpacity(0.5),
+                color: textColor.withOpacity(0.8), // Increased opacity
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -1507,7 +1507,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   Text(
                     'No data available',
                     style: TextStyle(
-                      color: subTextColor?.withOpacity(0.5) ?? Colors.grey,
+                      color: subTextColor?.withOpacity(0.8) ?? Colors.grey[700], // Increased opacity
                       fontSize: 14,
                     ),
                   ),
@@ -1515,7 +1515,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   Text(
                     'Upload reports to see trends',
                     style: TextStyle(
-                      color: subTextColor?.withOpacity(0.4) ?? Colors.grey[400],
+                      color: subTextColor?.withOpacity(0.6) ?? Colors.grey[600], // Increased opacity
                       fontSize: 12,
                     ),
                   ),
