@@ -210,6 +210,33 @@ class _TimelineScreenState extends State<TimelineScreen> {
     }
   }
 
+  String _normalizeMetricName(String name) {
+    String normalized = name.trim();
+    
+    // 1. If it's a short acronym (like M C V, W B C, R B C), remove spaces between letters
+    // We check if it looks like spaced letters (e.g., single letters followed by space)
+    if (RegExp(r'^([A-Z]\s)+[A-Z]$').hasMatch(normalized.toUpperCase()) || 
+        (normalized.length <= 10 && !normalized.contains(RegExp(r'[a-z]')))) {
+      normalized = normalized.replaceAll(' ', '');
+    }
+    
+    // 2. Standardize common variations
+    final map = {
+      'HEMOGLOBIN': 'Haemoglobin',
+      'HAEMOGLOBIN': 'Haemoglobin',
+      'HB': 'Haemoglobin',
+      'HEMATOCRIT': 'Hematocrit',
+      'HCT': 'Hematocrit',
+    };
+    
+    final upper = normalized.toUpperCase();
+    if (map.containsKey(upper)) {
+      return map[upper]!;
+    }
+    
+    return normalized;
+  }
+
   void _extractAvailableMetrics() {
     final Set<String> metrics = {};
     for (var entry in _reportDetailsCache.entries) {
@@ -230,8 +257,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
       if (details.testResults != null) {
         for (var test in details.testResults!) {
           if (test.name.isNotEmpty) {
-            // Group by trimmed name
-            metrics.add(test.name.trim());
+            // Normalize metric name (remove spaces like M C V -> MCV)
+            metrics.add(_normalizeMetricName(test.name));
           }
         }
       }
@@ -239,28 +266,37 @@ class _TimelineScreenState extends State<TimelineScreen> {
     _availableMetrics = metrics.toList()..sort();
     
     // Reset selected metric if it's no longer available
-    if (_selectedMetric.isNotEmpty && !_availableMetrics.contains(_selectedMetric)) {
-      _selectedMetric = '';
-      _trendData = [];
+    if (_selectedMetric.isNotEmpty) {
+      final normalizedSelected = _normalizeMetricName(_selectedMetric);
+      if (!_availableMetrics.contains(normalizedSelected)) {
+        _selectedMetric = '';
+        _trendData = [];
+      } else {
+        _selectedMetric = normalizedSelected;
+      }
     }
   }
 
   Future<void> _selectMetric(String metric) async {
+    final normalizedMetricName = _normalizeMetricName(metric);
     setState(() {
-      _selectedMetric = metric;
+      _selectedMetric = normalizedMetricName;
       _isMetricLoading = true;
       _touchedSpotIndex = null;
     });
 
     try {
+      // When fetching from API, we might need to try both original and normalized or just trust the API handles it
+      // But for filtering locally, we MUST use normalization.
       final trends = await TimelineApi.getTrends([metric], profileId: _selectedProfileId);
       
       setState(() {
-        // Case-insensitive key lookup for backend response
-        final normalizedMetric = metric.trim().toLowerCase();
+        // Case-insensitive and space-insensitive key lookup for backend response
         String? matchingKey;
+        final targetNormalized = _normalizeMetricName(metric).toLowerCase();
+        
         for (var key in trends.trends.keys) {
-          if (key.trim().toLowerCase() == normalizedMetric) {
+          if (_normalizeMetricName(key).toLowerCase() == targetNormalized) {
             matchingKey = key;
             break;
           }
@@ -288,21 +324,39 @@ class _TimelineScreenState extends State<TimelineScreen> {
           if (selectedPatientName != null && 
               patientName != selectedPatientName && 
               patientName != 'unknown') {
-            debugPrint('TimelineScreen: Patient mismatch: $patientName vs $selectedPatientName');
             return false;
           }
           
-          // 2. Metric identification (Relaxed: if backend returned it, trust it unless it's a completely different metric in the report)
-          // Try to find if this metric exists in the report (case-insensitive)
-          final hasMetricInReport = details.testResults?.any((test) => 
-            test.name.trim().toLowerCase() == normalizedMetric
-          ) ?? false;
+          // 2. Strict Metric and Value matching
+          // Use normalization for matching
+          final matchingTests = details.testResults?.where((test) => 
+            _normalizeMetricName(test.name).toLowerCase() == targetNormalized
+          ).toList() ?? [];
           
-          if (!hasMetricInReport) {
-            debugPrint('TimelineScreen: Metric $metric not explicitly found in report ${point.reportId} results, but keeping as backend returned it.');
+          if (matchingTests.isEmpty) {
+            debugPrint('TimelineScreen: Metric $metric NOT found in report ${point.reportId}. Backend returned extra data.');
+            return false;
           }
           
-          return true; // Trust backend + patient filter
+          // Verify value match
+          final pointValue = point.numericValue;
+          if (pointValue == null) return true; 
+          
+          final valueMatches = matchingTests.any((test) {
+            // Extract numeric part from string (e.g., "15.4 g/dl" -> 15.4)
+            final cleanTestValueStr = test.value.toString().replaceAll(RegExp(r'[^0-9.]'), '');
+            final testValue = double.tryParse(cleanTestValueStr);
+            if (testValue == null) return true; 
+            
+            // Allow very small difference for floating point
+            return (testValue - pointValue).abs() < 0.05;
+          });
+
+          if (!valueMatches) {
+             debugPrint('TimelineScreen: Value mismatch for $metric in report ${point.reportId}. Point: $pointValue, Report has: ${matchingTests.map((t)=>t.value).join(", ")}');
+          }
+
+          return valueMatches;
         }).toList();
         
         // Sort by date just in case
