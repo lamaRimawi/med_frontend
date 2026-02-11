@@ -689,6 +689,17 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_showCameraUpload && !kIsWeb) {
       return CameraUploadScreen(
         isDarkMode: _isDarkMode,
+        onNavigateToReports: (reportId) {
+          setState(() {
+            _showCameraUpload = false;
+            _showReports = true;
+            _showProfile = false;
+            _showTimeline = false;
+            _activeTab = 'reports';
+            _selectedIndex = 1;
+            _initialReportId = reportId;
+          });
+        },
         onClose: () async {
           setState(() {
             _showCameraUpload = false;

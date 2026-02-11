@@ -791,6 +791,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
           // Content
           SafeArea(
+            bottom: false,
             child: Column(
               children: [
                 // Header

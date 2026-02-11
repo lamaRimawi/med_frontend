@@ -427,6 +427,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
       body: Container(
         decoration: BoxDecoration(gradient: bgGradient),
         child: SafeArea(
+          bottom: false,
           child: RefreshIndicator(
             onRefresh: _loadTimelineData,
             color: const Color(0xFF39A4E6),

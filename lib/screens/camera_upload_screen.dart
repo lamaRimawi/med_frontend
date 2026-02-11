@@ -36,8 +36,14 @@ enum ImageQuality { low, medium, high }
 class CameraUploadScreen extends StatefulWidget {
   final bool isDarkMode;
   final VoidCallback? onClose;
+  final Function(int)? onNavigateToReports;
 
-  const CameraUploadScreen({super.key, required this.isDarkMode, this.onClose});
+  const CameraUploadScreen({
+    super.key,
+    required this.isDarkMode,
+    this.onClose,
+    this.onNavigateToReports,
+  });
 
   @override
   State<CameraUploadScreen> createState() => _CameraUploadScreenState();
@@ -588,16 +594,20 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                       onPressed: () {
                         Navigator.pop(context);
                         if (reportId != null) {
-                          // Navigate to ReportsScreen and highlight this report
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ReportsScreen(
-                                initialReportId: reportId,
-                                onBack: () => Navigator.pop(context),
+                          if (widget.onNavigateToReports != null) {
+                            widget.onNavigateToReports!(reportId);
+                          } else {
+                            // Fallback for cases where callback isn't provided (e.g. web)
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ReportsScreen(
+                                  initialReportId: reportId,
+                                  onBack: () => Navigator.pop(context),
+                                ),
                               ),
-                            ),
-                          );
+                            );
+                          }
                         } else {
                           Navigator.of(context).popUntil((route) => route.isFirst);
                         }
