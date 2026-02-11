@@ -14,6 +14,7 @@ import 'dart:ui'; // For ImageFilter
 import 'processing_screen.dart';
 import 'success_screen.dart';
 import 'extracted_report_screen.dart';
+import 'reports_screen.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:file_saver/file_saver.dart';
 
@@ -587,10 +588,15 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
                       onPressed: () {
                         Navigator.pop(context);
                         if (reportId != null) {
-                          Navigator.pushNamed(
+                          // Navigate to ReportsScreen and highlight this report
+                          Navigator.push(
                             context,
-                            '/extracted-report',
-                            arguments: reportId,
+                            MaterialPageRoute(
+                              builder: (context) => ReportsScreen(
+                                initialReportId: reportId,
+                                onBack: () => Navigator.pop(context),
+                              ),
+                            ),
                           );
                         } else {
                           Navigator.of(context).popUntil((route) => route.isFirst);
