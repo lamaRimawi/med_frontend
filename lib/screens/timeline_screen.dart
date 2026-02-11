@@ -98,76 +98,64 @@ class _TimelineScreenState extends State<TimelineScreen> {
       _isLoading = true;
       _errorMessage = null;
       _timelineReports = [];
-      _reportDetailsCache.clear(); // Clear cache to prevent data mixing between profiles
+      _reportDetailsCache.clear();
       _availableMetrics = [];
       _patientNames = [];
       _trendData = [];
       _selectedMetric = '';
     });
 
-    // Removed Demo Data Logic
-
     try {
-      debugPrint(
-        'TimelineScreen: loading timeline for profileId=$_selectedProfileId name=$_selectedProfileName',
-      );
-      // 1. Fetch the timeline to get report IDs
+      debugPrint('TimelineScreen: loading timeline for profileId=$_selectedProfileId');
       final timeline = await TimelineApi.getTimeline(profileId: _selectedProfileId);
       _timelineReports = timeline;
-      debugPrint(
-        'TimelineScreen: received ${_timelineReports.length} timeline items for profileId=$_selectedProfileId',
-      );
 
-      // 2. Fetch details for each report to discover available metrics
-      // Note: In a production app with pagination, we wouldn't fetch ALL details at once.
-      // But for this use case (visualizing trends), we need to know what's available.
-      await Future.wait(
-        timeline.map((report) => _fetchReportDetails(report.reportId)),
-      );
+      // Fetch details sequentially or in small batches to avoid overwhelming the API
+      // and ensure we have all data for filtering
+      for (var report in timeline) {
+        await _fetchReportDetails(report.reportId);
+      }
 
-
-
-      // 3. Extract unique patient names
+      // Extract unique patient names from ALL loaded reports
       final names = <String>{};
       for (var details in _reportDetailsCache.values) {
-        if (details.patientInfo.name.isNotEmpty) {
-          names.add(details.patientInfo.name.trim());
+        final name = details.patientInfo.name.trim();
+        if (name.isNotEmpty && name.toLowerCase() != 'unknown') {
+          names.add(name);
         }
       }
-      // Sort names, putting 'Unknown' last
-      _patientNames = names.toList()..sort((a, b) {
-        if (a == 'Unknown') return 1;
-        if (b == 'Unknown') return -1;
-        return a.compareTo(b);
-      });
       
-      // Default to first patient if not selected, or if current selection is invalid
+      // If no valid names found, add 'Unknown'
+      if (names.isEmpty) names.add('Unknown');
+
+      _patientNames = names.toList()..sort();
+      
       if (_patientNames.isNotEmpty) {
+        // If we have a profile name, try to match it or keep existing selection
         if (_selectedPatient == null || !_patientNames.contains(_selectedPatient)) {
-          _selectedPatient = _patientNames.first;
+          // Priority: 1. Current selection 2. Profile name match 3. First available
+          final profileName = _selectedProfileName?.trim();
+          if (profileName != null && _patientNames.any((n) => n.toLowerCase() == profileName.toLowerCase())) {
+            _selectedPatient = _patientNames.firstWhere((n) => n.toLowerCase() == profileName.toLowerCase());
+          } else {
+            _selectedPatient = _patientNames.first;
+          }
         }
       }
 
-      debugPrint(
-        'TimelineScreen: patientNames=$_patientNames selectedPatient=$_selectedPatient metricsCount=${_availableMetrics.length}',
-      );
-
-      // Check for partial failures
-      if (_timelineReports.isNotEmpty && _reportDetailsCache.isEmpty) {
-        _errorMessage = "Unable to load report details. Please try again.";
-      }
-
-
-      // 4. Extract unique metric names (test names) for the selected patient
       _extractAvailableMetrics();
 
       setState(() {
         _isLoading = false;
       });
 
-      // 4. Load trends for the first metric if available
       if (_availableMetrics.isNotEmpty) {
-        _selectMetric(_availableMetrics.first);
+        // If we previously had a selected metric that's still available, keep it
+        if (_selectedMetric.isEmpty || !_availableMetrics.contains(_selectedMetric)) {
+          _selectMetric(_availableMetrics.first);
+        } else {
+          _selectMetric(_selectedMetric);
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -228,15 +216,22 @@ class _TimelineScreenState extends State<TimelineScreen> {
       final details = entry.value;
       
       // Filter by selected patient
-      if (_selectedPatient != null && 
-          details.patientInfo.name.trim() != _selectedPatient) {
+      // RELAXED: If report is 'Unknown', include it in metrics list for any selected patient
+      // This ensures we don't hide data just because OCR failed on the name.
+      final patientName = details.patientInfo.name.trim().toLowerCase();
+      final selectedPatientName = _selectedPatient?.trim().toLowerCase();
+      
+      if (selectedPatientName != null && 
+          patientName != selectedPatientName && 
+          patientName != 'unknown') {
         continue;
       }
 
       if (details.testResults != null) {
         for (var test in details.testResults!) {
           if (test.name.isNotEmpty) {
-            metrics.add(test.name);
+            // Group by trimmed name
+            metrics.add(test.name.trim());
           }
         }
       }
@@ -257,21 +252,23 @@ class _TimelineScreenState extends State<TimelineScreen> {
       _touchedSpotIndex = null;
     });
 
-    // Removed Demo Data Logic
-
     try {
-      // Use the specific API for trends if possible, or extract from cache
-      // The API is preferred as it might handle normalization/units better.
       final trends = await TimelineApi.getTrends([metric], profileId: _selectedProfileId);
       
       setState(() {
-        // The API returns a Map<String, List<TrendDataPoint>>
-        // We just want the list for our selected metric.
-        // The key might be the exact metric name.
-        if (trends.trends.containsKey(metric)) {
-          _trendData = trends.trends[metric]!;
+        // Case-insensitive key lookup for backend response
+        final normalizedMetric = metric.trim().toLowerCase();
+        String? matchingKey;
+        for (var key in trends.trends.keys) {
+          if (key.trim().toLowerCase() == normalizedMetric) {
+            matchingKey = key;
+            break;
+          }
+        }
+
+        if (matchingKey != null) {
+          _trendData = trends.trends[matchingKey]!;
         } else if (trends.trends.isNotEmpty) {
-          // Fallback
           _trendData = trends.trends.values.first; 
         } else {
           _trendData = [];
@@ -280,22 +277,32 @@ class _TimelineScreenState extends State<TimelineScreen> {
         // Filter by patient and strict metric name/value matching
         _trendData = _trendData.where((point) {
           final details = _reportDetailsCache[point.reportId];
-          if (details == null) return false;
+          if (details == null) {
+            return true; // Keep it if we can't verify
+          }
           
-          // 1. Check patient name match
-          if (_selectedPatient != null && 
-              details.patientInfo.name.trim() != _selectedPatient) {
+          // 1. Check patient name match (Relaxed: allow 'Unknown')
+          final patientName = details.patientInfo.name.trim().toLowerCase();
+          final selectedPatientName = _selectedPatient?.trim().toLowerCase();
+          
+          if (selectedPatientName != null && 
+              patientName != selectedPatientName && 
+              patientName != 'unknown') {
+            debugPrint('TimelineScreen: Patient mismatch: $patientName vs $selectedPatientName');
             return false;
           }
           
-          // 2. Strict metric identification
-          // We look into the actual report details to find an exact match for the selected metric
-          // that also has the same value as this data point.
-          final hasExactMatch = details.testResults?.any((test) => 
-            test.name == metric && test.value == point.rawValue
+          // 2. Metric identification (Relaxed: if backend returned it, trust it unless it's a completely different metric in the report)
+          // Try to find if this metric exists in the report (case-insensitive)
+          final hasMetricInReport = details.testResults?.any((test) => 
+            test.name.trim().toLowerCase() == normalizedMetric
           ) ?? false;
           
-          return hasExactMatch;
+          if (!hasMetricInReport) {
+            debugPrint('TimelineScreen: Metric $metric not explicitly found in report ${point.reportId} results, but keeping as backend returned it.');
+          }
+          
+          return true; // Trust backend + patient filter
         }).toList();
         
         // Sort by date just in case
@@ -306,8 +313,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
         final dedupedList = <TrendDataPoint>[];
         
         for (var point in _trendData) {
-          // Create a unique key based on date and value
-          final key = '${point.date}_${point.value}';
+          // Create a unique key based on date, value, and reportId
+          // This ensures that if the same value exists on the same day but in DIFFERENT reports, we show it.
+          final key = '${point.date}_${point.value}_${point.reportId}';
           
           if (!uniquePoints.containsKey(key)) {
             uniquePoints[key] = point;
@@ -412,6 +420,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       padding: const EdgeInsets.only(bottom: 20),
                       child: Column(
                         children: [
+                          _buildPatientSelector(isDark, textColor),
+                          const SizedBox(height: 12),
                           _buildMetricSelector(isDark, textColor),
                           const SizedBox(height: 20),
                           if (_selectedMetric.isNotEmpty) ...[

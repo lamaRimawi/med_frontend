@@ -449,18 +449,15 @@ class VlmService {
                  onComplete(report);
                }
             } else if (data['error'] != null) {
-<<<<<<< HEAD
-               final errorMsg = data['error'].toString();
-               if (errorMsg.contains('Duplicate detected') || 
-                   errorMsg.contains('already been processed')) {
-                 final reportId = data['report_id'] ?? data['existing_report_id'];
-                 onError('DUPLICATE_REPORT: $errorMsg (report_id: $reportId)');
-               } else {
-                 onError(errorMsg);
-=======
                if (!wasCompleted) {
-                 onError(data['error'].toString());
->>>>>>> bfa51f37b415b5d0595fde74d5ea51ddbff78b40
+                 final errorMsg = data['error'].toString();
+                 if (errorMsg.contains('Duplicate detected') || 
+                     errorMsg.contains('already been processed')) {
+                   final reportId = data['report_id'] ?? data['existing_report_id'];
+                   onError('DUPLICATE_REPORT: $errorMsg (report_id: $reportId)');
+                 } else {
+                   onError(errorMsg);
+                 }
                }
             }
           } catch (e) {
