@@ -325,6 +325,15 @@ class VlmService {
 
     try {
       var uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.vlmChat}');
+      
+      // Add allow_duplicate to query parameters as well, as some backends prefer it there
+      if (allowDuplicate) {
+        final queryParams = Map<String, String>.from(uri.queryParameters);
+        queryParams['allow_duplicate'] = 'true';
+        queryParams['force'] = 'true'; // Some backends use 'force'
+        uri = uri.replace(queryParameters: queryParams);
+      }
+
       var request = http.MultipartRequest('POST', uri);
 
       for (var path in filePaths) {
@@ -336,6 +345,8 @@ class VlmService {
       }
       if (allowDuplicate) {
         request.fields['allow_duplicate'] = 'true';
+        request.fields['force'] = 'true';
+        request.fields['ignore_duplicates'] = 'true';
       }
       
       request.headers['Authorization'] = 'Bearer $token';
@@ -432,7 +443,14 @@ class VlmService {
                  onComplete(report);
                }
             } else if (data['error'] != null) {
-               onError(data['error'].toString());
+               final errorMsg = data['error'].toString();
+               if (errorMsg.contains('Duplicate detected') || 
+                   errorMsg.contains('already been processed')) {
+                 final reportId = data['report_id'] ?? data['existing_report_id'];
+                 onError('DUPLICATE_REPORT: $errorMsg (report_id: $reportId)');
+               } else {
+                 onError(errorMsg);
+               }
             }
           } catch (e) {
             print('Error parsing update: $e');

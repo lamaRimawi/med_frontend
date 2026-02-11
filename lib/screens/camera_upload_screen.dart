@@ -403,14 +403,18 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
              return;
           }
           
-          if (error.contains('DUPLICATE_REPORT') && !allowDuplicate) {
+          if ((error.contains('DUPLICATE_REPORT') || 
+               error.contains('Duplicate detected') || 
+               error.contains('already been processed')) && !allowDuplicate) {
             // Try to extract report ID from error message
             int? reportId;
             try {
               final errorStr = error;
-              final match = RegExp(r'report_id["\s:]+(\d+)').firstMatch(errorStr);
+              // Match either report_id: 123 or Report #123
+              final match = RegExp(r'(report_id["\s:]+|Report\s+#)(\d+)').firstMatch(errorStr);
               if (match != null) {
-                reportId = int.tryParse(match.group(1)!);
+                // The digits are in group 2
+                reportId = int.tryParse(match.group(2)!);
               }
             } catch (_) {}
             
