@@ -20,6 +20,13 @@ class ReportsService {
   List<Report>? get cachedReports => _cachedReports;
   int? get cachedProfileId => _cachedProfileId;
 
+  void clearCache() {
+    _cachedReports = null;
+    _cachedProfileId = null;
+    _lastFetchTime = null;
+    debugPrint('ReportsService: Cache cleared');
+  }
+
   Future<List<Report>> getReports({bool forceRefresh = false, int? profileId}) async {
     // Return cache only if:
     // 1. Not forcing refresh

@@ -34,25 +34,75 @@ class Report {
     final fieldsList =
         (json['fields'] ?? json['medical_data']) as List<dynamic>?;
 
+    // Parse fields first to enable smart date discovery
+    final parsedFields = fieldsList
+            ?.map((e) => ReportField.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+    
+    final parsedAdditionalFields = (json['additional_fields'] as List<dynamic>?)
+            ?.map((e) => AdditionalField.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+
+    // Smart date discovery: prioritize extracted "Report Date" fields
+    String reportDate = json['report_date'] as String;
+    final dateKeywords = [
+      'report date', 'test date', 'collection date', 'date of test',
+      'investigation date', 'date', 'reported', 'received date',
+      'date printed', 'sampling date'
+    ];
+    final datePattern = RegExp(r'\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}');
+    String? bestGuess;
+
+    // Check parsed fields for explicit date
+    for (var f in parsedFields) {
+      final name = f.fieldName.toLowerCase().replaceAll('_', ' ');
+      final value = f.fieldValue.trim();
+      if (value.isEmpty || value.toLowerCase() == 'n/a' || value.toLowerCase() == 'null') continue;
+
+      if (dateKeywords.any((k) => name == k || name.contains(k))) {
+        reportDate = value.split('T')[0].split(' ')[0];
+        break;
+      }
+      if (bestGuess == null && datePattern.hasMatch(value)) {
+        bestGuess = value.split('T')[0].split(' ')[0];
+      }
+    }
+
+    // Check additional fields if no match found
+    if (reportDate == json['report_date'] as String) {
+      for (var f in parsedAdditionalFields) {
+        final name = f.fieldName.toLowerCase().replaceAll('_', ' ');
+        final value = f.fieldValue.trim();
+        if (value.isEmpty || value.toLowerCase() == 'n/a' || value.toLowerCase() == 'null') continue;
+
+        if (dateKeywords.any((k) => name == k || name.contains(k))) {
+          reportDate = value.split('T')[0].split(' ')[0];
+          break;
+        }
+        if (bestGuess == null && datePattern.hasMatch(value)) {
+          bestGuess = value.split('T')[0].split(' ')[0];
+        }
+      }
+    }
+
+    // Use best guess if we still have the original date
+    if (reportDate == json['report_date'] as String && bestGuess != null) {
+      reportDate = bestGuess;
+    }
+
     return Report(
       reportId: json['report_id'] as int,
-      reportDate: json['report_date'] as String,
+      reportDate: reportDate,
       createdAt:
           json['created_at'] as String? ?? DateTime.now().toIso8601String(),
       totalFields: json['total_fields'] as int? ?? fieldsList?.length ?? 0,
       reportType: json['report_type'] as String?,
       reportName: json['report_name'] as String?,
       reportCategory: json['report_category'] as String?,
-      fields:
-          fieldsList
-              ?.map((e) => ReportField.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-      additionalFields:
-          (json['additional_fields'] as List<dynamic>?)
-              ?.map((e) => AdditionalField.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
+      fields: parsedFields,
+      additionalFields: parsedAdditionalFields,
       patientName: json['patient_name'] as String?,
       profileId: json['profile_id'] as int?,
       patientAge: json.containsKey('patient_age')

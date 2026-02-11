@@ -163,8 +163,12 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _loadReports() async {
+  Future<void> _loadReports({bool forceRefresh = false}) async {
     try {
+      if (forceRefresh) {
+        ReportsService().clearCache();
+      }
+
       // 1. Load from cache first
       // 1. Load from cache first ONLY if it matches current profile
       final cached = ReportsService().cachedReports;
@@ -185,6 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // 2. Fetch fresh
       final reports = await ReportsService().getReports(
         profileId: _selectedProfileId,
+        forceRefresh: forceRefresh,
       );
 
       // 3. Fetch timeline for better names
@@ -255,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (result == true) {
       // Verified successfully, retry fetching
       setState(() => _isLoadingReports = true);
-      _loadReports();
+      _loadReports(forceRefresh: true);
     }
   }
 
@@ -360,6 +365,47 @@ class _HomeScreenState extends State<HomeScreen> {
     return "Medical Report";
   }
 
+  DateTime? _smartParseDate(String dateStr) {
+    if (dateStr.isEmpty) return null;
+    try {
+      // Standard ISO format
+      return DateTime.parse(dateStr).toLocal();
+    } catch (_) {
+      // Try DD-MM-YYYY or MM-DD-YYYY or YYYY-MM-DD
+      try {
+        final parts = dateStr.trim().split(RegExp(r'[-/.]'));
+        if (parts.length == 3) {
+          int? day, month, year;
+          if (parts[0].length == 4) { // YYYY-MM-DD
+            year = int.tryParse(parts[0]);
+            month = int.tryParse(parts[1]);
+            day = int.tryParse(parts[2]);
+          } else if (parts[2].length == 4) { // DD-MM-YYYY
+            year = int.tryParse(parts[2]);
+            int p0 = int.tryParse(parts[0]) ?? 0;
+            int p1 = int.tryParse(parts[1]) ?? 0;
+            // Best effort: if first part > 12, it's definitely day
+            if (p0 > 12) {
+              day = p0;
+              month = p1;
+            } else {
+              day = p0;
+              month = p1;
+            }
+          }
+          if (year != null && month != null && day != null) {
+            if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+              return DateTime(year, month, day);
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('Smart parse failed for $dateStr: $e');
+      }
+    }
+    return null;
+  }
+
   void _mapReportsToUi(List<Report> reports) {
     // Filter reports based on the currently selected profile ID
     List<Report> filteredReports = reports.where((r) {
@@ -373,21 +419,70 @@ class _HomeScreenState extends State<HomeScreen> {
       // Parse created_at (Upload Date) - Used for "Recent" bucketing
       DateTime createdDt;
       try {
-        createdDt = DateTime.parse(r.createdAt);
+        createdDt = DateTime.parse(r.createdAt).toLocal();
       } catch (_) {
         createdDt = DateTime.now();
       }
 
       // Parse report_date (Medical Date) - Used for Display
       DateTime displayDt;
-      bool hasMedicalDate = false;
-      try {
-        // Try parsing reportDate first
-        displayDt = DateTime.parse(r.reportDate);
-        hasMedicalDate = true;
-      } catch (_) {
-        // Fallback to createdAt if reportDate is invalid
-        displayDt = createdDt;
+      
+      // Smart discovery: Check fields for explicit "Report Date" first
+      final dateKeywords = [
+        'report date', 'test date', 'collection date', 'date of test', 
+        'investigation date', 'date', 'reported', 'received date', 
+        'date printed', 'sampling date'
+      ];
+      final datePattern = RegExp(r'\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}');
+      String? foundDateStr;
+      String? bestGuess;
+      
+      // Search in fields
+      for (var f in r.fields) {
+        final name = f.fieldName.toLowerCase().replaceAll('_', ' ');
+        final value = f.fieldValue.trim();
+        if (value.isEmpty || value.toLowerCase() == 'n/a' || value.toLowerCase() == 'null') continue;
+
+        if (dateKeywords.any((k) => name == k || name.contains(k))) {
+          foundDateStr = value;
+          break;
+        }
+        if (bestGuess == null && datePattern.hasMatch(value)) {
+          bestGuess = value;
+        }
+      }
+      
+      if (foundDateStr == null) {
+        // Search in additional fields
+        for (var f in r.additionalFields) {
+          final name = f.fieldName.toLowerCase().replaceAll('_', ' ');
+          final value = f.fieldValue.trim();
+          if (value.isEmpty || value.toLowerCase() == 'n/a' || value.toLowerCase() == 'null') continue;
+
+          if (dateKeywords.any((k) => name == k || name.contains(k))) {
+            foundDateStr = value;
+            break;
+          }
+          if (bestGuess == null && datePattern.hasMatch(value)) {
+            bestGuess = value;
+          }
+        }
+      }
+
+      foundDateStr ??= bestGuess;
+
+      final smartDate = foundDateStr != null ? _smartParseDate(foundDateStr) : null;
+      
+      if (smartDate != null) {
+        displayDt = smartDate;
+      } else {
+        try {
+          // Try parsing reportDate top-level
+          displayDt = DateTime.parse(r.reportDate).toLocal();
+        } catch (_) {
+          // Fallback to createdAt if reportDate is invalid
+          displayDt = createdDt;
+        }
       }
 
       // Attempt to find doctor
@@ -606,7 +701,7 @@ class _HomeScreenState extends State<HomeScreen> {
           });
           // Small delay to allow backend to finish processing/indexing
           await Future.delayed(const Duration(milliseconds: 500));
-          await _loadReports();
+          await _loadReports(forceRefresh: true);
         },
       );
     }
@@ -1805,17 +1900,17 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Container(
           color: Colors.black.withOpacity(isDark ? 0.7 : 0.4),
           child: Align(
-            alignment: Alignment.topRight,
+            alignment: Alignment.topCenter,
             child: GestureDetector(
               onTap: () {}, // Prevent closing when tapping panel
               child: Padding(
-                padding: const EdgeInsets.only(top: 80, right: 24),
+                padding: const EdgeInsets.only(top: 80, left: 16, right: 16),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(28),
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                     child: Container(
-                      width: 384,
+                      constraints: const BoxConstraints(maxWidth: 400),
                       decoration: BoxDecoration(
                         color: isDark 
                             ? const Color(0xFF111827).withOpacity(0.8) 

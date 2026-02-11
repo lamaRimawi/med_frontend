@@ -12,64 +12,87 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   debugPrint('Handling a background message: ${message.messageId}');
 
-  // If message has notification payload, system handles it.
-  // If it's a data-only message, we might need to show a local notification.
-  if (message.notification == null && message.data.isNotEmpty) {
-    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    
-    // Create the channel in the background isolate as well
-    const AndroidNotificationChannel channel = AndroidNotificationChannel(
-      'high_importance_channel', // id
-      'High Importance Notifications', // title
-      description: 'This channel is used for important notifications.',
-      importance: Importance.max,
-    );
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  
+  // Create the channel in the background isolate as well
+  const AndroidNotificationChannel channel = AndroidNotificationChannel(
+    'high_importance_channel',
+    'High Importance Notifications',
+    description: 'This channel is used for important notifications.',
+    importance: Importance.max,
+  );
 
-    await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
-    
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/launcher_icon');
-    const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings();
-    const InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-    );
-    
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+  
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/launcher_icon');
+  const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings();
+  const InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+    iOS: initializationSettingsIOS,
+  );
+  
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-    String? title = message.data['title'];
-    String? body = message.data['body'] ?? message.data['message'];
-    final type = message.data['type'];
+  // Extract title and body from notification payload or data payload
+  String? title = message.notification?.title;
+  String? body = message.notification?.body;
+  
+  // If notification payload is empty, check data payload
+  if (title == null && message.data.isNotEmpty) {
+    title = message.data['title'];
+    body = message.data['body'] ?? message.data['message'];
+  }
 
-    // Handle Connection Request specifically if title is missing
-    if (title == null && type == 'connection_request') {
-      title = 'New Connection Request';
-      body = 'Someone wants to connect with you.';
-    }
-
-    if (title != null) {
-      await flutterLocalNotificationsPlugin.show(
-        message.hashCode,
-        title,
-        body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            channel.id,
-            channel.name,
-            channelDescription: channel.description,
-            importance: Importance.max,
-            priority: Priority.high,
-            icon: '@mipmap/launcher_icon',
-            enableVibration: true,
-          ),
-          iOS: const DarwinNotificationDetails(),
-        ),
-        payload: type,
-      );
+  // Fallback based on notification type
+  final type = message.data['type'];
+  if (title == null || title.isEmpty) {
+    switch (type) {
+      case 'connection_request':
+        title = 'New Connection Request';
+        body = body ?? 'Someone wants to connect with you';
+        break;
+      case 'report_upload':
+        title = 'New Report Uploaded';
+        body = body ?? 'A new medical report is available';
+        break;
+      case 'profile_share':
+        title = 'Profile Shared';
+        body = body ?? 'Someone shared their profile with you';
+        break;
+      default:
+        title = 'HealthTrack Notification';
+        body = body ?? 'You have a new notification';
     }
   }
+
+  // Always show notification in background
+  await flutterLocalNotificationsPlugin.show(
+    message.hashCode,
+    title,
+    body,
+    NotificationDetails(
+      android: AndroidNotificationDetails(
+        channel.id,
+        channel.name,
+        channelDescription: channel.description,
+        importance: Importance.max,
+        priority: Priority.high,
+        icon: '@mipmap/launcher_icon',
+        enableVibration: true,
+        playSound: true,
+        styleInformation: BigTextStyleInformation(body ?? ''),
+      ),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    ),
+    payload: type,
+  );
 }
 
 class NotificationService {
@@ -192,15 +215,27 @@ class NotificationService {
       body = message.data['body'] ?? message.data['message'];
     }
 
-    // If still empty, don't show specific notification or show defaults?
-    // Usually best to skip if no content, but for "Connection Request" let's check type
+    // Fallback based on notification type
     final type = message.data['type'];
-    if (title == null && type == 'connection_request') {
-      title = 'New Connection Request';
-      body = 'Someone wants to connect with you.';
+    if (title == null || title.isEmpty) {
+      switch (type) {
+        case 'connection_request':
+          title = 'New Connection Request';
+          body = body ?? 'Someone wants to connect with you';
+          break;
+        case 'report_upload':
+          title = 'New Report Uploaded';
+          body = body ?? 'A new medical report is available';
+          break;
+        case 'profile_share':
+          title = 'Profile Shared';
+          body = body ?? 'Someone shared their profile with you';
+          break;
+        default:
+          title = 'HealthTrack Notification';
+          body = body ?? 'You have a new notification';
+      }
     }
-
-    if (title == null) return;
 
     final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'high_importance_channel',
@@ -209,11 +244,16 @@ class NotificationService {
       priority: Priority.high,
       icon: '@mipmap/launcher_icon',
       enableVibration: true,
-      styleInformation: BigTextStyleInformation(body ?? ''), // Expandable text
+      playSound: true,
+      styleInformation: BigTextStyleInformation(body ?? ''),
     );
     final NotificationDetails details = NotificationDetails(
       android: androidDetails, 
-      iOS: const DarwinNotificationDetails(),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
     );
 
     await _localNotifications.show(
@@ -221,7 +261,7 @@ class NotificationService {
       title,
       body,
       details,
-      payload: message.data['type'], // Storing type as payload for simple handling
+      payload: message.data['type'],
     );
   }
 
