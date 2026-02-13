@@ -93,6 +93,25 @@ class _TimelineScreenState extends State<TimelineScreen> {
   // Demo Data Flag
   final bool _useDemoData = false;
 
+  String _normalizePatientName(String name) {
+    String normalized = name.trim();
+    if (normalized.isEmpty) return 'Unknown';
+
+    // 1. Remove extra internal spaces and non-alphanumeric characters for comparison
+    // But keep a clean readable version for the UI
+    String comparisonKey = normalized.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+    
+    // 2. Handle Arabic specific normalizations
+    // Standardize Alef variations: أ, إ, آ -> ا
+    comparisonKey = comparisonKey.replaceAll(RegExp(r'[أإآ]'), 'ا');
+    // Standardize Teh Marbuta: ة -> ه
+    comparisonKey = comparisonKey.replaceAll('ة', 'ه');
+    // Standardize Yeh: ى -> ي
+    comparisonKey = comparisonKey.replaceAll('ى', 'ي');
+
+    return comparisonKey;
+  }
+
   Future<void> _loadTimelineData() async {
     setState(() {
       _isLoading = true;
@@ -116,30 +135,53 @@ class _TimelineScreenState extends State<TimelineScreen> {
         await _fetchReportDetails(report.reportId);
       }
 
-      // Extract unique patient names from ALL loaded reports
-      final names = <String>{};
+      // Group unique patient names by their normalized key
+      final Map<String, String> groupedNames = {}; // normalizedKey -> originalName
+      
       for (var details in _reportDetailsCache.values) {
-        final name = details.patientInfo.name.trim();
-        if (name.isNotEmpty && name.toLowerCase() != 'unknown') {
-          names.add(name);
+        final originalName = details.patientInfo.name.trim();
+        if (originalName.isNotEmpty && originalName.toLowerCase() != 'unknown') {
+          final normalized = _normalizePatientName(originalName);
+          
+          // If we haven't seen this patient yet, or if the new name is longer (potentially more complete)
+          // or is English (some users prefer English over Arabic for grouping if both exist)
+          if (!groupedNames.containsKey(normalized)) {
+            groupedNames[normalized] = originalName;
+          } else {
+            final existingName = groupedNames[normalized]!;
+            // Prefer the more "complete" looking name (longer)
+            if (originalName.length > existingName.length) {
+              groupedNames[normalized] = originalName;
+            }
+          }
         }
       }
       
+      _patientNames = groupedNames.values.toList()..sort();
+      
       // If no valid names found, add 'Unknown'
-      if (names.isEmpty) names.add('Unknown');
-
-      _patientNames = names.toList()..sort();
+      if (_patientNames.isEmpty) _patientNames.add('Unknown');
       
       if (_patientNames.isNotEmpty) {
         // If we have a profile name, try to match it or keep existing selection
-        if (_selectedPatient == null || !_patientNames.contains(_selectedPatient)) {
-          // Priority: 1. Current selection 2. Profile name match 3. First available
+        final selectedNormalized = _selectedPatient != null ? _normalizePatientName(_selectedPatient!) : null;
+        
+        if (selectedNormalized == null || !groupedNames.containsKey(selectedNormalized)) {
+          // Priority: 1. Profile name match 2. First available
           final profileName = _selectedProfileName?.trim();
-          if (profileName != null && _patientNames.any((n) => n.toLowerCase() == profileName.toLowerCase())) {
-            _selectedPatient = _patientNames.firstWhere((n) => n.toLowerCase() == profileName.toLowerCase());
+          if (profileName != null) {
+            final profileNormalized = _normalizePatientName(profileName);
+            final match = _patientNames.firstWhere(
+              (n) => _normalizePatientName(n) == profileNormalized,
+              orElse: () => _patientNames.first,
+            );
+            _selectedPatient = match;
           } else {
             _selectedPatient = _patientNames.first;
           }
+        } else {
+          // Keep current selection but update to the potentially updated grouped name
+          _selectedPatient = groupedNames[selectedNormalized];
         }
       }
 
@@ -242,15 +284,14 @@ class _TimelineScreenState extends State<TimelineScreen> {
     for (var entry in _reportDetailsCache.entries) {
       final details = entry.value;
       
-      // Filter by selected patient
-      // RELAXED: If report is 'Unknown', include it in metrics list for any selected patient
-      // This ensures we don't hide data just because OCR failed on the name.
-      final patientName = details.patientInfo.name.trim().toLowerCase();
-      final selectedPatientName = _selectedPatient?.trim().toLowerCase();
+      // Filter by selected patient using normalized matching
+      final patientName = details.patientInfo.name.trim();
+      final normalizedPatient = _normalizePatientName(patientName);
+      final normalizedSelected = _selectedPatient != null ? _normalizePatientName(_selectedPatient!) : null;
       
-      if (selectedPatientName != null && 
-          patientName != selectedPatientName && 
-          patientName != 'unknown') {
+      if (normalizedSelected != null && 
+          normalizedPatient != normalizedSelected && 
+          normalizedPatient != 'unknown') {
         continue;
       }
 
@@ -278,110 +319,76 @@ class _TimelineScreenState extends State<TimelineScreen> {
   }
 
   Future<void> _selectMetric(String metric) async {
-    final normalizedMetricName = _normalizeMetricName(metric);
+    final normalizedMetricName = _normalizeMetricName(metric).toLowerCase();
     setState(() {
-      _selectedMetric = normalizedMetricName;
+      _selectedMetric = _normalizeMetricName(metric);
       _isMetricLoading = true;
       _touchedSpotIndex = null;
     });
 
     try {
-      // When fetching from API, we might need to try both original and normalized or just trust the API handles it
-      // But for filtering locally, we MUST use normalization.
-      final trends = await TimelineApi.getTrends([metric], profileId: _selectedProfileId);
-      
-      setState(() {
-        // Case-insensitive and space-insensitive key lookup for backend response
-        String? matchingKey;
-        final targetNormalized = _normalizeMetricName(metric).toLowerCase();
-        
-        for (var key in trends.trends.keys) {
-          if (_normalizeMetricName(key).toLowerCase() == targetNormalized) {
-            matchingKey = key;
-            break;
-          }
-        }
+      // 1. Get ALL valid reports for the selected patient from our cache
+      final List<TrendDataPoint> localPoints = [];
+      final normalizedSelected = _selectedPatient != null ? _normalizePatientName(_selectedPatient!) : null;
 
-        if (matchingKey != null) {
-          _trendData = trends.trends[matchingKey]!;
-        } else if (trends.trends.isNotEmpty) {
-          _trendData = trends.trends.values.first; 
-        } else {
-          _trendData = [];
-        }
+      for (var entry in _reportDetailsCache.entries) {
+        final reportId = entry.key;
+        final details = entry.value;
+        final reportDate = _timelineReports.firstWhere((r) => r.reportId == reportId, 
+          orElse: () => TimelineReport(
+            reportId: reportId, 
+            date: DateTime.now().toIso8601String(), 
+            reportType: 'unknown',
+            summary: TimelineSummary(totalTests: 0, abnormalCount: 0, abnormalFields: []),
+          )
+        ).date;
+
+        final normalizedPatient = _normalizePatientName(details.patientInfo.name);
         
-        // Filter by patient and strict metric name/value matching
-        _trendData = _trendData.where((point) {
-          final details = _reportDetailsCache[point.reportId];
-          if (details == null) {
-            return true; // Keep it if we can't verify
-          }
-          
-          // 1. Check patient name match (Relaxed: allow 'Unknown')
-          final patientName = details.patientInfo.name.trim().toLowerCase();
-          final selectedPatientName = _selectedPatient?.trim().toLowerCase();
-          
-          if (selectedPatientName != null && 
-              patientName != selectedPatientName && 
-              patientName != 'unknown') {
-            return false;
-          }
-          
-          // 2. Strict Metric and Value matching
-          // Use normalization for matching
+        // Match patient
+        if (normalizedSelected != null && (normalizedPatient == normalizedSelected || normalizedPatient == 'unknown')) {
+          // Find the metric in THIS report's test results
           final matchingTests = details.testResults?.where((test) => 
-            _normalizeMetricName(test.name).toLowerCase() == targetNormalized
+            _normalizeMetricName(test.name).toLowerCase() == normalizedMetricName
           ).toList() ?? [];
-          
-          if (matchingTests.isEmpty) {
-            debugPrint('TimelineScreen: Metric $metric NOT found in report ${point.reportId}. Backend returned extra data.');
-            return false;
-          }
-          
-          // Verify value match
-          final pointValue = point.numericValue;
-          if (pointValue == null) return true; 
-          
-          final valueMatches = matchingTests.any((test) {
-            // Extract numeric part from string (e.g., "15.4 g/dl" -> 15.4)
-            final cleanTestValueStr = test.value.toString().replaceAll(RegExp(r'[^0-9.]'), '');
-            final testValue = double.tryParse(cleanTestValueStr);
-            if (testValue == null) return true; 
+
+          for (var test in matchingTests) {
+            // Extract numeric value from "14.5 g/dl" or similar
+            final cleanVal = test.value.toString().replaceAll(RegExp(r'[^0-9.]'), '');
+            final numericVal = double.tryParse(cleanVal);
             
-            // Allow very small difference for floating point
-            return (testValue - pointValue).abs() < 0.05;
-          });
-
-          if (!valueMatches) {
-             debugPrint('TimelineScreen: Value mismatch for $metric in report ${point.reportId}. Point: $pointValue, Report has: ${matchingTests.map((t)=>t.value).join(", ")}');
+            if (numericVal != null) {
+              localPoints.add(TrendDataPoint(
+                date: reportDate,
+                value: numericVal,
+                rawValue: test.value.toString(),
+                unit: test.unit ?? '',
+                reportId: reportId,
+                isNormal: true, // Default to true as we don't have this in details easily here
+              ));
+            }
           }
+        }
+      }
 
-          return valueMatches;
-        }).toList();
+      setState(() {
+        _trendData = localPoints;
         
-        // Sort by date just in case
+        // Sort by date
         _trendData.sort((a, b) => DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
         
-        // Deduplicate points with same date and value to handle potential backend/upload duplicates
-        final uniquePoints = <String, TrendDataPoint>{};
-        final dedupedList = <TrendDataPoint>[];
-        
+        // Deduplicate by reportId (one point per report per metric)
+        final Map<int, TrendDataPoint> uniqueByReport = {};
         for (var point in _trendData) {
-          // Create a unique key based on date, value, and reportId
-          // This ensures that if the same value exists on the same day but in DIFFERENT reports, we show it.
-          final key = '${point.date}_${point.value}_${point.reportId}';
-          
-          if (!uniquePoints.containsKey(key)) {
-            uniquePoints[key] = point;
-            dedupedList.add(point);
-          }
+          uniqueByReport[point.reportId] = point;
         }
-        _trendData = dedupedList;
+        _trendData = uniqueByReport.values.toList();
+        _trendData.sort((a, b) => DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
         
         _isMetricLoading = false;
       });
     } catch (e) {
-      debugPrint('Error loading trends for $metric: $e');
+      debugPrint('Error loading local trends for $metric: $e');
       setState(() {
         _trendData = [];
         _isMetricLoading = false;
@@ -472,7 +479,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   Expanded(
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.only(bottom: 100), // Increased bottom padding to avoid cut-off by bottom nav
                       child: Column(
                         children: [
                           _buildPatientSelector(isDark, textColor),

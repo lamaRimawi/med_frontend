@@ -15,11 +15,26 @@ class VlmService {
     final client = ApiClient.instance;
 
     print('VlmService: Uploading ${filePaths.length} files: $filePaths for profile: $profileId');
+    
+    // Check for session token if profileId is provided
+    Map<String, String>? headers;
+    if (profileId != null) {
+      final sessionToken = await client.getSessionToken('profile', profileId.toString());
+      if (sessionToken != null) {
+        headers = {'X-Access-Session-Token': sessionToken};
+      }
+    }
+
+    final String uploadUrl = profileId != null
+        ? '${ApiConfig.vlmChat}?profile_id=$profileId'
+        : ApiConfig.vlmChat;
+
     final http.Response res = await client.postMultipartMultiple(
-      ApiConfig.vlmChat,
-      auth: true,
+      uploadUrl,
       filePaths: filePaths,
       fields: profileId != null ? {'profile_id': profileId.toString()} : null,
+      extraHeaders: headers,
+      auth: true,
     );
 
     print('VlmService: Response status: ${res.statusCode}');
@@ -327,22 +342,41 @@ class VlmService {
     try {
       var uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.vlmChat}');
       
-      // Add allow_duplicate to query parameters as well, as some backends prefer it there
+      // Add profile_id and allow_duplicate to query parameters as well, 
+      // as some backends prefer them there for multipart requests
+      final queryParams = Map<String, String>.from(uri.queryParameters);
+      if (profileId != null) {
+        queryParams['profile_id'] = profileId.toString();
+      }
       if (allowDuplicate) {
-        final queryParams = Map<String, String>.from(uri.queryParameters);
         queryParams['allow_duplicate'] = 'true';
-        queryParams['force'] = 'true'; // Some backends use 'force'
+        queryParams['force'] = 'true';
+      }
+      
+      if (queryParams.isNotEmpty) {
         uri = uri.replace(queryParameters: queryParams);
       }
 
+      debugPrint('UPLOAD DEBUG: Sending request to: $uri');
       var request = http.MultipartRequest('POST', uri);
 
       for (var path in filePaths) {
+        debugPrint('UPLOAD DEBUG: Adding file: $path');
         request.files.add(await http.MultipartFile.fromPath('file', path));
       }
       
       if (profileId != null) {
+        debugPrint('UPLOAD DEBUG: Setting profile_id field to: $profileId');
         request.fields['profile_id'] = profileId.toString();
+        
+        // Add session token header if available
+        final sessionToken = await client.getSessionToken('profile', profileId.toString());
+        if (sessionToken != null) {
+          debugPrint('UPLOAD DEBUG: Found session token for profile $profileId');
+          request.headers['X-Access-Session-Token'] = sessionToken;
+        } else {
+          debugPrint('UPLOAD DEBUG: No session token found for profile $profileId (using main JWT)');
+        }
       }
       if (allowDuplicate) {
         request.fields['allow_duplicate'] = 'true';

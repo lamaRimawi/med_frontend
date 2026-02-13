@@ -23,7 +23,6 @@ import 'package:mediScan/models/extracted_report_data.dart';
 import 'package:mediScan/models/uploaded_file.dart';
 import 'package:mediScan/config/api_config.dart';
 import 'package:mediScan/models/profile_model.dart';
-import 'package:mediScan/widgets/profile_selector.dart';
 import 'package:mediScan/screens/family_management_screen.dart';
 import 'package:mediScan/services/vlm_service.dart';
 import 'package:mediScan/services/profile_state_service.dart';
@@ -346,19 +345,27 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
     });
   }
 
-  void _handleProcess({bool allowDuplicate = false}) {
-    setState(() {
-      viewMode = ViewMode.processing;
-      processingProgress = 0;
-      processingStatus = 'Initializing...';
-    });
+  Future<void> _handleProcess({bool allowDuplicate = false}) async {
+    // ALWAYS fetch the latest selected profile from the global state right before processing
+    // to ensure we are uploading to the correct account even if switched recently.
+    final currentProfile = await ProfileStateService().getSelectedProfile();
+    
+    if (mounted) {
+      setState(() {
+        selectedProfile = currentProfile;
+        viewMode = ViewMode.processing;
+        processingProgress = 0;
+        processingStatus = 'Initializing...';
+      });
+    }
 
     if (capturedItems.isNotEmpty) {
-      debugPrint('Starting processing with streaming for ${capturedItems.length} files');
+      final profileId = selectedProfile?.id;
+      debugPrint('UPLOAD DEBUG: Starting processing for profile: ${selectedProfile?.fullName} (ID: $profileId)');
       
       VlmService.extractFromImagesStreamed(
         capturedItems.map((e) => e.path).toList(),
-        profileId: selectedProfile?.id,
+        profileId: profileId,
         allowDuplicate: allowDuplicate,
         onProgress: (status, percent) {
           if (!mounted) return;
@@ -1394,43 +1401,41 @@ class _CameraUploadScreenState extends State<CameraUploadScreen>
               },
             ),
           ),
-          // Profile Selector Integration
-          if (_hasMultipleProfiles)
+          // Profile Selector Integration - REMOVED as per user request
+          // Upload will now automatically use the globally selected profile
+          if (_hasMultipleProfiles && selectedProfile != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Upload for Profile',
-                        style: TextStyle(
-                          color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      TextButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const FamilyManagementScreen()),
-                          );
-                        },
-                        icon: const Icon(LucideIcons.users, size: 14),
-                        label: const Text('Manage Family', style: TextStyle(fontSize: 12)),
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                      ),
-                    ],
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: (widget.isDarkMode ? Colors.blue[900] : Colors.blue[50])?.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.blue.withOpacity(0.2),
                   ),
-                  const SizedBox(height: 8),
-                ],
+                ),
+                child: Row(
+                  children: [
+                    Icon(LucideIcons.user, size: 16, color: Colors.blue[400]),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Uploading to: ',
+                      style: TextStyle(
+                        color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                        fontSize: 13,
+                      ),
+                    ),
+                    Text(
+                      selectedProfile?.fullName ?? '',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Color(0xFF39A4E6),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           Padding(

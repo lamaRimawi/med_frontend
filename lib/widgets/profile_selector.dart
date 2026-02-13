@@ -27,6 +27,21 @@ class _ProfileSelectorState extends State<ProfileSelector> {
     _loadProfiles();
   }
 
+  @override
+  void didUpdateWidget(ProfileSelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialProfile?.id != oldWidget.initialProfile?.id && 
+        widget.initialProfile != null && 
+        _profiles.isNotEmpty) {
+      setState(() {
+        _selectedProfile = _profiles.firstWhere(
+          (p) => p.id == widget.initialProfile!.id,
+          orElse: () => _selectedProfile ?? _profiles.first,
+        );
+      });
+    }
+  }
+
   Future<void> _loadProfiles() async {
     try {
       final profiles = await ProfileService.getProfiles();

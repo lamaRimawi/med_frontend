@@ -353,6 +353,7 @@ class ApiClient {
     String path, {
     required List<String> filePaths,
     Map<String, String>? fields,
+    Map<String, String>? extraHeaders,
     bool auth = false,
   }) async {
     final request = http.MultipartRequest('POST', _uri(path));
@@ -362,6 +363,10 @@ class ApiClient {
       if (token != null && token.isNotEmpty) {
         request.headers['Authorization'] = 'Bearer $token';
       }
+    }
+
+    if (extraHeaders != null) {
+      request.headers.addAll(extraHeaders);
     }
 
     if (fields != null) {
